@@ -2,6 +2,7 @@
   "name": "transcend",
   "private": true,
   "scripts": {
+    "clean": "git clean -xdf .cache .expo .turbo android ios node_modules",
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
