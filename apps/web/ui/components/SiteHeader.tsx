@@ -1,4 +1,4 @@
- "use client";
+"use client";
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -6,8 +6,7 @@ import { cn } from "../lib/cn";
 
 type MenuKey = "articles" | "apps";
 
-type NavItem =
-  | { kind: "link"; href: string; label: string; meta?: string };
+type NavItem = { kind: "link"; href: string; label: string; meta?: string };
 
 const ARTICLES: NavItem[] = [
   {
@@ -150,5 +149,3 @@ export function SiteHeader() {
     </header>
   );
 }
-
-

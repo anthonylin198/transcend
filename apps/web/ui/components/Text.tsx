@@ -14,8 +14,7 @@ const TYPE_STYLES: Record<TextType, string> = {
     "font-[var(--font-geist-mono)] text-[11px] tracking-[0.14em] uppercase text-zinc-600 dark:text-zinc-400",
   "heading-1":
     "font-[var(--font-body)] text-[36px] leading-[1.35] tracking-[0.01em] font-medium text-(--foreground) sm:text-[36px]",
-  lede:
-    "font-[var(--font-body)] text-[20px] leading-[1.65] tracking-[0.005em] text-zinc-700 dark:text-zinc-300",
+  lede: "font-[var(--font-body)] text-[20px] leading-[1.65] tracking-[0.005em] text-zinc-700 dark:text-zinc-300",
   "heading-2":
     "font-[var(--font-heading)] text-[20px] leading-[1.35] tracking-[0.005em] font-normal text-(--foreground)",
   body: "font-[var(--font-body)] text-[16px] leading-[1.8] text-zinc-700 dark:text-zinc-300",
@@ -47,8 +46,8 @@ export function Text<T extends ElementType = ElementType>({
 }: TextProps<T>) {
   const Component = (as ?? DEFAULT_ELEMENT[type]) as ElementType;
   return (
-    <Component className={cn(TYPE_STYLES[type], className)}>{children}</Component>
+    <Component className={cn(TYPE_STYLES[type], className)}>
+      {children}
+    </Component>
   );
 }
-
-
