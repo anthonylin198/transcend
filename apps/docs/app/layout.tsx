@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { Lora } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
+const lora = Lora({
+  subsets: ["latin"],
   variable: "--font-geist-sans",
+  display: "swap",
 });
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
@@ -23,7 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body className={`${lora.variable} ${geistMono.variable}`}>
         {children}
       </body>
     </html>

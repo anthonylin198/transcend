@@ -19,6 +19,9 @@ body {
 body {
   color: var(--foreground);
   background: var(--background);
+  font-family:
+    var(--font-body), ui-serif, Georgia, Cambria, "Times New Roman", Times,
+    serif;
 }
 
 * {
