@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -19,17 +21,19 @@ body {
 body {
   color: var(--foreground);
   background: var(--background);
+  font-family:
+    var(--font-body), ui-serif, Georgia, Cambria, "Times New Roman", Times,
+    serif;
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
-  padding: 0;
-  margin: 0;
 }
 
 a {
   color: inherit;
-  text-decoration: none;
 }
 
 .imgDark {
