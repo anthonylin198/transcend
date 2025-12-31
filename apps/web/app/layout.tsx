@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Lora, Playfair_Display } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
+import { SiteHeader } from "../ui/components/SiteHeader";
 
 const lora = Lora({
   subsets: ["latin"],
@@ -36,7 +37,8 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`${lora.variable} ${playfairDisplay.variable} ${geistMono.variable}`}
       >
-        {children}
+        <SiteHeader />
+        <div className="pt-12 sm:pt-14">{children}</div>
       </body>
     </html>
   );
