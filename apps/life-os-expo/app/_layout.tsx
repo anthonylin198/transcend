@@ -26,7 +26,7 @@ export default function RootLayout() {
 
   return (
     <ConvexProvider client={convexClient}>
-      <Stack />
+      <Stack screenOptions={{ headerShown: false }} />
     </ConvexProvider>
   );
 }
