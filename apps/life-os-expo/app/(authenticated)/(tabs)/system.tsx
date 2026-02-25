@@ -1,4 +1,5 @@
-import { Text, View } from "react-native";
+import Text from "@/components/ui/Text";
+import { View } from "react-native";
 
 export default function SystemScreen() {
   return (
@@ -11,7 +12,7 @@ export default function SystemScreen() {
         padding: 24,
       }}
     >
-      <Text style={{ color: "white", fontSize: 20, fontWeight: "600" }}>
+      <Text type="heading-4">
         System
       </Text>
     </View>

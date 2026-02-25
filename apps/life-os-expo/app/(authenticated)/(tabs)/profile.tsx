@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
-import { Pressable, Text, View } from "react-native";
+import Text from "@/components/ui/Text";
+import { Pressable, View } from "react-native";
 
 export default function ProfileScreen() {
   const { signOut } = useAuthActions();
@@ -27,7 +28,7 @@ export default function ProfileScreen() {
         gap: 16,
       }}
     >
-      <Text style={{ color: "white", fontSize: 20, fontWeight: "600" }}>
+      <Text type="heading-4">
         Profile
       </Text>
       <Pressable
@@ -41,7 +42,7 @@ export default function ProfileScreen() {
           opacity: submitting ? 0.6 : 1,
         }}
       >
-        <Text style={{ color: "black", fontWeight: "600" }}>
+        <Text type="text-semibold" color="black">
           {submitting ? "Signing out..." : "Sign out"}
         </Text>
       </Pressable>

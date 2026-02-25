@@ -1,8 +1,15 @@
 import { ConvexAuthProvider, useAuthToken } from "@convex-dev/auth/react";
+import {
+  DMSans_400Regular,
+  DMSans_500Medium,
+  DMSans_600SemiBold,
+} from "@expo-google-fonts/dm-sans";
 import * as SecureStore from "expo-secure-store";
+import { useFonts } from "expo-font";
 import { ConvexReactClient } from "@transcend/convex";
 import { Stack } from "expo-router";
-import { Platform, Text, View } from "react-native";
+import { Platform, View } from "react-native";
+import Text from "@/components/ui/Text";
 
 const convexUrl = process.env.EXPO_PUBLIC_CONVEX_URL;
 const convexClient = convexUrl ? new ConvexReactClient(convexUrl) : null;
@@ -29,6 +36,12 @@ function AppRouter() {
 }
 
 export default function RootLayout() {
+  const [fontsLoaded] = useFonts({
+    DMSans_400Regular,
+    DMSans_500Medium,
+    DMSans_600SemiBold,
+  });
+
   if (!convexClient) {
     return (
       <View
@@ -39,12 +52,16 @@ export default function RootLayout() {
           padding: 24,
         }}
       >
-        <Text>
+        <Text color="#111827">
           Missing EXPO_PUBLIC_CONVEX_URL. Add it to your env so the app can
           connect to Convex.
         </Text>
       </View>
     );
+  }
+
+  if (!fontsLoaded) {
+    return null;
   }
 
   return (

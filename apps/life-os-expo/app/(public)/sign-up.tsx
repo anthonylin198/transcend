@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Link } from "expo-router";
 import { useAuthActions } from "@convex-dev/auth/react";
+import Text from "@/components/ui/Text";
 import {
   ActivityIndicator,
   Pressable,
-  Text,
   TextInput,
   View,
 } from "react-native";
@@ -73,10 +73,10 @@ export default function SignUpScreen() {
         gap: 12,
       }}
     >
-      <Text style={{ color: "white", fontSize: 28, fontWeight: "700" }}>
+      <Text type="heading-3">
         Sign up
       </Text>
-      <Text style={{ color: "#9CA3AF", marginBottom: 12 }}>
+      <Text type="text-regular" color="#9CA3AF" style={{ marginBottom: 12 }}>
         Create an account with email and password.
       </Text>
 
@@ -116,7 +116,11 @@ export default function SignUpScreen() {
         }}
       />
 
-      {error ? <Text style={{ color: "#FCA5A5" }}>{error}</Text> : null}
+      {error ? (
+        <Text type="text-regular" color="#FCA5A5">
+          {error}
+        </Text>
+      ) : null}
 
       <Pressable
         onPress={() => void onSubmit()}
@@ -133,16 +137,18 @@ export default function SignUpScreen() {
         {submitting ? (
           <ActivityIndicator color="black" />
         ) : (
-          <Text style={{ color: "black", fontWeight: "600", fontSize: 16 }}>
+          <Text type="text-semibold" color="black">
             Create account
           </Text>
         )}
       </Pressable>
 
       <View style={{ flexDirection: "row", marginTop: 8 }}>
-        <Text style={{ color: "#9CA3AF" }}>Already have an account? </Text>
-        <Link href="/(public)/sign-in" style={{ color: "white" }}>
-          Sign in
+        <Text type="text-regular" color="#9CA3AF">
+          Already have an account?{" "}
+        </Text>
+        <Link href="/(public)/sign-in">
+          <Text type="text-medium">Sign in</Text>
         </Link>
       </View>
     </View>

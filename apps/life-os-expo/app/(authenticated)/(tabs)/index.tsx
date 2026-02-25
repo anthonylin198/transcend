@@ -1,21 +1,22 @@
 import { api, useQuery } from "@transcend/convex";
-import { Text, View } from "react-native";
+import Text from "@/components/ui/Text";
+import { View } from "react-native";
 
 function TasksList() {
   const tasks = useQuery(api.tasks.get, {});
 
   if (tasks === undefined) {
-    return <Text style={{ color: "white" }}>Loading tasks...</Text>;
+    return <Text type="text-regular">Loading tasks...</Text>;
   }
 
   if (tasks.length === 0) {
-    return <Text style={{ color: "white" }}>No tasks found.</Text>;
+    return <Text type="text-regular">No tasks found.</Text>;
   }
 
   return (
     <View style={{ gap: 6 }}>
       {tasks.map((task) => (
-        <Text key={task._id} style={{ color: "white" }}>
+        <Text key={task._id} type="text-regular">
           {task.isCompleted ? "✅" : "⬜️"} {task.text}
         </Text>
       ))}
@@ -35,7 +36,7 @@ export default function HomeScreen() {
         padding: 24,
       }}
     >
-      <Text style={{ color: "white", fontSize: 20, fontWeight: "600" }}>
+      <Text type="heading-1">
         Home
       </Text>
       <TasksList />
