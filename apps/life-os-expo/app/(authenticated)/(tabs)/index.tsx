@@ -36,9 +36,7 @@ export default function HomeScreen() {
         padding: 24,
       }}
     >
-      <Text type="heading-1">
-        Home
-      </Text>
+      <Text type="heading-1">Home</Text>
       <TasksList />
     </View>
   );

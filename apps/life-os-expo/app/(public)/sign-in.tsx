@@ -2,12 +2,7 @@ import { useState } from "react";
 import { Link } from "expo-router";
 import { useAuthActions } from "@convex-dev/auth/react";
 import Text from "@/components/ui/Text";
-import {
-  ActivityIndicator,
-  Pressable,
-  TextInput,
-  View,
-} from "react-native";
+import { ActivityIndicator, Pressable, TextInput, View } from "react-native";
 
 function getSignInErrorMessage(error: unknown) {
   const message =
@@ -66,9 +61,7 @@ export default function SignInScreen() {
         gap: 12,
       }}
     >
-      <Text type="heading-3">
-        Sign in
-      </Text>
+      <Text type="heading-3">Sign in</Text>
       <Text type="text-regular" color="#9CA3AF" style={{ marginBottom: 12 }}>
         Enter your email and password to continue.
       </Text>

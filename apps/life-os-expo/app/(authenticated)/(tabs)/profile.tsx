@@ -28,9 +28,7 @@ export default function ProfileScreen() {
         gap: 16,
       }}
     >
-      <Text type="heading-4">
-        Profile
-      </Text>
+      <Text type="heading-4">Profile</Text>
       <Pressable
         onPress={() => void onSignOut()}
         disabled={submitting}

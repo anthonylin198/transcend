@@ -12,9 +12,7 @@ export default function SystemScreen() {
         padding: 24,
       }}
     >
-      <Text type="heading-4">
-        System
-      </Text>
+      <Text type="heading-4">System</Text>
     </View>
   );
 }

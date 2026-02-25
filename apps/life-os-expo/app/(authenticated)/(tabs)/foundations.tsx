@@ -12,9 +12,7 @@ export default function FoundationsScreen() {
         padding: 24,
       }}
     >
-      <Text type="heading-4">
-        Foundations
-      </Text>
+      <Text type="heading-4">Foundations</Text>
     </View>
   );
 }
