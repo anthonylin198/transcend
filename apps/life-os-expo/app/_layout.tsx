@@ -1,9 +1,32 @@
-import { ConvexProvider, ConvexReactClient } from "convex/react";
+import { ConvexAuthProvider, useAuthToken } from "@convex-dev/auth/react";
+import * as SecureStore from "expo-secure-store";
+import { ConvexReactClient } from "convex/react";
 import { Stack } from "expo-router";
-import { Text, View } from "react-native";
+import { Platform, Text, View } from "react-native";
 
 const convexUrl = process.env.EXPO_PUBLIC_CONVEX_URL;
 const convexClient = convexUrl ? new ConvexReactClient(convexUrl) : null;
+const secureStorage = {
+  getItem: SecureStore.getItemAsync,
+  setItem: SecureStore.setItemAsync,
+  removeItem: SecureStore.deleteItemAsync,
+};
+
+function AppRouter() {
+  const token = useAuthToken();
+  const isAuthenticated = token !== null;
+
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Protected guard={!isAuthenticated}>
+        <Stack.Screen name="(public)" />
+      </Stack.Protected>
+      <Stack.Protected guard={isAuthenticated}>
+        <Stack.Screen name="(authenticated)" />
+      </Stack.Protected>
+    </Stack>
+  );
+}
 
 export default function RootLayout() {
   if (!convexClient) {
@@ -25,8 +48,15 @@ export default function RootLayout() {
   }
 
   return (
-    <ConvexProvider client={convexClient}>
-      <Stack screenOptions={{ headerShown: false }} />
-    </ConvexProvider>
+    <ConvexAuthProvider
+      client={convexClient}
+      storage={
+        Platform.OS === "android" || Platform.OS === "ios"
+          ? secureStorage
+          : undefined
+      }
+    >
+      <AppRouter />
+    </ConvexAuthProvider>
   );
 }

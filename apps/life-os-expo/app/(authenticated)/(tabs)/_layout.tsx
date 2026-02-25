@@ -107,7 +107,7 @@ export default function TabLayout() {
         }}
       >
         <Image
-          source={require("../../assets/images/pencil.png")}
+          source={require("../../../assets/images/pencil.png")}
           style={{ width: 36, height: 36 }}
         />
       </TouchableOpacity>

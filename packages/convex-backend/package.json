@@ -9,10 +9,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@auth/core": "^0.37.0",
+    "@convex-dev/auth": "^0.0.90",
     "convex": "^1.25.0",
     "openai": "^4.45.0"
   },
-   "devDependencies": {
+  "devDependencies": {
     "typescript": "5.8.3"
   }
 }
