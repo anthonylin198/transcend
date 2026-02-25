@@ -2,6 +2,8 @@
   "name": "@transcend/convex",
   "version": "1.0.0",
   "description": "",
+  "main": "index.ts",
+  "types": "index.ts",
   "scripts": {
     "dev": "convex dev",
     "setup": "convex dev --until-success"

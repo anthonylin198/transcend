@@ -1,6 +1,6 @@
 import { ConvexAuthProvider, useAuthToken } from "@convex-dev/auth/react";
 import * as SecureStore from "expo-secure-store";
-import { ConvexReactClient } from "convex/react";
+import { ConvexReactClient } from "@transcend/convex";
 import { Stack } from "expo-router";
 import { Platform, Text, View } from "react-native";
 

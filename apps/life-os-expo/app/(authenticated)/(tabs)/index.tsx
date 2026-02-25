@@ -1,6 +1,5 @@
-import { useQuery } from "convex/react";
+import { api, useQuery } from "@transcend/convex";
 import { Text, View } from "react-native";
-import { api } from "@transcend/convex/convex/_generated/api";
 
 function TasksList() {
   const tasks = useQuery(api.tasks.get, {});
