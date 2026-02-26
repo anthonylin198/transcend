@@ -1,4 +1,5 @@
-import { ConvexAuthProvider, useAuthToken } from "@convex-dev/auth/react";
+import { useEffect } from "react";
+import { ConvexAuthProvider } from "@convex-dev/auth/react";
 import {
   DMSans_400Regular,
   DMSans_500Medium,
@@ -7,9 +8,10 @@ import {
 import * as SecureStore from "expo-secure-store";
 import { useFonts } from "expo-font";
 import { ConvexReactClient } from "@transcend/convex";
-import { Stack } from "expo-router";
+import { SplashScreen, Stack } from "expo-router";
 import { Platform, View } from "react-native";
 import Text from "@/components/ui/Text";
+import { useAuthBootstrap } from "@/hooks/useAuthBootstrap";
 
 const convexUrl = process.env.EXPO_PUBLIC_CONVEX_URL;
 const convexClient = convexUrl ? new ConvexReactClient(convexUrl) : null;
@@ -19,12 +21,27 @@ const secureStorage = {
   removeItem: SecureStore.deleteItemAsync,
 };
 
-function AppRouter() {
-  const token = useAuthToken();
-  const isAuthenticated = token !== null;
+void SplashScreen.preventAutoHideAsync().catch(() => {
+  // Ignore if splash is already controlled.
+});
+
+function AppRouter({ loadedFonts }: { loadedFonts: boolean }) {
+  const { bootReady, isAuthenticated } = useAuthBootstrap();
+
+  useEffect(() => {
+    if (bootReady && loadedFonts) {
+      void SplashScreen.hideAsync().catch(() => {
+        // Ignore if splash is already hidden.
+      });
+    }
+  }, [bootReady, loadedFonts]);
+
+  if (!bootReady || !loadedFonts) {
+    return null;
+  }
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack screenOptions={{ headerShown: false, animation: "none" }}>
       <Stack.Protected guard={!isAuthenticated}>
         <Stack.Screen name="(public)" />
       </Stack.Protected>
@@ -60,10 +77,6 @@ export default function RootLayout() {
     );
   }
 
-  if (!fontsLoaded) {
-    return null;
-  }
-
   return (
     <ConvexAuthProvider
       client={convexClient}
@@ -73,7 +86,7 @@ export default function RootLayout() {
           : undefined
       }
     >
-      <AppRouter />
+      <AppRouter loadedFonts={fontsLoaded} />
     </ConvexAuthProvider>
   );
 }

@@ -30,6 +30,12 @@
     "plugins": [
       "expo-router",
       [
+        "expo-calendar",
+        {
+          "calendarPermission": "Allow lifeOS to access your calendar so we can show today's upcoming events."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",

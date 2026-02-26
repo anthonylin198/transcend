@@ -1,11 +1,13 @@
+import { useMemo } from "react";
+import { api, useQuery } from "@transcend/convex";
+import PagerView from "react-native-pager-view";
+import CalendarSection from "@/components/home/components/calendar/CalendarSection";
+import {
+  getDateKey,
+  useCalendarEvents,
+} from "@/components/home/hooks/useCalendarEvents";
 import Text from "@/components/ui/Text";
 import { Pressable, ScrollView, View } from "react-native";
-
-const calendarItems = [
-  { time: "8:00 AM", title: "Morning deep work", status: "upcoming" },
-  { time: "12:00 PM", title: "Lunch + walk", status: "upcoming" },
-  { time: "6:30 PM", title: "Triathlon training", status: "upcoming" },
-] as const;
 
 const priorities = [
   "Amex card Trisha follow up",
@@ -22,6 +24,44 @@ const habits = [
   "Evening stretch routine",
   "Electronics off at 9pm and prep for next day workout",
 ];
+
+const DAY_WINDOW = 7;
+
+function toStartOfDay(value: Date) {
+  const date = new Date(value);
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+function addDays(value: Date, amount: number) {
+  const date = new Date(value);
+  date.setDate(date.getDate() + amount);
+  return date;
+}
+
+function isSameDay(left: Date, right: Date) {
+  return (
+    left.getFullYear() === right.getFullYear() &&
+    left.getMonth() === right.getMonth() &&
+    left.getDate() === right.getDate()
+  );
+}
+
+function getGreeting(value: Date, today: Date) {
+  if (isSameDay(value, today)) {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 17) return "Good afternoon";
+    return "Good evening";
+  }
+
+  const yesterday = addDays(today, -1);
+  const tomorrow = addDays(today, 1);
+  if (isSameDay(value, yesterday)) return "Yesterday";
+  if (isSameDay(value, tomorrow)) return "Tomorrow";
+
+  return new Intl.DateTimeFormat(undefined, { weekday: "long" }).format(value);
+}
 
 function ChecklistItem({ text }: { text: string }) {
   return (
@@ -41,78 +81,116 @@ function ChecklistItem({ text }: { text: string }) {
 }
 
 export default function HomeScreen() {
+  const homeBootstrap = useQuery(api.home.bootstrap, {});
+
+  const canShowCalendar = homeBootstrap?.profile?.calendarSyncEnabled ?? false;
+
+  const today = useMemo(() => toStartOfDay(new Date()), []);
+  const days = useMemo(
+    () =>
+      Array.from({ length: DAY_WINDOW * 2 + 1 }, (_, index) =>
+        addDays(today, index - DAY_WINDOW),
+      ),
+    [today],
+  );
+  const initialPage = DAY_WINDOW;
+  const calendarRangeStart = days[0] ?? today;
+  const calendarRangeEnd = days[days.length - 1] ?? today;
+  const { eventsByDay, loadingCalendar } = useCalendarEvents({
+    startDate: calendarRangeStart,
+    endDate: calendarRangeEnd,
+  });
+
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>
-      <ScrollView
-        style={{
-          flex: 1,
-          backgroundColor: "black",
-        }}
-        contentContainerStyle={{ padding: 20, paddingBottom: 150, gap: 24 }}
-      >
-        <View style={{ alignItems: "center", marginTop: 28, gap: 4 }}>
-          <Text type="heading-4" color="#E5E7EB">
-            Good evening
-          </Text>
-          <Text type="text-medium" color="#9CA3AF">
-            Tue · February 24
-          </Text>
-        </View>
+      <PagerView style={{ flex: 1 }} initialPage={initialPage}>
+        {days.map((day) => {
+          const dayGreeting = getGreeting(day, today);
+          const dayDateLabel = new Intl.DateTimeFormat(undefined, {
+            weekday: "short",
+            month: "long",
+            day: "numeric",
+          }).format(day);
+          const dayEvents = eventsByDay[getDateKey(day)] ?? [];
 
-        <View style={{ gap: 8 }}>
-          <Text type="heading-4" color="#E5E7EB" style={{ lineHeight: 30 }}>
-            A good life is built in small, repeated choices.
-          </Text>
-        </View>
-
-        <View style={{ gap: 10 }}>
-          <Text type="heading-4" color="#9CA3AF">
-            Calendar
-          </Text>
-          <View style={{ gap: 10 }}>
-            {calendarItems.map((item) => (
-              <Text key={`${item.time}-${item.title}`} type="text-regular">
-                {item.time} - {item.title}
-              </Text>
-            ))}
-          </View>
-          {/* Future behavior: show only today's upcoming items by default. */}
-          {/* If an event end-time passes and it's still incomplete, render crossed-out + faded. */}
-          {/* Completed events should use explicit "done" state, not just time-passed state. */}
-        </View>
-
-        <View style={{ gap: 14 }}>
-          <Text type="heading-4" color="#9CA3AF">
-            Priorities
-          </Text>
-          <View style={{ gap: 14 }}>
-            {priorities.map((item) => (
-              <ChecklistItem key={item} text={item} />
-            ))}
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
+          return (
+            <ScrollView
+              key={day.toISOString()}
+              style={{
+                flex: 1,
+                backgroundColor: "black",
+              }}
+              contentContainerStyle={{
+                padding: 20,
+                paddingBottom: 150,
+                gap: 24,
+              }}
             >
-              <Text type="heading-3" color="#9CA3AF">
-                +
-              </Text>
-              <Text type="text-medium" color="#9CA3AF">
-                Quick add
-              </Text>
-            </View>
-          </View>
-        </View>
+              <View style={{ alignItems: "center", marginTop: 28, gap: 4 }}>
+                <Text type="heading-4" color="#E5E7EB">
+                  {dayGreeting}
+                </Text>
+                <Text type="text-medium" color="#9CA3AF">
+                  {dayDateLabel}
+                </Text>
+              </View>
 
-        <View style={{ gap: 14 }}>
-          <Text type="heading-4" color="#9CA3AF">
-            Habits
-          </Text>
-          <View style={{ gap: 14 }}>
-            {habits.map((item) => (
-              <ChecklistItem key={item} text={item} />
-            ))}
-          </View>
-        </View>
-      </ScrollView>
+              <View style={{ gap: 8 }}>
+                <Text
+                  type="heading-4"
+                  color="#E5E7EB"
+                  style={{ lineHeight: 30 }}
+                >
+                  A good life is built in small, repeated choices.
+                </Text>
+              </View>
+
+              {canShowCalendar ? (
+                <CalendarSection
+                  calendarEvents={dayEvents}
+                  loadingCalendar={loadingCalendar}
+                />
+              ) : null}
+
+              <View style={{ gap: 14 }}>
+                <Text type="heading-4" color="#9CA3AF">
+                  Priorities
+                </Text>
+                <View style={{ gap: 14 }}>
+                  {priorities.map((item) => (
+                    <ChecklistItem key={item} text={item} />
+                  ))}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 12,
+                    }}
+                  >
+                    <Text type="heading-3" color="#9CA3AF">
+                      +
+                    </Text>
+                    <Text type="text-medium" color="#9CA3AF">
+                      Quick add
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              <View style={{ gap: 14 }}>
+                <Text type="heading-4" color="#9CA3AF">
+                  Habits
+                </Text>
+                <View style={{ gap: 14 }}>
+                  {habits.map((item) => (
+                    <ChecklistItem key={item} text={item} />
+                  ))}
+                </View>
+              </View>
+            </ScrollView>
+          );
+        })}
+      </PagerView>
 
       <View
         style={{
