@@ -1,13 +1,9 @@
 import { useState } from "react";
 import { Link } from "expo-router";
 import { useAuthActions } from "@convex-dev/auth/react";
-import {
-  ActivityIndicator,
-  Pressable,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { api, useMutation } from "@transcend/convex";
+import Text from "@/components/ui/Text";
+import { ActivityIndicator, Pressable, TextInput, View } from "react-native";
 
 function getSignUpErrorMessage(error: unknown) {
   const message =
@@ -36,6 +32,7 @@ function getSignUpErrorMessage(error: unknown) {
 
 export default function SignUpScreen() {
   const { signIn } = useAuthActions();
+  const ensureProfile = useMutation(api.profile.ensureProfile);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -56,6 +53,7 @@ export default function SignUpScreen() {
       formData.append("password", password);
       formData.append("flow", "signUp");
       await signIn("password", formData);
+      await ensureProfile({});
     } catch (error) {
       setError(getSignUpErrorMessage(error));
     } finally {
@@ -73,10 +71,8 @@ export default function SignUpScreen() {
         gap: 12,
       }}
     >
-      <Text style={{ color: "white", fontSize: 28, fontWeight: "700" }}>
-        Sign up
-      </Text>
-      <Text style={{ color: "#9CA3AF", marginBottom: 12 }}>
+      <Text type="heading-3">Sign up</Text>
+      <Text type="text-regular" color="#9CA3AF" style={{ marginBottom: 12 }}>
         Create an account with email and password.
       </Text>
 
@@ -116,7 +112,11 @@ export default function SignUpScreen() {
         }}
       />
 
-      {error ? <Text style={{ color: "#FCA5A5" }}>{error}</Text> : null}
+      {error ? (
+        <Text type="text-regular" color="#FCA5A5">
+          {error}
+        </Text>
+      ) : null}
 
       <Pressable
         onPress={() => void onSubmit()}
@@ -133,16 +133,18 @@ export default function SignUpScreen() {
         {submitting ? (
           <ActivityIndicator color="black" />
         ) : (
-          <Text style={{ color: "black", fontWeight: "600", fontSize: 16 }}>
+          <Text type="text-semibold" color="black">
             Create account
           </Text>
         )}
       </Pressable>
 
       <View style={{ flexDirection: "row", marginTop: 8 }}>
-        <Text style={{ color: "#9CA3AF" }}>Already have an account? </Text>
-        <Link href="/(public)/sign-in" style={{ color: "white" }}>
-          Sign in
+        <Text type="text-regular" color="#9CA3AF">
+          Already have an account?{" "}
+        </Text>
+        <Link href="/(public)/sign-in">
+          <Text type="text-medium">Sign in</Text>
         </Link>
       </View>
     </View>

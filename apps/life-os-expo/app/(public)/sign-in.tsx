@@ -1,13 +1,8 @@
 import { useState } from "react";
 import { Link } from "expo-router";
 import { useAuthActions } from "@convex-dev/auth/react";
-import {
-  ActivityIndicator,
-  Pressable,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import Text from "@/components/ui/Text";
+import { ActivityIndicator, Pressable, TextInput, View } from "react-native";
 
 function getSignInErrorMessage(error: unknown) {
   const message =
@@ -66,10 +61,8 @@ export default function SignInScreen() {
         gap: 12,
       }}
     >
-      <Text style={{ color: "white", fontSize: 28, fontWeight: "700" }}>
-        Sign in
-      </Text>
-      <Text style={{ color: "#9CA3AF", marginBottom: 12 }}>
+      <Text type="heading-3">Sign in</Text>
+      <Text type="text-regular" color="#9CA3AF" style={{ marginBottom: 12 }}>
         Enter your email and password to continue.
       </Text>
 
@@ -109,7 +102,11 @@ export default function SignInScreen() {
         }}
       />
 
-      {error ? <Text style={{ color: "#FCA5A5" }}>{error}</Text> : null}
+      {error ? (
+        <Text type="text-regular" color="#FCA5A5">
+          {error}
+        </Text>
+      ) : null}
 
       <Pressable
         onPress={() => void onSubmit()}
@@ -126,16 +123,18 @@ export default function SignInScreen() {
         {submitting ? (
           <ActivityIndicator color="black" />
         ) : (
-          <Text style={{ color: "black", fontWeight: "600", fontSize: 16 }}>
+          <Text type="text-semibold" color="black">
             Sign in
           </Text>
         )}
       </Pressable>
 
       <View style={{ flexDirection: "row", marginTop: 8 }}>
-        <Text style={{ color: "#9CA3AF" }}>Need an account? </Text>
-        <Link href="/(public)/sign-up" style={{ color: "white" }}>
-          Sign up
+        <Text type="text-regular" color="#9CA3AF">
+          Need an account?{" "}
+        </Text>
+        <Link href="/(public)/sign-up">
+          <Text type="text-medium">Sign up</Text>
         </Link>
       </View>
     </View>

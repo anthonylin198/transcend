@@ -3,6 +3,7 @@ import * as Font from "expo-font";
 import * as Haptics from "expo-haptics";
 import { Tabs, usePathname } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { appFonts } from "@/constants/fonts";
 import { Image, TouchableOpacity, View } from "react-native";
 
 export default function TabLayout() {
@@ -27,6 +28,7 @@ export default function TabLayout() {
         screenOptions={{
           tabBarActiveTintColor: "white",
           tabBarInactiveTintColor: "#9CA3AF",
+          tabBarLabelStyle: { fontFamily: appFonts.regular },
           headerShown: false,
           tabBarStyle: {
             borderTopWidth: 0,
@@ -73,7 +75,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="profile"
           options={{
-            title: "Profile",
+            title: "You",
             tabBarIcon: ({ color }) => (
               <Ionicons size={24} name="person" color={color} />
             ),

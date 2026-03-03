@@ -1,4 +1,5 @@
-import { Text, View } from "react-native";
+import Text from "@/components/ui/Text";
+import { View } from "react-native";
 
 export default function FoundationsScreen() {
   return (
@@ -11,9 +12,7 @@ export default function FoundationsScreen() {
         padding: 24,
       }}
     >
-      <Text style={{ color: "white", fontSize: 20, fontWeight: "600" }}>
-        Foundations
-      </Text>
+      <Text type="heading-4">Foundations</Text>
     </View>
   );
 }
