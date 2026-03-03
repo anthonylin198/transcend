@@ -42,7 +42,9 @@ export default function CalendarSection({
                 key={item.id}
                 type="text-regular"
                 color={isPast ? "#6B7280" : "#D1D5DB"}
-                style={isPast ? { textDecorationLine: "line-through" } : undefined}
+                style={
+                  isPast ? { textDecorationLine: "line-through" } : undefined
+                }
               >
                 {timeLabel} - {item.title}
               </Text>

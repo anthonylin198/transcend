@@ -38,8 +38,10 @@ function overlapsDay(
   dayStart: Date,
   dayEnd: Date,
 ) {
-  return eventStart.getTime() <= dayEnd.getTime() &&
-    eventEnd.getTime() >= dayStart.getTime();
+  return (
+    eventStart.getTime() <= dayEnd.getTime() &&
+    eventEnd.getTime() >= dayStart.getTime()
+  );
 }
 
 export function getDateKey(value: Date) {
@@ -49,10 +51,13 @@ export function getDateKey(value: Date) {
   return `${year}-${month}-${day}`;
 }
 
-export function useCalendarEvents({ startDate, endDate }: UseCalendarEventsArgs) {
-  const [eventsByDay, setEventsByDay] = useState<Record<string, CalendarEventItem[]>>(
-    {},
-  );
+export function useCalendarEvents({
+  startDate,
+  endDate,
+}: UseCalendarEventsArgs) {
+  const [eventsByDay, setEventsByDay] = useState<
+    Record<string, CalendarEventItem[]>
+  >({});
   const [loadingCalendar, setLoadingCalendar] = useState(false);
 
   const loadCalendarEvents = useCallback(async () => {
@@ -64,7 +69,9 @@ export function useCalendarEvents({ startDate, endDate }: UseCalendarEventsArgs)
         return;
       }
 
-      const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
+      const calendars = await Calendar.getCalendarsAsync(
+        Calendar.EntityTypes.EVENT,
+      );
       if (calendars.length === 0) {
         setEventsByDay({});
         return;
@@ -100,7 +107,7 @@ export function useCalendarEvents({ startDate, endDate }: UseCalendarEventsArgs)
         const dayEnd = toEndOfDay(cursor);
         const dayKey = getDateKey(dayStart);
         nextEventsByDay[dayKey] = normalizedEvents.filter((event) =>
-          overlapsDay(event.startsAt, event.endsAt, dayStart, dayEnd)
+          overlapsDay(event.startsAt, event.endsAt, dayStart, dayEnd),
         );
       }
 
