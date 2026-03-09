@@ -13,7 +13,7 @@ export function useAuthBootstrap() {
   if (!authLoading) {
     if (!isAuthenticated) {
       status = "unauthenticated";
-    } else if (homeBootstrap === undefined || homeBootstrap.profile === null) {
+    } else if (homeBootstrap === undefined) {
       status = "loading";
     } else {
       status = "ready";

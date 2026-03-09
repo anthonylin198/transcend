@@ -5,6 +5,7 @@
   "main": "index.ts",
   "types": "index.ts",
   "scripts": {
+    "deploy": "npx convex deploy",
     "dev": "convex dev",
     "setup": "convex dev --until-success"
   },
