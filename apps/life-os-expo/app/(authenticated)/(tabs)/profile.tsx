@@ -3,12 +3,13 @@ import { useAuthActions } from "@convex-dev/auth/react";
 import * as Calendar from "expo-calendar";
 import { api, useMutation, useQuery } from "@transcend/convex";
 import Text from "@/components/ui/Text";
-import { Platform, Pressable, View } from "react-native";
+import { Alert, Platform, Pressable, View } from "react-native";
 
 export default function ProfileScreen() {
   const { signOut } = useAuthActions();
   const [submitting, setSubmitting] = useState(false);
   const [syncingCalendar, setSyncingCalendar] = useState(false);
+  const [calendarError, setCalendarError] = useState<string | null>(null);
   const homeBootstrap = useQuery(api.home.bootstrap, {});
   const setCalendarSyncEnabled = useMutation(
     api.profile.setCalendarSyncEnabled,
@@ -18,10 +19,15 @@ export default function ProfileScreen() {
   const toggleCalendarSync = async () => {
     if (syncingCalendar) return;
     if (Platform.OS !== "ios") {
+      const message =
+        "Calendar sync is only available on iOS. This device cannot connect calendar.";
+      setCalendarError(message);
+      Alert.alert("Calendar Sync Error", message);
       return;
     }
 
     setSyncingCalendar(true);
+    setCalendarError(null);
     try {
       if (calendarEnabled) {
         await setCalendarSyncEnabled({ enabled: false });
@@ -30,7 +36,21 @@ export default function ProfileScreen() {
 
       const permission = await Calendar.requestCalendarPermissionsAsync();
       const granted = permission.status === "granted";
+      if (!granted) {
+        const message =
+          "Calendar permission was denied. Please enable Calendar access in iOS Settings and try again.";
+        setCalendarError(message);
+        Alert.alert("Calendar Permission Required", message);
+      }
       await setCalendarSyncEnabled({ enabled: granted });
+    } catch (error) {
+      const detail =
+        error instanceof Error ? error.message : "Unknown error occurred.";
+      const message =
+        "Failed to update calendar sync. Please check your internet connection and try again.\n\n" +
+        `Details: ${detail}`;
+      setCalendarError(message);
+      Alert.alert("Calendar Sync Failed", message);
     } finally {
       setSyncingCalendar(false);
     }
@@ -91,6 +111,11 @@ export default function ProfileScreen() {
           Calendar not connected.
         </Text>
       )}
+      {calendarError ? (
+        <Text type="text-detail" color="#F87171">
+          {calendarError}
+        </Text>
+      ) : null}
       <Pressable
         onPress={() => void onSignOut()}
         disabled={submitting}
