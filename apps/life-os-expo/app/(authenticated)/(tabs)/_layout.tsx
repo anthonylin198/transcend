@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import * as Font from "expo-font";
 import * as Haptics from "expo-haptics";
-import { Tabs, usePathname } from "expo-router";
+import { Tabs, usePathname, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { appFonts } from "@/constants/fonts";
 import { Image, TouchableOpacity, View } from "react-native";
@@ -9,6 +9,7 @@ import { Image, TouchableOpacity, View } from "react-native";
 export default function TabLayout() {
   const hasMounted = useRef(false);
   const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
     void Font.loadAsync(Ionicons.font);
@@ -87,6 +88,7 @@ export default function TabLayout() {
         activeOpacity={0.8}
         onPress={() => {
           void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          router.push("/(authenticated)/intake/add-item");
         }}
         style={{
           position: "absolute",

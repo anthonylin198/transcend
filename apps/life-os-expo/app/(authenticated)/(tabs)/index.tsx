@@ -1,22 +1,16 @@
 import { useMemo } from "react";
 import { api, useQuery } from "@transcend/convex";
 import PagerView from "react-native-pager-view";
+import { useRouter } from "expo-router";
 import CalendarSection from "@/components/home/components/calendar/CalendarSection";
 import PrioritiesSection from "@/components/home/components/PrioritiesSection";
+import HabitsSection from "@/components/home/components/HabitsSection";
 import {
   getDateKey,
   useCalendarEvents,
 } from "@/components/home/hooks/useCalendarEvents";
 import Text from "@/components/ui/Text";
 import { Pressable, ScrollView, View } from "react-native";
-
-const habits = [
-  "Wake up at 5:30am",
-  "Morning meditation at least 15 mins + journal/read",
-  "Workout",
-  "Evening stretch routine",
-  "Electronics off at 9pm and prep for next day workout",
-];
 
 const DAY_WINDOW = 7;
 
@@ -56,24 +50,8 @@ function getGreeting(value: Date, today: Date) {
   return new Intl.DateTimeFormat(undefined, { weekday: "long" }).format(value);
 }
 
-function ChecklistItem({ text }: { text: string }) {
-  return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-      <View
-        style={{
-          width: 24,
-          height: 24,
-          borderRadius: 12,
-          borderWidth: 2,
-          borderColor: "#E5E7EB",
-        }}
-      />
-      <Text type="text-regular">{text}</Text>
-    </View>
-  );
-}
-
 export default function HomeScreen() {
+  const router = useRouter();
   const today = useMemo(() => toStartOfDay(new Date()), []);
   const days = useMemo(
     () =>
@@ -91,6 +69,8 @@ export default function HomeScreen() {
   });
   const canShowCalendar = homeBootstrap?.profile?.calendarSyncEnabled ?? false;
   const bootstrapPriorities = homeBootstrap?.priorities ?? [];
+  const bootstrapHabits = homeBootstrap?.habits ?? [];
+  const bootstrapHabitCompletions = homeBootstrap?.habitCompletions ?? [];
   const { eventsByDay, loadingCalendar } = useCalendarEvents({
     startDate: calendarRangeStart,
     endDate: calendarRangeEnd,
@@ -153,16 +133,11 @@ export default function HomeScreen() {
                 today={today}
               />
 
-              <View style={{ gap: 14 }}>
-                <Text type="heading-4" color="#9CA3AF">
-                  Habits
-                </Text>
-                <View style={{ gap: 14 }}>
-                  {habits.map((item) => (
-                    <ChecklistItem key={item} text={item} />
-                  ))}
-                </View>
-              </View>
+              <HabitsSection
+                habits={bootstrapHabits}
+                habitCompletions={bootstrapHabitCompletions}
+                selectedDate={day}
+              />
             </ScrollView>
           );
         })}
@@ -179,6 +154,7 @@ export default function HomeScreen() {
         }}
       >
         <Pressable
+          onPress={() => router.push("/(authenticated)/intake")}
           style={{
             borderTopWidth: 1,
             borderTopColor: "#1F2937",

@@ -12,6 +12,8 @@ export const bootstrap = query({
       return {
         profile: null,
         priorities: [],
+        habits: [],
+        habitCompletions: [],
       };
     }
 
@@ -24,11 +26,21 @@ export const bootstrap = query({
       return {
         profile: null,
         priorities: [],
+        habits: [],
+        habitCompletions: [],
       };
     }
 
     const priorities = await ctx.db
       .query("priorities")
+      .withIndex("by_profile_id", (q) => q.eq("profileId", profile._id))
+      .collect();
+    const habits = await ctx.db
+      .query("habits")
+      .withIndex("by_profile_id_order", (q) => q.eq("profileId", profile._id))
+      .collect();
+    const habitCompletions = await ctx.db
+      .query("habitCompletions")
       .withIndex("by_profile_id", (q) => q.eq("profileId", profile._id))
       .collect();
 
@@ -54,6 +66,8 @@ export const bootstrap = query({
     return {
       profile,
       priorities: homePriorities,
+      habits,
+      habitCompletions,
     };
   },
 });

@@ -37,6 +37,43 @@ export default defineSchema({
     .index("by_project_id", ["projectId"])
     .index("by_profile_id_is_active", ["profileId", "isActive"])
     .index("by_profile_id_project_id", ["profileId", "projectId"]),
+  habits: defineTable({
+    profileId: v.id("profiles"),
+    name: v.string(),
+    description: v.optional(v.string()),
+    habitType: v.union(v.literal("scheduled"), v.literal("anytime")),
+    targetDays: v.optional(v.array(v.string())),
+    targetCompletions: v.optional(v.number()),
+    momentum: v.number(),
+    streakCount: v.number(),
+    orderIndex: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_profile_id", ["profileId"])
+    .index("by_profile_id_order", ["profileId", "orderIndex"]),
+  habitCompletions: defineTable({
+    profileId: v.id("profiles"),
+    habitId: v.id("habits"),
+    dateKey: v.string(),
+    completedAt: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_profile_id", ["profileId"])
+    .index("by_profile_id_date_key", ["profileId", "dateKey"])
+    .index("by_habit_id_date_key", ["habitId", "dateKey"]),
+  intakeListItems: defineTable({
+    profileId: v.id("profiles"),
+    title: v.string(),
+    description: v.optional(v.string()),
+    completed: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    completedAt: v.optional(v.number()),
+  })
+    .index("by_profile_id", ["profileId"])
+    .index("by_profile_id_created_at", ["profileId", "createdAt"]),
   tasks: defineTable({
     text: v.string(),
     isCompleted: v.boolean(),
