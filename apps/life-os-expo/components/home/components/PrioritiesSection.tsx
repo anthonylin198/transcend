@@ -9,7 +9,10 @@ import Text from "@/components/ui/Text";
 type HomePriority = {
   _id: string;
   name: string;
+  description?: string;
   status: "todo" | "next_up" | "done";
+  isActive?: boolean;
+  projectId?: string;
   activatedAt?: number;
   completedAt?: number;
 };
@@ -143,7 +146,10 @@ export default function PrioritiesSection({
                 onPress={() =>
                   router.push({
                     pathname: "/(authenticated)/priority/[priorityId]",
-                    params: { priorityId: priority._id },
+                    params: {
+                      priorityId: priority._id,
+                      initialPriority: JSON.stringify(priority),
+                    },
                   })
                 }
                 style={{ flex: 1 }}

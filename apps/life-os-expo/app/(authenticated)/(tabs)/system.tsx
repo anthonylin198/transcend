@@ -188,7 +188,10 @@ export default function SystemScreen() {
                 onPress={() =>
                   router.push({
                     pathname: "/(authenticated)/habit/[habitId]" as never,
-                    params: { habitId: habit._id },
+                      params: {
+                        habitId: habit._id,
+                        initialHabit: JSON.stringify(habit),
+                      },
                   })
                 }
                 style={{

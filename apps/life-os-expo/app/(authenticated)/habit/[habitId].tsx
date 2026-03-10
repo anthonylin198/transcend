@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { api } from "@transcend/convex";
 import { useMutation, useQuery } from "convex/react";
 import { Ionicons } from "@expo/vector-icons";
@@ -24,20 +24,42 @@ const WEEK_DAYS = [
   "Saturday",
   "Sunday",
 ] as const;
+type InitialHabit = {
+  _id: string;
+  name: string;
+  description?: string;
+  targetDays?: string[];
+};
 
 export default function HabitDetailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const params = useLocalSearchParams<{ habitId: string }>();
+  const params = useLocalSearchParams<{
+    habitId: string;
+    initialHabit?: string;
+  }>();
   const habitId = Array.isArray(params.habitId)
     ? params.habitId[0]
     : params.habitId;
+  const initialHabitParam = Array.isArray(params.initialHabit)
+    ? params.initialHabit[0]
+    : params.initialHabit;
+  const initialHabit = useMemo<InitialHabit | null>(() => {
+    if (!initialHabitParam) return null;
+    try {
+      return JSON.parse(initialHabitParam) as InitialHabit;
+    } catch {
+      return null;
+    }
+  }, [initialHabitParam]);
 
   const habits = useQuery(
     api.habits.listHabitsForCurrentUser.listHabitsForCurrentUser,
-    {},
+    initialHabit ? "skip" : {},
   );
-  const habit = habits?.find((item) => item._id === habitId);
+  const habit =
+    habits?.find((item) => item._id === habitId) ??
+    (initialHabit && initialHabit._id === habitId ? initialHabit : undefined);
 
   const updateHabit = useMutation(api.habits.updateHabit.updateHabit);
   const deleteHabit = useMutation(api.habits.deleteHabit.deleteHabit);
@@ -86,7 +108,7 @@ export default function HabitDetailScreen() {
         daysChanged
       ) {
         await updateHabit({
-          habitId: habit._id,
+          habitId: habit._id as never,
           name: trimmedName,
           description:
             normalizedDescription.length > 0 ? normalizedDescription : null,
@@ -107,7 +129,7 @@ export default function HabitDetailScreen() {
     if (!habit || saving) return;
     setSaving(true);
     try {
-      await deleteHabit({ habitId: habit._id });
+      await deleteHabit({ habitId: habit._id as never });
       setMenuOpen(false);
       router.replace("/(authenticated)/(tabs)/system");
     } catch (error) {

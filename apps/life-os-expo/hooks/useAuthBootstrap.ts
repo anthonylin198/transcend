@@ -1,27 +1,13 @@
 import { useEffect, useRef } from "react";
 import { api } from "@transcend/convex";
 import { useConvexAuth, useMutation, useQuery } from "convex/react";
+import { getHomeBootstrapRange } from "@/utils/homeBootstrapRange";
 
 type BootStatus = "unauthenticated" | "loading" | "ready";
-const HOME_DAY_WINDOW = 7;
-
-function toStartOfDay(value: Date) {
-  const date = new Date(value);
-  date.setHours(0, 0, 0, 0);
-  return date;
-}
-
-function addDays(value: Date, amount: number) {
-  const date = new Date(value);
-  date.setDate(date.getDate() + amount);
-  return date;
-}
 
 export function useAuthBootstrap() {
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
-  const today = toStartOfDay(new Date());
-  const rangeStartMs = addDays(today, -HOME_DAY_WINDOW).getTime();
-  const rangeEndMs = addDays(today, HOME_DAY_WINDOW + 1).getTime();
+  const { rangeStartMs, rangeEndMs } = getHomeBootstrapRange();
   const homeBootstrap = useQuery(
     api.home.bootstrap.bootstrap,
     isAuthenticated

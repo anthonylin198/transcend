@@ -10,8 +10,10 @@ import { getHabitWeekdayName, toHabitDateKey } from "@/utils/habitDate";
 type HomeHabit = {
   _id: string;
   name: string;
+  description?: string;
   habitType: "scheduled" | "anytime";
   targetDays?: string[];
+  targetCompletions?: number;
   orderIndex: number;
 };
 
@@ -115,7 +117,10 @@ export default function HabitsSection({
                   onPress={() =>
                     router.push({
                       pathname: "/(authenticated)/habit/[habitId]" as never,
-                      params: { habitId: habit._id },
+                      params: {
+                        habitId: habit._id,
+                        initialHabit: JSON.stringify(habit),
+                      },
                     })
                   }
                   style={{ flex: 1 }}

@@ -3,7 +3,7 @@ import { api } from "@transcend/convex";
 import { useMutation, useQuery } from "convex/react";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Modal, Pressable, ScrollView, View } from "react-native";
+import { ActivityIndicator, Modal, Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Sortable from "react-native-sortables";
 import Text from "@/components/ui/Text";
@@ -93,6 +93,27 @@ export default function ProjectDetailScreen() {
     setMenuOpen(false);
     router.replace("/(authenticated)/(tabs)/system");
   };
+
+  if (!projectId) {
+    return (
+      <View style={{ flex: 1, backgroundColor: "black", alignItems: "center", justifyContent: "center" }}>
+        <Text type="text-regular" color="#9CA3AF">
+          Missing project id.
+        </Text>
+      </View>
+    );
+  }
+
+  if (projects === undefined || priorities === undefined) {
+    return (
+      <View style={{ flex: 1, backgroundColor: "black", alignItems: "center", justifyContent: "center", gap: 10 }}>
+        <ActivityIndicator size="small" color="#9CA3AF" />
+        <Text type="text-regular" color="#9CA3AF">
+          Loading project...
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>
@@ -207,6 +228,7 @@ export default function ProjectDetailScreen() {
                       params: {
                         priorityId: row.priority._id,
                         projectId,
+                        initialPriority: JSON.stringify(row.priority),
                       },
                     })
                   }

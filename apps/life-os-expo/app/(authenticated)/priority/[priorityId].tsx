@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Text from "@/components/ui/Text";
+import { getHomeBootstrapRange } from "@/utils/homeBootstrapRange";
 
 const STATUS_OPTIONS = [
   { key: "todo", label: "Backlog" },
@@ -22,6 +23,14 @@ const STATUS_OPTIONS = [
 ] as const;
 
 type PriorityStatus = (typeof STATUS_OPTIONS)[number]["key"];
+type InitialPriority = {
+  _id: string;
+  name: string;
+  description?: string;
+  status: PriorityStatus;
+  isActive?: boolean;
+  projectId?: string;
+};
 
 export default function PriorityDetailScreen() {
   const insets = useSafeAreaInsets();
@@ -29,6 +38,7 @@ export default function PriorityDetailScreen() {
   const params = useLocalSearchParams<{
     priorityId: string;
     projectId?: string;
+    initialPriority?: string;
   }>();
   const priorityId = Array.isArray(params.priorityId)
     ? params.priorityId[0]
@@ -36,16 +46,33 @@ export default function PriorityDetailScreen() {
   const fallbackProjectId = Array.isArray(params.projectId)
     ? params.projectId[0]
     : params.projectId;
+  const initialPriorityParam = Array.isArray(params.initialPriority)
+    ? params.initialPriority[0]
+    : params.initialPriority;
+  const initialPriority = useMemo<InitialPriority | null>(() => {
+    if (!initialPriorityParam) return null;
+    try {
+      return JSON.parse(initialPriorityParam) as InitialPriority;
+    } catch {
+      return null;
+    }
+  }, [initialPriorityParam]);
+  const bootstrapRange = useMemo(() => getHomeBootstrapRange(), []);
 
   const priorities = useQuery(
     api.priorities.listPrioritiesForCurrentUser.listPrioritiesForCurrentUser,
-    {},
+    initialPriority ? "skip" : {},
   );
-  const projects = useQuery(
-    api.projects.listProjectsForCurrentUser.listProjectsForCurrentUser,
-    {},
+  const homeBootstrap = useQuery(
+    api.home.bootstrap.bootstrap,
+    bootstrapRange,
   );
-  const priority = priorities?.find((item) => item._id === priorityId);
+  const projects = homeBootstrap?.projects ?? [];
+  const priority =
+    priorities?.find((item) => item._id === priorityId) ??
+    (initialPriority && initialPriority._id === priorityId
+      ? initialPriority
+      : undefined);
 
   const [name, setName] = useState<string | null>(null);
   const [description, setDescription] = useState<string | null>(null);
@@ -102,7 +129,7 @@ export default function PriorityDetailScreen() {
         normalizedDescription !== (priority.description ?? "")
       ) {
         await updatePriority({
-          priorityId: priority._id,
+          priorityId: priority._id as never,
           name: trimmedName,
           description:
             normalizedDescription.length > 0 ? normalizedDescription : null,
@@ -111,14 +138,14 @@ export default function PriorityDetailScreen() {
 
       if (currentStatus !== priority.status) {
         await setPriorityStatus({
-          priorityId: priority._id,
+          priorityId: priority._id as never,
           status: currentStatus,
         });
       }
 
       if (currentIsActive !== priority.isActive) {
         await setPriorityActive({
-          priorityId: priority._id,
+          priorityId: priority._id as never,
           isActive: currentIsActive,
         });
       }
@@ -126,12 +153,12 @@ export default function PriorityDetailScreen() {
       if (currentProjectId !== (priority.projectId ?? undefined)) {
         if (currentProjectId) {
           await assignPriorityToProject({
-            priorityId: priority._id,
+            priorityId: priority._id as never,
             projectId: currentProjectId as never,
           });
         } else {
           await unassignPriorityFromProject({
-            priorityId: priority._id,
+            priorityId: priority._id as never,
           });
         }
       }
@@ -150,7 +177,7 @@ export default function PriorityDetailScreen() {
     if (!priority || saving) return;
     setSaving(true);
     try {
-      await deletePriority({ priorityId: priority._id });
+      await deletePriority({ priorityId: priority._id as never });
       setMenuOpen(false);
       if (fallbackProjectId) {
         router.replace({

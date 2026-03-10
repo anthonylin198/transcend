@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { api } from "@transcend/convex";
 import { useMutation, useQuery } from "convex/react";
 import { Ionicons } from "@expo/vector-icons";
@@ -18,17 +18,35 @@ import Text from "@/components/ui/Text";
 export default function IntakeItemDetailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const params = useLocalSearchParams<{ itemId: string }>();
+  const params = useLocalSearchParams<{ itemId: string; initialItem?: string }>();
   const itemId = Array.isArray(params.itemId)
     ? params.itemId[0]
     : params.itemId;
+  const initialItemParam = Array.isArray(params.initialItem)
+    ? params.initialItem[0]
+    : params.initialItem;
+  const initialItem = useMemo(() => {
+    if (!initialItemParam) return null;
+    try {
+      return JSON.parse(initialItemParam) as {
+        _id: string;
+        title: string;
+        description?: string;
+        completed?: boolean;
+      };
+    } catch {
+      return null;
+    }
+  }, [initialItemParam]);
 
   const intakeListItems = useQuery(
     api.intake.listIntakeListItemsForCurrentUser
       .listIntakeListItemsForCurrentUser,
-    {},
+    initialItem ? "skip" : {},
   );
-  const intakeListItem = intakeListItems?.find((item) => item._id === itemId);
+  const intakeListItem =
+    intakeListItems?.find((item) => item._id === itemId) ??
+    (initialItem && initialItem._id === itemId ? initialItem : undefined);
 
   const updateIntakeListItem = useMutation(
     api.intake.updateIntakeListItem.updateIntakeListItem,

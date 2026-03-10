@@ -11,9 +11,8 @@ import {
   useCalendarEvents,
 } from "@/components/home/hooks/useCalendarEvents";
 import Text from "@/components/ui/Text";
+import { HOME_DAY_WINDOW, getHomeBootstrapRange } from "@/utils/homeBootstrapRange";
 import { Pressable, ScrollView, View } from "react-native";
-
-const DAY_WINDOW = 7;
 
 function toStartOfDay(value: Date) {
   const date = new Date(value);
@@ -54,20 +53,18 @@ function getGreeting(value: Date, today: Date) {
 export default function HomeScreen() {
   const router = useRouter();
   const today = useMemo(() => toStartOfDay(new Date()), []);
+  const bootstrapRange = useMemo(() => getHomeBootstrapRange(today), [today]);
   const days = useMemo(
     () =>
-      Array.from({ length: DAY_WINDOW * 2 + 1 }, (_, index) =>
-        addDays(today, index - DAY_WINDOW),
+      Array.from({ length: HOME_DAY_WINDOW * 2 + 1 }, (_, index) =>
+        addDays(today, index - HOME_DAY_WINDOW),
       ),
     [today],
   );
-  const initialPage = DAY_WINDOW;
+  const initialPage = HOME_DAY_WINDOW;
   const calendarRangeStart = days[0] ?? today;
   const calendarRangeEnd = days[days.length - 1] ?? today;
-  const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, {
-    rangeStartMs: calendarRangeStart.getTime(),
-    rangeEndMs: addDays(calendarRangeEnd, 1).getTime(),
-  });
+  const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, bootstrapRange);
   const canShowCalendar = homeBootstrap?.profile?.calendarSyncEnabled ?? false;
   const bootstrapPriorities = homeBootstrap?.priorities ?? [];
   const bootstrapHabits = homeBootstrap?.habits ?? [];
