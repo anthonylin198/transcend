@@ -4,7 +4,16 @@ import { getCurrentProfileOrThrow } from "../lib/currentProfile";
 
 export const reorderPriorities = mutation({
   args: {
-    priorityIds: v.array(v.id("priorities")),
+    items: v.array(
+      v.object({
+        priorityId: v.id("priorities"),
+        status: v.union(
+          v.literal("todo"),
+          v.literal("next_up"),
+          v.literal("done"),
+        ),
+      }),
+    ),
     projectId: v.optional(v.union(v.id("projects"), v.null())),
   },
   handler: async (ctx, args) => {
@@ -26,20 +35,23 @@ export const reorderPriorities = mutation({
     }
 
     const seen = new Set<string>();
-    for (const id of args.priorityIds) {
-      if (seen.has(id)) {
+    for (const item of args.items) {
+      if (seen.has(item.priorityId)) {
         throw new Error("Duplicate priority IDs are not allowed");
       }
-      seen.add(id);
+      seen.add(item.priorityId);
     }
 
-    for (const [orderIndex, priorityId] of args.priorityIds.entries()) {
-      const priority = await ctx.db.get(priorityId);
+    for (const [orderIndex, item] of args.items.entries()) {
+      const priority = await ctx.db.get(item.priorityId);
       if (!priority || priority.profileId !== profile._id) {
         throw new Error("Priority not found");
       }
 
-      if (expectedProjectId !== undefined && priority.projectId !== expectedProjectId) {
+      if (
+        expectedProjectId !== undefined &&
+        priority.projectId !== expectedProjectId
+      ) {
         throw new Error("Priority does not belong to the requested project");
       }
 
@@ -48,6 +60,9 @@ export const reorderPriorities = mutation({
       }
 
       await ctx.db.patch(priority._id, {
+        status: item.status,
+        completedAt:
+          item.status === "done" ? (priority.completedAt ?? now) : undefined,
         orderIndex,
         updatedAt: now,
       });

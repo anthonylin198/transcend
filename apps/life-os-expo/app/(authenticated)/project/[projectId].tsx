@@ -1,14 +1,15 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api, useMutation, useQuery } from "@transcend/convex";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Modal, Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Sortable from "react-native-sortables";
 import Text from "@/components/ui/Text";
 
 const STATUS_SECTIONS = [
   { key: "next_up", label: "Next Up" },
-  { key: "todo", label: "Backlog" },
+  { key: "todo", label: "Todo" },
   { key: "done", label: "Done" },
 ] as const;
 
@@ -18,6 +19,9 @@ export default function ProjectDetailScreen() {
   const params = useLocalSearchParams<{ projectId: string }>();
   const [menuOpen, setMenuOpen] = useState(false);
   const deleteProject = useMutation(api.projects.deleteProject.deleteProject);
+  const reorderPriorities = useMutation(
+    api.priorities.reorderPriorities.reorderPriorities,
+  );
 
   const projectId = useMemo(() => {
     if (Array.isArray(params.projectId)) {
@@ -36,6 +40,51 @@ export default function ProjectDetailScreen() {
     api.priorities.listPrioritiesByProject.listPrioritiesByProject,
     projectId ? { projectId: projectId as never } : "skip",
   );
+
+  const [orderedPriorities, setOrderedPriorities] = useState<
+    NonNullable<typeof priorities>
+  >([]);
+
+  useEffect(() => {
+    setOrderedPriorities(priorities ?? []);
+  }, [priorities]);
+
+  const sortableRows = useMemo(() => {
+    const rows: (
+      | {
+          type: "label";
+          key: string;
+          status: (typeof STATUS_SECTIONS)[number]["key"];
+          label: string;
+        }
+      | {
+          type: "priority";
+          key: string;
+          priority: (typeof orderedPriorities)[number];
+        }
+    )[] = [];
+
+    for (const section of STATUS_SECTIONS) {
+      rows.push({
+        type: "label",
+        key: `label-${section.key}`,
+        status: section.key,
+        label: section.label,
+      });
+
+      for (const priority of orderedPriorities) {
+        if (priority.status === section.key) {
+          rows.push({
+            type: "priority",
+            key: priority._id,
+            priority,
+          });
+        }
+      }
+    }
+
+    return rows;
+  }, [orderedPriorities]);
 
   const onDeleteProject = async () => {
     if (!projectId) return;
@@ -73,90 +122,118 @@ export default function ProjectDetailScreen() {
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 24 }}>
-        {STATUS_SECTIONS.map((section) => {
-          const items =
-            priorities?.filter((priority) => priority.status === section.key) ??
-            [];
+        <Sortable.Flex
+          flexDirection="column"
+          flexWrap="nowrap"
+          gap={14}
+          customHandle
+          dragActivationDelay={220}
+          onDragEnd={({ order }) => {
+            if (!projectId) return;
 
-          return (
-            <View key={section.key} style={{ marginBottom: 18 }}>
+            const nextRows = order(sortableRows);
+            const nextUpLabelIndex = nextRows.findIndex(
+              (row) => row.type === "label" && row.status === "next_up",
+            );
+
+            const backlogLabelIndex = nextRows.findIndex(
+              (row) => row.type === "label" && row.status === "todo",
+            );
+            const doneLabelIndex = nextRows.findIndex(
+              (row) => row.type === "label" && row.status === "done",
+            );
+            const nextPriorities: typeof orderedPriorities = [];
+
+            nextRows.forEach((row, rowIndex) => {
+              if (row.type === "label") {
+                return;
+              }
+
+              let nextStatus: (typeof STATUS_SECTIONS)[number]["key"] =
+                "next_up";
+              if (nextUpLabelIndex !== -1 && rowIndex <= nextUpLabelIndex) {
+                nextStatus = "next_up";
+              } else if (doneLabelIndex !== -1 && rowIndex > doneLabelIndex) {
+                nextStatus = "done";
+              } else if (
+                backlogLabelIndex !== -1 &&
+                rowIndex > backlogLabelIndex
+              ) {
+                nextStatus = "todo";
+              }
+
+              nextPriorities.push({
+                ...row.priority,
+                status: nextStatus,
+              });
+            });
+
+            if (nextPriorities.length !== orderedPriorities.length) {
+              // Guard against malformed drag output so we never persist partial data.
+              return;
+            }
+
+            setOrderedPriorities(nextPriorities);
+
+            void reorderPriorities({
+              items: nextPriorities.map((priority) => ({
+                priorityId: priority._id as never,
+                status: priority.status,
+              })),
+              projectId: projectId as never,
+            });
+          }}
+        >
+          {sortableRows.map((row) =>
+            row.type === "label" ? (
               <View
+                key={row.key}
                 style={{
-                  marginBottom: 10,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
+                  marginTop: row.status === "next_up" ? 0 : 4,
+                  marginBottom: 4,
                 }}
               >
                 <Text type="text-semibold" color="#9CA3AF">
-                  {section.label}
+                  {row.label}
                 </Text>
+              </View>
+            ) : (
+              <Sortable.Handle key={row.key}>
                 <Pressable
                   onPress={() =>
                     router.push({
-                      pathname:
-                        "/(authenticated)/project/[projectId]/add-priority",
+                      pathname: "/(authenticated)/priority/[priorityId]",
                       params: {
+                        priorityId: row.priority._id,
                         projectId,
-                        defaultStatus: section.key,
                       },
                     })
                   }
-                  style={{ padding: 4 }}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 10,
+                  }}
                 >
-                  <Ionicons name="add" size={20} color="#9CA3AF" />
+                  <Ionicons
+                    name={
+                      row.priority.status === "done"
+                        ? "checkmark-circle"
+                        : "ellipse-outline"
+                    }
+                    size={22}
+                    color={
+                      row.priority.status === "done" ? "#E5E7EB" : "#9CA3AF"
+                    }
+                  />
+                  <Text type="text-regular" color="#E5E7EB" style={{ flex: 1 }}>
+                    {row.priority.name}
+                  </Text>
                 </Pressable>
-              </View>
-
-              {items.length === 0 ? (
-                <Text type="text-detail" color="#6B7280">
-                  No priorities
-                </Text>
-              ) : (
-                <View style={{ gap: 14 }}>
-                  {items.map((priority) => (
-                    <Pressable
-                      key={priority._id}
-                      onPress={() =>
-                        router.push({
-                          pathname: "/(authenticated)/priority/[priorityId]",
-                          params: {
-                            priorityId: priority._id,
-                            projectId,
-                          },
-                        })
-                      }
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 10,
-                      }}
-                    >
-                      <Ionicons
-                        name={
-                          priority.status === "done"
-                            ? "checkmark-circle"
-                            : "ellipse-outline"
-                        }
-                        size={22}
-                        color={
-                          priority.status === "done" ? "#E5E7EB" : "#9CA3AF"
-                        }
-                      />
-                      <Text
-                        type="text-regular"
-                        color="#E5E7EB"
-                        style={{ flex: 1 }}
-                      >
-                        {priority.name}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </View>
-              )}
-            </View>
-          );
-        })}
+              </Sortable.Handle>
+            ),
+          )}
+        </Sortable.Flex>
       </ScrollView>
 
       <Modal visible={menuOpen} transparent animationType="fade">
