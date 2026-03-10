@@ -1,5 +1,5 @@
 import Text from "@/components/ui/Text";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { api } from "@transcend/convex";
 import { useMutation, useQuery } from "convex/react";
 import { Ionicons } from "@expo/vector-icons";
@@ -7,6 +7,7 @@ import { useRouter } from "expo-router";
 import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Sortable from "react-native-sortables";
+import { getHomeBootstrapRange } from "@/utils/homeBootstrapRange";
 
 export default function SystemScreen() {
   const insets = useSafeAreaInsets();
@@ -14,7 +15,12 @@ export default function SystemScreen() {
   const [selectedTab, setSelectedTab] = useState<"projects" | "habits">(
     "projects",
   );
-  const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, {});
+  const { rangeStartMs, rangeEndMs } = getHomeBootstrapRange();
+  const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, {
+    rangeStartMs,
+    rangeEndMs,
+  });
+
   const reorderProjects = useMutation(
     api.projects.reorderProjects.reorderProjects,
   );
@@ -22,16 +28,6 @@ export default function SystemScreen() {
 
   const projectRows = homeBootstrap?.projects ?? [];
   const habitRows = homeBootstrap?.habits ?? [];
-  const [orderedProjects, setOrderedProjects] = useState(projectRows);
-  const [orderedHabits, setOrderedHabits] = useState(habitRows);
-
-  useEffect(() => {
-    setOrderedProjects(projectRows);
-  }, [projectRows]);
-
-  useEffect(() => {
-    setOrderedHabits(habitRows);
-  }, [habitRows]);
 
   return (
     <View
@@ -121,7 +117,7 @@ export default function SystemScreen() {
 
       <View style={{ marginTop: 18, gap: 18 }}>
         {selectedTab === "projects" ? (
-          orderedProjects.length === 0 ? (
+          projectRows.length === 0 ? (
             <Text type="text-detail" color="#6B7280">
               No projects yet.
             </Text>
@@ -132,15 +128,14 @@ export default function SystemScreen() {
               gap={18}
               dragActivationDelay={220}
               onDragEnd={({ order }) => {
-                const nextProjects = order(orderedProjects);
-                setOrderedProjects(nextProjects);
+                const nextProjects = order(projectRows);
 
                 void reorderProjects({
                   projectIds: nextProjects.map((project) => project._id),
                 });
               }}
             >
-              {orderedProjects.map((project) => (
+              {projectRows.map((project) => (
                 <Pressable
                   key={project._id}
                   onPress={() =>
@@ -163,7 +158,7 @@ export default function SystemScreen() {
               ))}
             </Sortable.Flex>
           )
-        ) : orderedHabits.length === 0 ? (
+        ) : habitRows.length === 0 ? (
           <Text type="text-detail" color="#6B7280">
             No habits yet.
           </Text>
@@ -174,24 +169,23 @@ export default function SystemScreen() {
             gap={18}
             dragActivationDelay={220}
             onDragEnd={({ order }) => {
-              const nextHabits = order(orderedHabits);
-              setOrderedHabits(nextHabits);
+              const nextHabits = order(habitRows);
 
               void reorderHabits({
                 habitIds: nextHabits.map((habit) => habit._id),
               });
             }}
           >
-            {orderedHabits.map((habit) => (
+            {habitRows.map((habit) => (
               <Pressable
                 key={habit._id}
                 onPress={() =>
                   router.push({
                     pathname: "/(authenticated)/habit/[habitId]" as never,
-                      params: {
-                        habitId: habit._id,
-                        initialHabit: JSON.stringify(habit),
-                      },
+                    params: {
+                      habitId: habit._id,
+                      initialHabit: JSON.stringify(habit),
+                    },
                   })
                 }
                 style={{

@@ -3,7 +3,13 @@ import { api } from "@transcend/convex";
 import { useMutation, useQuery } from "convex/react";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ActivityIndicator, Modal, Pressable, ScrollView, View } from "react-native";
+import {
+  ActivityIndicator,
+  Modal,
+  Pressable,
+  ScrollView,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Sortable from "react-native-sortables";
 import Text from "@/components/ui/Text";
@@ -96,7 +102,14 @@ export default function ProjectDetailScreen() {
 
   if (!projectId) {
     return (
-      <View style={{ flex: 1, backgroundColor: "black", alignItems: "center", justifyContent: "center" }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "black",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <Text type="text-regular" color="#9CA3AF">
           Missing project id.
         </Text>
@@ -106,7 +119,15 @@ export default function ProjectDetailScreen() {
 
   if (projects === undefined || priorities === undefined) {
     return (
-      <View style={{ flex: 1, backgroundColor: "black", alignItems: "center", justifyContent: "center", gap: 10 }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "black",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 10,
+        }}
+      >
         <ActivityIndicator size="small" color="#9CA3AF" />
         <Text type="text-regular" color="#9CA3AF">
           Loading project...
