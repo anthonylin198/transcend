@@ -1,4 +1,5 @@
-import { api, useQuery } from "@transcend/convex";
+import { api } from "@transcend/convex";
+import { useQuery } from "convex/react";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Pressable, ScrollView, View } from "react-native";
@@ -8,12 +9,8 @@ import Text from "@/components/ui/Text";
 export default function IntakeListScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const intakeListItems = useQuery(
-    api.intake.listIntakeListItemsForCurrentUser
-      .listIntakeListItemsForCurrentUser,
-    {},
-  );
-  const rows = intakeListItems ?? [];
+  const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, {});
+  const rows = homeBootstrap?.intakeListItems ?? [];
 
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>

@@ -7,7 +7,7 @@ import {
 } from "@expo-google-fonts/dm-sans";
 import * as SecureStore from "expo-secure-store";
 import { useFonts } from "expo-font";
-import { ConvexReactClient } from "@transcend/convex";
+import { ConvexReactClient } from "convex/react";
 import { SplashScreen, Stack } from "expo-router";
 import { Platform, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";

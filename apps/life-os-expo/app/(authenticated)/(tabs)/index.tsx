@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { api, useQuery } from "@transcend/convex";
+import { api } from "@transcend/convex";
+import { useQuery } from "convex/react";
 import PagerView from "react-native-pager-view";
 import { useRouter } from "expo-router";
 import CalendarSection from "@/components/home/components/calendar/CalendarSection";

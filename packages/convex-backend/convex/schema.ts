@@ -34,6 +34,11 @@ export default defineSchema({
     .index("by_profile_id", ["profileId"])
     .index("by_profile_id_order", ["profileId", "orderIndex"])
     .index("by_profile_id_status", ["profileId", "status"])
+    .index("by_profile_id_status_completed_at", [
+      "profileId",
+      "status",
+      "completedAt",
+    ])
     .index("by_project_id", ["projectId"])
     .index("by_profile_id_is_active", ["profileId", "isActive"])
     .index("by_profile_id_project_id", ["profileId", "projectId"]),
@@ -61,6 +66,7 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index("by_profile_id", ["profileId"])
+    .index("by_profile_id_completed_at", ["profileId", "completedAt"])
     .index("by_profile_id_date_key", ["profileId", "dateKey"])
     .index("by_habit_id_date_key", ["habitId", "dateKey"]),
   intakeListItems: defineTable({

@@ -1,5 +1,5 @@
 import { Redirect } from "expo-router";
-import { useConvexAuth } from "@transcend/convex";
+import { useConvexAuth } from "convex/react";
 
 export default function Index() {
   const { isAuthenticated } = useConvexAuth();

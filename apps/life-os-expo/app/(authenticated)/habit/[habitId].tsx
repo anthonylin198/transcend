@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { api, useMutation, useQuery } from "@transcend/convex";
+import { api } from "@transcend/convex";
+import { useMutation, useQuery } from "convex/react";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {

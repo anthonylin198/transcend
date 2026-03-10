@@ -1,13 +1,35 @@
 import { useEffect, useRef } from "react";
-import { api, useConvexAuth, useMutation, useQuery } from "@transcend/convex";
+import { api } from "@transcend/convex";
+import { useConvexAuth, useMutation, useQuery } from "convex/react";
 
 type BootStatus = "unauthenticated" | "loading" | "ready";
+const HOME_DAY_WINDOW = 7;
+
+function toStartOfDay(value: Date) {
+  const date = new Date(value);
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+function addDays(value: Date, amount: number) {
+  const date = new Date(value);
+  date.setDate(date.getDate() + amount);
+  return date;
+}
 
 export function useAuthBootstrap() {
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
+  const today = toStartOfDay(new Date());
+  const rangeStartMs = addDays(today, -HOME_DAY_WINDOW).getTime();
+  const rangeEndMs = addDays(today, HOME_DAY_WINDOW + 1).getTime();
   const homeBootstrap = useQuery(
     api.home.bootstrap.bootstrap,
-    isAuthenticated ? {} : ("skip" as any),
+    isAuthenticated
+      ? {
+          rangeStartMs,
+          rangeEndMs,
+        }
+      : ("skip" as any),
   );
   const ensureProfile = useMutation(api.profile.ensureProfile);
   const ensuringProfile = useRef(false);
@@ -40,7 +62,7 @@ export function useAuthBootstrap() {
   if (!authLoading) {
     if (!isAuthenticated) {
       status = "unauthenticated";
-    } else if (homeBootstrap === undefined || homeBootstrap.profile === null) {
+    } else if (homeBootstrap === undefined) {
       status = "loading";
     } else {
       status = "ready";

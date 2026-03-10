@@ -1,6 +1,7 @@
 import Text from "@/components/ui/Text";
 import { useEffect, useState } from "react";
-import { api, useMutation, useQuery } from "@transcend/convex";
+import { api } from "@transcend/convex";
+import { useMutation, useQuery } from "convex/react";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Pressable, View } from "react-native";
@@ -13,31 +14,24 @@ export default function SystemScreen() {
   const [selectedTab, setSelectedTab] = useState<"projects" | "habits">(
     "projects",
   );
-  const projects = useQuery(
-    api.projects.listProjectsForCurrentUser.listProjectsForCurrentUser,
-    {},
-  );
+  const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, {});
   const reorderProjects = useMutation(
     api.projects.reorderProjects.reorderProjects,
   );
-  const habits = useQuery(
-    api.habits.listHabitsForCurrentUser.listHabitsForCurrentUser,
-    {},
-  );
   const reorderHabits = useMutation(api.habits.reorderHabits.reorderHabits);
 
-  const projectRows = projects ?? [];
-  const habitRows = habits ?? [];
+  const projectRows = homeBootstrap?.projects ?? [];
+  const habitRows = homeBootstrap?.habits ?? [];
   const [orderedProjects, setOrderedProjects] = useState(projectRows);
   const [orderedHabits, setOrderedHabits] = useState(habitRows);
 
   useEffect(() => {
-    setOrderedProjects(projects ?? []);
-  }, [projects]);
+    setOrderedProjects(projectRows);
+  }, [projectRows]);
 
   useEffect(() => {
-    setOrderedHabits(habits ?? []);
-  }, [habits]);
+    setOrderedHabits(habitRows);
+  }, [habitRows]);
 
   return (
     <View

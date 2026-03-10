@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import * as Calendar from "expo-calendar";
-import { api, useMutation, useQuery } from "@transcend/convex";
+import { api } from "@transcend/convex";
+import { useMutation, useQuery } from "convex/react";
 import Text from "@/components/ui/Text";
 import { Alert, Platform, Pressable, View } from "react-native";
 
