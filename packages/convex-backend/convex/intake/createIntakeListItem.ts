@@ -20,7 +20,8 @@ export const createIntakeListItem = mutation({
     return await ctx.db.insert("intakeListItems", {
       profileId: profile._id,
       title,
-      description: description && description.length > 0 ? description : undefined,
+      description:
+        description && description.length > 0 ? description : undefined,
       completed: false,
       createdAt: now,
       updatedAt: now,

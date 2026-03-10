@@ -18,19 +18,26 @@ export default function IntakeItemDetailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const params = useLocalSearchParams<{ itemId: string }>();
-  const itemId = Array.isArray(params.itemId) ? params.itemId[0] : params.itemId;
+  const itemId = Array.isArray(params.itemId)
+    ? params.itemId[0]
+    : params.itemId;
 
   const intakeListItems = useQuery(
-    api.intake.listIntakeListItemsForCurrentUser.listIntakeListItemsForCurrentUser,
+    api.intake.listIntakeListItemsForCurrentUser
+      .listIntakeListItemsForCurrentUser,
     {},
   );
   const intakeListItem = intakeListItems?.find((item) => item._id === itemId);
 
-  const updateIntakeListItem = useMutation(api.intake.updateIntakeListItem.updateIntakeListItem);
+  const updateIntakeListItem = useMutation(
+    api.intake.updateIntakeListItem.updateIntakeListItem,
+  );
   const setIntakeListItemCompletion = useMutation(
     api.intake.setIntakeListItemCompletion.setIntakeListItemCompletion,
   );
-  const deleteIntakeListItem = useMutation(api.intake.deleteIntakeListItem.deleteIntakeListItem);
+  const deleteIntakeListItem = useMutation(
+    api.intake.deleteIntakeListItem.deleteIntakeListItem,
+  );
 
   const [title, setTitle] = useState<string | null>(null);
   const [description, setDescription] = useState<string | null>(null);
@@ -39,7 +46,7 @@ export default function IntakeItemDetailScreen() {
   const [saving, setSaving] = useState(false);
 
   const currentTitle = title ?? intakeListItem?.title ?? "";
-  const currentDescription = description ?? (intakeListItem?.description ?? "");
+  const currentDescription = description ?? intakeListItem?.description ?? "";
   const currentCompleted = completed ?? intakeListItem?.completed ?? false;
 
   const persistAndGoBack = async () => {
@@ -61,7 +68,8 @@ export default function IntakeItemDetailScreen() {
         await updateIntakeListItem({
           intakeListItemId: intakeListItem._id,
           title: trimmedTitle,
-          description: normalizedDescription.length > 0 ? normalizedDescription : null,
+          description:
+            normalizedDescription.length > 0 ? normalizedDescription : null,
         });
       }
 

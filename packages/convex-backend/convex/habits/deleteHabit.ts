@@ -17,7 +17,9 @@ export const deleteHabit = mutation({
       .query("habitCompletions")
       .withIndex("by_habit_id_date_key", (q) => q.eq("habitId", habit._id))
       .collect();
-    await Promise.all(completions.map((completion) => ctx.db.delete(completion._id)));
+    await Promise.all(
+      completions.map((completion) => ctx.db.delete(completion._id)),
+    );
 
     await ctx.db.delete(habit._id);
   },

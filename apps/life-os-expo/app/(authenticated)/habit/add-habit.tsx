@@ -35,7 +35,8 @@ export default function AddHabitScreen() {
   const [daysModalOpen, setDaysModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const canSubmit = name.trim().length > 0 && targetDays.length > 0 && !submitting;
+  const canSubmit =
+    name.trim().length > 0 && targetDays.length > 0 && !submitting;
 
   const onToggleDay = (day: string) => {
     setTargetDays((prev) =>

@@ -25,7 +25,10 @@ type PriorityStatus = (typeof STATUS_OPTIONS)[number]["key"];
 export default function PriorityDetailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const params = useLocalSearchParams<{ priorityId: string; projectId?: string }>();
+  const params = useLocalSearchParams<{
+    priorityId: string;
+    projectId?: string;
+  }>();
   const priorityId = Array.isArray(params.priorityId)
     ? params.priorityId[0]
     : params.priorityId;
@@ -52,7 +55,9 @@ export default function PriorityDetailScreen() {
   const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const updatePriority = useMutation(api.priorities.updatePriority.updatePriority);
+  const updatePriority = useMutation(
+    api.priorities.updatePriority.updatePriority,
+  );
   const setPriorityStatus = useMutation(
     api.priorities.setPriorityStatus.setPriorityStatus,
   );
@@ -65,10 +70,12 @@ export default function PriorityDetailScreen() {
   const unassignPriorityFromProject = useMutation(
     api.priorities.unassignPriorityFromProject.unassignPriorityFromProject,
   );
-  const deletePriority = useMutation(api.priorities.deletePriority.deletePriority);
+  const deletePriority = useMutation(
+    api.priorities.deletePriority.deletePriority,
+  );
 
   const currentName = name ?? priority?.name ?? "";
-  const currentDescription = description ?? (priority?.description ?? "");
+  const currentDescription = description ?? priority?.description ?? "";
   const currentStatus = status ?? priority?.status ?? "todo";
   const currentIsActive = isActive ?? priority?.isActive ?? false;
   const currentProjectId = useMemo(() => {
@@ -77,7 +84,9 @@ export default function PriorityDetailScreen() {
     return fallbackProjectId;
   }, [fallbackProjectId, priority?.projectId, projectId]);
 
-  const currentProject = projects?.find((item) => item._id === currentProjectId);
+  const currentProject = projects?.find(
+    (item) => item._id === currentProjectId,
+  );
   const hasLoaded = !!priority;
 
   const persistAndGoBack = async () => {
@@ -94,7 +103,8 @@ export default function PriorityDetailScreen() {
         await updatePriority({
           priorityId: priority._id,
           name: trimmedName,
-          description: normalizedDescription.length > 0 ? normalizedDescription : null,
+          description:
+            normalizedDescription.length > 0 ? normalizedDescription : null,
         });
       }
 
@@ -258,7 +268,10 @@ export default function PriorityDetailScreen() {
                     paddingVertical: 10,
                   }}
                 >
-                  <Text type="text-detail" color={selected ? "#F3F4F6" : "#9CA3AF"}>
+                  <Text
+                    type="text-detail"
+                    color={selected ? "#F3F4F6" : "#9CA3AF"}
+                  >
                     {option.label}
                   </Text>
                 </Pressable>

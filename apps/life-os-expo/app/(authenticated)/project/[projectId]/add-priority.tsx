@@ -185,8 +185,8 @@ export default function AddPriorityScreen() {
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
             <Text type="text-regular" color="#E5E7EB">
               {selectedProjectId
-                ? (projects?.find((item) => item._id === selectedProjectId)?.name ??
-                  "Project")
+                ? (projects?.find((item) => item._id === selectedProjectId)
+                    ?.name ?? "Project")
                 : "None"}
             </Text>
             <Ionicons name="chevron-forward" size={18} color="#6B7280" />

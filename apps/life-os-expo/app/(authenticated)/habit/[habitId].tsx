@@ -28,9 +28,14 @@ export default function HabitDetailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const params = useLocalSearchParams<{ habitId: string }>();
-  const habitId = Array.isArray(params.habitId) ? params.habitId[0] : params.habitId;
+  const habitId = Array.isArray(params.habitId)
+    ? params.habitId[0]
+    : params.habitId;
 
-  const habits = useQuery(api.habits.listHabitsForCurrentUser.listHabitsForCurrentUser, {});
+  const habits = useQuery(
+    api.habits.listHabitsForCurrentUser.listHabitsForCurrentUser,
+    {},
+  );
   const habit = habits?.find((item) => item._id === habitId);
 
   const updateHabit = useMutation(api.habits.updateHabit.updateHabit);
@@ -44,11 +49,11 @@ export default function HabitDetailScreen() {
   const [saving, setSaving] = useState(false);
 
   const currentName = name ?? habit?.name ?? "";
-  const currentDescription = description ?? (habit?.description ?? "");
-  const currentTargetDays = targetDays ?? (habit?.targetDays ?? []);
+  const currentDescription = description ?? habit?.description ?? "";
+  const currentTargetDays = targetDays ?? habit?.targetDays ?? [];
 
   const onToggleDay = (day: string) => {
-    const base = targetDays ?? (habit?.targetDays ?? []);
+    const base = targetDays ?? habit?.targetDays ?? [];
     const next = base.includes(day)
       ? base.filter((item) => item !== day)
       : [...base, day];
@@ -82,7 +87,8 @@ export default function HabitDetailScreen() {
         await updateHabit({
           habitId: habit._id,
           name: trimmedName,
-          description: normalizedDescription.length > 0 ? normalizedDescription : null,
+          description:
+            normalizedDescription.length > 0 ? normalizedDescription : null,
           targetDays: currentTargetDays,
         });
       }

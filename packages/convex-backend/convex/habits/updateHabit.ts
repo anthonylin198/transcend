@@ -27,7 +27,9 @@ export const updateHabit = mutation({
     habitId: v.id("habits"),
     name: v.optional(v.string()),
     description: v.optional(v.union(v.string(), v.null())),
-    habitType: v.optional(v.union(v.literal("scheduled"), v.literal("anytime"))),
+    habitType: v.optional(
+      v.union(v.literal("scheduled"), v.literal("anytime")),
+    ),
     targetDays: v.optional(v.union(v.array(v.string()), v.null())),
     targetCompletions: v.optional(v.union(v.number(), v.null())),
   },

@@ -9,7 +9,8 @@ export default function IntakeListScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const intakeListItems = useQuery(
-    api.intake.listIntakeListItemsForCurrentUser.listIntakeListItemsForCurrentUser,
+    api.intake.listIntakeListItemsForCurrentUser
+      .listIntakeListItemsForCurrentUser,
     {},
   );
   const rows = intakeListItems ?? [];
@@ -63,7 +64,9 @@ export default function IntakeListScreen() {
 
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 20, 28) }}
+        contentContainerStyle={{
+          paddingBottom: Math.max(insets.bottom + 20, 28),
+        }}
       >
         {rows.length === 0 ? (
           <View style={{ paddingHorizontal: 16, paddingTop: 18 }}>
@@ -92,7 +95,11 @@ export default function IntakeListScreen() {
               <Text
                 type="text-regular"
                 color={item.completed ? "#6B7280" : "#F3F4F6"}
-                style={item.completed ? { textDecorationLine: "line-through" } : undefined}
+                style={
+                  item.completed
+                    ? { textDecorationLine: "line-through" }
+                    : undefined
+                }
               >
                 {item.title}
               </Text>

@@ -202,11 +202,14 @@ export default function PrioritiesSection({
             <View style={{ flexDirection: "row", gap: 12 }}>
               <Pressable
                 onPress={() => {
-                  navigateFromQuickAdd("/(authenticated)/priority/add-priority", {
-                    defaultStatus: "next_up",
-                    defaultIsActive: "true",
-                    selectedDateMs: String(toStartOfDayMs(selectedDate)),
-                  });
+                  navigateFromQuickAdd(
+                    "/(authenticated)/priority/add-priority",
+                    {
+                      defaultStatus: "next_up",
+                      defaultIsActive: "true",
+                      selectedDateMs: String(toStartOfDayMs(selectedDate)),
+                    },
+                  );
                 }}
                 style={{
                   flex: 1,
@@ -226,9 +229,12 @@ export default function PrioritiesSection({
               </Pressable>
               <Pressable
                 onPress={() => {
-                  navigateFromQuickAdd("/(authenticated)/priority/add-to-active", {
-                    selectedDateMs: String(toStartOfDayMs(selectedDate)),
-                  });
+                  navigateFromQuickAdd(
+                    "/(authenticated)/priority/add-to-active",
+                    {
+                      selectedDateMs: String(toStartOfDayMs(selectedDate)),
+                    },
+                  );
                 }}
                 style={{
                   flex: 1,

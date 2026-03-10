@@ -26,7 +26,9 @@ export const listPrioritiesForCurrentUser = query({
           args.status !== undefined ? priority.status === args.status : true,
         )
         .filter((priority) =>
-          args.isActive !== undefined ? priority.isActive === args.isActive : true,
+          args.isActive !== undefined
+            ? priority.isActive === args.isActive
+            : true,
         )
         .sort((a, b) => a.orderIndex - b.orderIndex);
     }
@@ -41,7 +43,9 @@ export const listPrioritiesForCurrentUser = query({
 
       return priorities
         .filter((priority) =>
-          args.isActive !== undefined ? priority.isActive === args.isActive : true,
+          args.isActive !== undefined
+            ? priority.isActive === args.isActive
+            : true,
         )
         .sort((a, b) => a.orderIndex - b.orderIndex);
     }

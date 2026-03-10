@@ -61,7 +61,9 @@ export const createHabit = mutation({
       habitType: args.habitType,
       targetDays: args.habitType === "scheduled" ? targetDays : undefined,
       targetCompletions:
-        args.habitType === "anytime" ? (args.targetCompletions ?? 1) : undefined,
+        args.habitType === "anytime"
+          ? (args.targetCompletions ?? 1)
+          : undefined,
       momentum: 0,
       streakCount: 0,
       orderIndex,

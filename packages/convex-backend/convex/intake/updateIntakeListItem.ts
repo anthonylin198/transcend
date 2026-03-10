@@ -15,14 +15,15 @@ export const updateIntakeListItem = mutation({
       throw new Error("Intake item not found");
     }
 
-    const nextTitle = args.title !== undefined ? args.title.trim() : intakeListItem.title;
+    const nextTitle =
+      args.title !== undefined ? args.title.trim() : intakeListItem.title;
     if (!nextTitle) {
       throw new Error("Title is required");
     }
 
     const nextDescription =
       args.description !== undefined
-        ? (args.description?.trim() || undefined)
+        ? args.description?.trim() || undefined
         : intakeListItem.description;
 
     await ctx.db.patch(intakeListItem._id, {

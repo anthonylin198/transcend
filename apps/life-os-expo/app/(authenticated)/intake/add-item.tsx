@@ -16,7 +16,9 @@ import Text from "@/components/ui/Text";
 export default function AddIntakeItemScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const createIntakeListItem = useMutation(api.intake.createIntakeListItem.createIntakeListItem);
+  const createIntakeListItem = useMutation(
+    api.intake.createIntakeListItem.createIntakeListItem,
+  );
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -32,7 +34,8 @@ export default function AddIntakeItemScreen() {
     try {
       await createIntakeListItem({
         title: trimmedTitle,
-        description: normalizedDescription.length > 0 ? normalizedDescription : undefined,
+        description:
+          normalizedDescription.length > 0 ? normalizedDescription : undefined,
       });
       router.back();
     } catch (error) {
