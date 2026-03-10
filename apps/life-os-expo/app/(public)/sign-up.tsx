@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link } from "expo-router";
 import { useAuthActions } from "@convex-dev/auth/react";
-import { api, useMutation } from "@transcend/convex";
 import Text from "@/components/ui/Text";
 import { ActivityIndicator, Pressable, TextInput, View } from "react-native";
 
@@ -32,7 +31,6 @@ function getSignUpErrorMessage(error: unknown) {
 
 export default function SignUpScreen() {
   const { signIn } = useAuthActions();
-  const ensureProfile = useMutation(api.profile.ensureProfile);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -53,7 +51,6 @@ export default function SignUpScreen() {
       formData.append("password", password);
       formData.append("flow", "signUp");
       await signIn("password", formData);
-      await ensureProfile({});
     } catch (error) {
       setError(getSignUpErrorMessage(error));
     } finally {

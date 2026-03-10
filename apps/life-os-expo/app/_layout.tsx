@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { ConvexAuthProvider } from "@convex-dev/auth/react";
 import {
   DMSans_400Regular,
@@ -27,21 +27,31 @@ void SplashScreen.preventAutoHideAsync().catch(() => {
 
 function AppRouter({ loadedFonts }: { loadedFonts: boolean }) {
   const { bootReady, isAuthenticated } = useAuthBootstrap();
+  const hasShownAppRef = useRef(false);
 
   useEffect(() => {
     if (bootReady && loadedFonts) {
+      hasShownAppRef.current = true;
       void SplashScreen.hideAsync().catch(() => {
         // Ignore if splash is already hidden.
       });
     }
   }, [bootReady, loadedFonts]);
 
-  if (!bootReady || !loadedFonts) {
+  // Keep splash control for first paint only. After initial paint, never
+  // unmount the app tree back to null during auth/profile bootstrap refreshes.
+  if (!loadedFonts || (!bootReady && !hasShownAppRef.current)) {
     return null;
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false, animation: "none" }}>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        animation: "none",
+        contentStyle: { backgroundColor: "black" },
+      }}
+    >
       <Stack.Protected guard={!isAuthenticated}>
         <Stack.Screen name="(public)" />
       </Stack.Protected>
