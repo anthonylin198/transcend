@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { api } from "@transcend/convex";
 import { useMutation, useQuery } from "convex/react";
 import { Ionicons } from "@expo/vector-icons";
@@ -30,12 +30,9 @@ export default function ProjectDetailScreen() {
     api.priorities.reorderPriorities.reorderPriorities,
   );
 
-  const projectId = useMemo(() => {
-    if (Array.isArray(params.projectId)) {
-      return params.projectId[0];
-    }
-    return params.projectId;
-  }, [params.projectId]);
+  const projectId = Array.isArray(params.projectId)
+    ? params.projectId[0]
+    : params.projectId;
 
   const projects = useQuery(
     api.projects.listProjectsForCurrentUser.listProjectsForCurrentUser,
@@ -47,51 +44,6 @@ export default function ProjectDetailScreen() {
     api.priorities.listPrioritiesByProject.listPrioritiesByProject,
     projectId ? { projectId: projectId as never } : "skip",
   );
-
-  const [orderedPriorities, setOrderedPriorities] = useState<
-    NonNullable<typeof priorities>
-  >([]);
-
-  useEffect(() => {
-    setOrderedPriorities(priorities ?? []);
-  }, [priorities]);
-
-  const sortableRows = useMemo(() => {
-    const rows: (
-      | {
-          type: "label";
-          key: string;
-          status: (typeof STATUS_SECTIONS)[number]["key"];
-          label: string;
-        }
-      | {
-          type: "priority";
-          key: string;
-          priority: (typeof orderedPriorities)[number];
-        }
-    )[] = [];
-
-    for (const section of STATUS_SECTIONS) {
-      rows.push({
-        type: "label",
-        key: `label-${section.key}`,
-        status: section.key,
-        label: section.label,
-      });
-
-      for (const priority of orderedPriorities) {
-        if (priority.status === section.key) {
-          rows.push({
-            type: "priority",
-            key: priority._id,
-            priority,
-          });
-        }
-      }
-    }
-
-    return rows;
-  }, [orderedPriorities]);
 
   const onDeleteProject = async () => {
     if (!projectId) return;
@@ -134,6 +86,39 @@ export default function ProjectDetailScreen() {
         </Text>
       </View>
     );
+  }
+
+  const sortableRows: (
+    | {
+        type: "label";
+        key: string;
+        status: (typeof STATUS_SECTIONS)[number]["key"];
+        label: string;
+      }
+    | {
+        type: "priority";
+        key: string;
+        priority: (typeof priorities)[number];
+      }
+  )[] = [];
+
+  for (const section of STATUS_SECTIONS) {
+    sortableRows.push({
+      type: "label",
+      key: `label-${section.key}`,
+      status: section.key,
+      label: section.label,
+    });
+
+    for (const priority of priorities) {
+      if (priority.status === section.key) {
+        sortableRows.push({
+          type: "priority",
+          key: priority._id,
+          priority,
+        });
+      }
+    }
   }
 
   return (
@@ -185,7 +170,7 @@ export default function ProjectDetailScreen() {
             const doneLabelIndex = nextRows.findIndex(
               (row) => row.type === "label" && row.status === "done",
             );
-            const nextPriorities: typeof orderedPriorities = [];
+            const nextPriorities: typeof priorities = [];
 
             nextRows.forEach((row, rowIndex) => {
               if (row.type === "label") {
@@ -211,12 +196,10 @@ export default function ProjectDetailScreen() {
               });
             });
 
-            if (nextPriorities.length !== orderedPriorities.length) {
+            if (nextPriorities.length !== priorities.length) {
               // Guard against malformed drag output so we never persist partial data.
               return;
             }
-
-            setOrderedPriorities(nextPriorities);
 
             void reorderPriorities({
               items: nextPriorities.map((priority) => ({
