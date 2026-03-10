@@ -1,5 +1,6 @@
 import { query } from "../_generated/server";
 import { v } from "convex/values";
+import { getAuthUserId } from "@convex-dev/auth/server";
 
 /**
  * Home bootstrap query used by multiple tabs/views as a shared preload source.
@@ -22,8 +23,8 @@ export const bootstrap = query({
     rangeEndMs: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
       return {
         profile: null,
         categories: [],
@@ -37,7 +38,7 @@ export const bootstrap = query({
 
     const profile = await ctx.db
       .query("profiles")
-      .withIndex("by_user_id", (q) => q.eq("userId", identity.subject))
+      .withIndex("by_user_id", (q) => q.eq("userId", userId))
       .unique();
 
     if (!profile) {

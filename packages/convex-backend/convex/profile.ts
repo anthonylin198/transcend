@@ -1,17 +1,18 @@
 import { mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { getAuthUserId } from "@convex-dev/auth/server";
 
 export const ensureProfile = mutation({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
       throw new Error("Not authenticated");
     }
 
     const existingProfile = await ctx.db
       .query("profiles")
-      .withIndex("by_user_id", (q) => q.eq("userId", identity.subject))
+      .withIndex("by_user_id", (q) => q.eq("userId", userId))
       .unique();
 
     if (existingProfile) {
@@ -19,7 +20,7 @@ export const ensureProfile = mutation({
     }
 
     await ctx.db.insert("profiles", {
-      userId: identity.subject,
+      userId,
       calendarSyncEnabled: false,
     });
   },
@@ -30,14 +31,14 @@ export const setCalendarSyncEnabled = mutation({
     enabled: v.boolean(),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
       throw new Error("Not authenticated");
     }
 
     const existingProfile = await ctx.db
       .query("profiles")
-      .withIndex("by_user_id", (q) => q.eq("userId", identity.subject))
+      .withIndex("by_user_id", (q) => q.eq("userId", userId))
       .unique();
 
     if (existingProfile) {
