@@ -78,10 +78,10 @@ export default function IntakeListScreen() {
               onPress={() =>
                 router.push({
                   pathname: "/(authenticated)/intake/[itemId]",
-                    params: {
-                      itemId: item._id,
-                      initialItem: JSON.stringify(item),
-                    },
+                  params: {
+                    itemId: item._id,
+                    initialItem: JSON.stringify(item),
+                  },
                 })
               }
               style={{

@@ -11,7 +11,10 @@ import {
   useCalendarEvents,
 } from "@/components/home/hooks/useCalendarEvents";
 import Text from "@/components/ui/Text";
-import { HOME_DAY_WINDOW, getHomeBootstrapRange } from "@/utils/homeBootstrapRange";
+import {
+  HOME_DAY_WINDOW,
+  getHomeBootstrapRange,
+} from "@/utils/homeBootstrapRange";
 import { Pressable, ScrollView, View } from "react-native";
 
 function toStartOfDay(value: Date) {

@@ -80,7 +80,9 @@ export default function HabitDetailsPage() {
       });
       router.push("/systems");
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "Failed to save");
+      setError(
+        saveError instanceof Error ? saveError.message : "Failed to save",
+      );
     } finally {
       setSaving(false);
     }
@@ -114,7 +116,10 @@ export default function HabitDetailsPage() {
 
   return (
     <main className="max-w-2xl space-y-4">
-      <Link href="/systems" className="text-sm text-zinc-400 hover:text-zinc-200">
+      <Link
+        href="/systems"
+        className="text-sm text-zinc-400 hover:text-zinc-200"
+      >
         ← Back to Systems
       </Link>
       <h1 className="text-2xl font-semibold text-zinc-100">Habit Details</h1>

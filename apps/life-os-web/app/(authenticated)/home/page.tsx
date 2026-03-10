@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { api, useQuery } from "@transcend/convex";
-import { getHomeBootstrapRange, HOME_DAY_WINDOW } from "@/lib/homeBootstrapRange";
+import {
+  getHomeBootstrapRange,
+  HOME_DAY_WINDOW,
+} from "@/lib/homeBootstrapRange";
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -113,7 +116,9 @@ export default function HomePage() {
   return (
     <main className="space-y-6">
       <section className="space-y-2">
-        <h1 className="text-3xl font-semibold text-zinc-100">{getGreeting()}</h1>
+        <h1 className="text-3xl font-semibold text-zinc-100">
+          {getGreeting()}
+        </h1>
         <p className="text-zinc-400">
           A good life is built in small, repeated choices.
         </p>
@@ -123,7 +128,8 @@ export default function HomePage() {
         <p className="mb-3 text-sm text-zinc-400">Select day</p>
         <div className="flex gap-2 overflow-x-auto pb-1">
           {days.map((day) => {
-            const isSelected = toStartOfDayMs(day) === toStartOfDayMs(selectedDate);
+            const isSelected =
+              toStartOfDayMs(day) === toStartOfDayMs(selectedDate);
             const dayNumber = new Intl.DateTimeFormat(undefined, {
               day: "2-digit",
             }).format(day);
@@ -153,15 +159,22 @@ export default function HomePage() {
       <section className="grid gap-4 lg:grid-cols-2">
         <div className="rounded-lg border border-zinc-800 bg-zinc-950 p-4">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-base font-semibold text-zinc-100">Priorities</h2>
-            <span className="text-sm text-zinc-400">{visiblePriorities.length}</span>
+            <h2 className="text-base font-semibold text-zinc-100">
+              Priorities
+            </h2>
+            <span className="text-sm text-zinc-400">
+              {visiblePriorities.length}
+            </span>
           </div>
           {visiblePriorities.length === 0 ? (
             <p className="text-sm text-zinc-500">No priorities for this day.</p>
           ) : (
             <ul className="space-y-2">
               {visiblePriorities.map((priority) => (
-                <li key={priority._id} className="flex items-center gap-2 text-sm">
+                <li
+                  key={priority._id}
+                  className="flex items-center gap-2 text-sm"
+                >
                   <span className="text-zinc-500">
                     {priority.status === "done" ? "✓" : "○"}
                   </span>
@@ -183,7 +196,9 @@ export default function HomePage() {
         <div className="rounded-lg border border-zinc-800 bg-zinc-950 p-4">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-base font-semibold text-zinc-100">Habits</h2>
-            <span className="text-sm text-zinc-400">{visibleHabits.length}</span>
+            <span className="text-sm text-zinc-400">
+              {visibleHabits.length}
+            </span>
           </div>
           {visibleHabits.length === 0 ? (
             <p className="text-sm text-zinc-500">No habits for this day.</p>
@@ -192,10 +207,19 @@ export default function HomePage() {
               {visibleHabits.map((habit) => {
                 const isCompleted = completionSet.has(habit._id);
                 return (
-                  <li key={habit._id} className="flex items-center gap-2 text-sm">
-                    <span className="text-zinc-500">{isCompleted ? "✓" : "○"}</span>
+                  <li
+                    key={habit._id}
+                    className="flex items-center gap-2 text-sm"
+                  >
+                    <span className="text-zinc-500">
+                      {isCompleted ? "✓" : "○"}
+                    </span>
                     <span
-                      className={isCompleted ? "text-zinc-400 line-through" : "text-zinc-200"}
+                      className={
+                        isCompleted
+                          ? "text-zinc-400 line-through"
+                          : "text-zinc-200"
+                      }
                     >
                       {habit.name}
                     </span>

@@ -72,7 +72,9 @@ export default function IntakePage() {
             >
               <p
                 className={`font-medium ${
-                  item.completed ? "text-zinc-500 line-through" : "text-zinc-100"
+                  item.completed
+                    ? "text-zinc-500 line-through"
+                    : "text-zinc-100"
                 }`}
               >
                 {item.title}

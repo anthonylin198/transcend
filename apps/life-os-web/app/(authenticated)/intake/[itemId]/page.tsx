@@ -27,7 +27,8 @@ export default function IntakeItemDetailsPage() {
   );
 
   const intakeItem = useMemo(
-    () => homeBootstrap?.intakeListItems.find((item) => item._id === params.itemId),
+    () =>
+      homeBootstrap?.intakeListItems.find((item) => item._id === params.itemId),
     [homeBootstrap?.intakeListItems, params.itemId],
   );
 
@@ -60,7 +61,9 @@ export default function IntakeItemDetailsPage() {
       }
       router.push("/intake");
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "Failed to save");
+      setError(
+        saveError instanceof Error ? saveError.message : "Failed to save",
+      );
     } finally {
       setSaving(false);
     }
@@ -94,10 +97,15 @@ export default function IntakeItemDetailsPage() {
 
   return (
     <main className="max-w-2xl space-y-4">
-      <Link href="/intake" className="text-sm text-zinc-400 hover:text-zinc-200">
+      <Link
+        href="/intake"
+        className="text-sm text-zinc-400 hover:text-zinc-200"
+      >
         ← Back to Intake
       </Link>
-      <h1 className="text-2xl font-semibold text-zinc-100">Intake Item Details</h1>
+      <h1 className="text-2xl font-semibold text-zinc-100">
+        Intake Item Details
+      </h1>
 
       <div className="space-y-3 rounded-lg border border-zinc-800 bg-zinc-950 p-4">
         <label className="space-y-1 text-sm">

@@ -63,10 +63,7 @@ export default function PriorityDetailScreen() {
     api.priorities.listPrioritiesForCurrentUser.listPrioritiesForCurrentUser,
     initialPriority ? "skip" : {},
   );
-  const homeBootstrap = useQuery(
-    api.home.bootstrap.bootstrap,
-    bootstrapRange,
-  );
+  const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, bootstrapRange);
   const projects = homeBootstrap?.projects ?? [];
   const priority =
     priorities?.find((item) => item._id === priorityId) ??

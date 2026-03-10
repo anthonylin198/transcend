@@ -61,7 +61,9 @@ export default function SystemsPage() {
 
   const toggleHabitDay = (day: string) => {
     setNewHabitDays((prev) =>
-      prev.includes(day) ? prev.filter((value) => value !== day) : [...prev, day],
+      prev.includes(day)
+        ? prev.filter((value) => value !== day)
+        : [...prev, day],
     );
   };
 
@@ -167,7 +169,9 @@ export default function SystemsPage() {
               <button
                 type="button"
                 onClick={() => void onCreateHabit()}
-                disabled={saving || !newHabitName.trim() || newHabitDays.length === 0}
+                disabled={
+                  saving || !newHabitName.trim() || newHabitDays.length === 0
+                }
                 className="rounded-md bg-white px-4 py-2 text-sm font-medium text-black disabled:opacity-50"
               >
                 Add

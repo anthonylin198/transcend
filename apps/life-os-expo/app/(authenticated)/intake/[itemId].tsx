@@ -18,7 +18,10 @@ import Text from "@/components/ui/Text";
 export default function IntakeItemDetailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const params = useLocalSearchParams<{ itemId: string; initialItem?: string }>();
+  const params = useLocalSearchParams<{
+    itemId: string;
+    initialItem?: string;
+  }>();
   const itemId = Array.isArray(params.itemId)
     ? params.itemId[0]
     : params.itemId;
