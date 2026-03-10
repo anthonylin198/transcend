@@ -10,6 +10,7 @@ import { useFonts } from "expo-font";
 import { ConvexReactClient } from "@transcend/convex";
 import { SplashScreen, Stack } from "expo-router";
 import { Platform, View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Text from "@/components/ui/Text";
 import { useAuthBootstrap } from "@/hooks/useAuthBootstrap";
 
@@ -88,15 +89,17 @@ export default function RootLayout() {
   }
 
   return (
-    <ConvexAuthProvider
-      client={convexClient}
-      storage={
-        Platform.OS === "android" || Platform.OS === "ios"
-          ? secureStorage
-          : undefined
-      }
-    >
-      <AppRouter loadedFonts={fontsLoaded} />
-    </ConvexAuthProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ConvexAuthProvider
+        client={convexClient}
+        storage={
+          Platform.OS === "android" || Platform.OS === "ios"
+            ? secureStorage
+            : undefined
+        }
+      >
+        <AppRouter loadedFonts={fontsLoaded} />
+      </ConvexAuthProvider>
+    </GestureHandlerRootView>
   );
 }

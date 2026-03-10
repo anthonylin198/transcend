@@ -17,6 +17,7 @@ import type * as auth from "../auth.js";
 import type * as habits_createHabit from "../habits/createHabit.js";
 import type * as habits_deleteHabit from "../habits/deleteHabit.js";
 import type * as habits_listHabitsForCurrentUser from "../habits/listHabitsForCurrentUser.js";
+import type * as habits_reorderHabits from "../habits/reorderHabits.js";
 import type * as habits_setHabitCompletion from "../habits/setHabitCompletion.js";
 import type * as habits_updateHabit from "../habits/updateHabit.js";
 import type * as home_bootstrap from "../home/bootstrap.js";
@@ -58,6 +59,7 @@ declare const fullApi: ApiFromModules<{
   "habits/createHabit": typeof habits_createHabit;
   "habits/deleteHabit": typeof habits_deleteHabit;
   "habits/listHabitsForCurrentUser": typeof habits_listHabitsForCurrentUser;
+  "habits/reorderHabits": typeof habits_reorderHabits;
   "habits/setHabitCompletion": typeof habits_setHabitCompletion;
   "habits/updateHabit": typeof habits_updateHabit;
   "home/bootstrap": typeof home_bootstrap;

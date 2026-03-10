@@ -1,10 +1,11 @@
 import Text from "@/components/ui/Text";
-import { useState } from "react";
-import { api, useQuery } from "@transcend/convex";
+import { useEffect, useState } from "react";
+import { api, useMutation, useQuery } from "@transcend/convex";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Sortable from "react-native-sortables";
 
 export default function SystemScreen() {
   const insets = useSafeAreaInsets();
@@ -16,13 +17,27 @@ export default function SystemScreen() {
     api.projects.listProjectsForCurrentUser.listProjectsForCurrentUser,
     {},
   );
+  const reorderProjects = useMutation(
+    api.projects.reorderProjects.reorderProjects,
+  );
   const habits = useQuery(
     api.habits.listHabitsForCurrentUser.listHabitsForCurrentUser,
     {},
   );
+  const reorderHabits = useMutation(api.habits.reorderHabits.reorderHabits);
 
   const projectRows = projects ?? [];
   const habitRows = habits ?? [];
+  const [orderedProjects, setOrderedProjects] = useState(projectRows);
+  const [orderedHabits, setOrderedHabits] = useState(habitRows);
+
+  useEffect(() => {
+    setOrderedProjects(projects ?? []);
+  }, [projects]);
+
+  useEffect(() => {
+    setOrderedHabits(habits ?? []);
+  }, [habits]);
 
   return (
     <View
@@ -112,65 +127,95 @@ export default function SystemScreen() {
 
       <View style={{ marginTop: 18, gap: 18 }}>
         {selectedTab === "projects" ? (
-          projectRows.length === 0 ? (
+          orderedProjects.length === 0 ? (
             <Text type="text-detail" color="#6B7280">
               No projects yet.
             </Text>
           ) : (
-            projectRows.map((project) => (
+            <Sortable.Flex
+              flexDirection="column"
+              flexWrap="nowrap"
+              gap={18}
+              dragActivationDelay={220}
+              onDragEnd={({ order }) => {
+                const nextProjects = order(orderedProjects);
+                setOrderedProjects(nextProjects);
+
+                void reorderProjects({
+                  projectIds: nextProjects.map((project) => project._id),
+                });
+              }}
+            >
+              {orderedProjects.map((project) => (
+                <Pressable
+                  key={project._id}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/(authenticated)/project/[projectId]",
+                      params: { projectId: project._id },
+                    })
+                  }
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <Text type="text-regular" color="#E5E7EB" style={{ flex: 1 }}>
+                    {project.name}
+                  </Text>
+                  <Ionicons name="chevron-forward" size={18} color="#6B7280" />
+                </Pressable>
+              ))}
+            </Sortable.Flex>
+          )
+        ) : orderedHabits.length === 0 ? (
+          <Text type="text-detail" color="#6B7280">
+            No habits yet.
+          </Text>
+        ) : (
+          <Sortable.Flex
+            flexDirection="column"
+            flexWrap="nowrap"
+            gap={18}
+            dragActivationDelay={220}
+            onDragEnd={({ order }) => {
+              const nextHabits = order(orderedHabits);
+              setOrderedHabits(nextHabits);
+
+              void reorderHabits({
+                habitIds: nextHabits.map((habit) => habit._id),
+              });
+            }}
+          >
+            {orderedHabits.map((habit) => (
               <Pressable
-                key={project._id}
+                key={habit._id}
                 onPress={() =>
                   router.push({
-                    pathname: "/(authenticated)/project/[projectId]",
-                    params: { projectId: project._id },
+                    pathname: "/(authenticated)/habit/[habitId]" as never,
+                    params: { habitId: habit._id },
                   })
                 }
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
                   justifyContent: "space-between",
+                  gap: 12,
                 }}
               >
                 <Text type="text-regular" color="#E5E7EB" style={{ flex: 1 }}>
-                  {project.name}
+                  {habit.name}
+                </Text>
+                <Text type="text-detail" color="#9CA3AF">
+                  {habit.habitType === "scheduled"
+                    ? `${habit.targetDays?.length ?? 0} days/week`
+                    : `${habit.targetCompletions ?? 1}/day`}
                 </Text>
                 <Ionicons name="chevron-forward" size={18} color="#6B7280" />
               </Pressable>
-            ))
-          )
-        ) : habitRows.length === 0 ? (
-          <Text type="text-detail" color="#6B7280">
-            No habits yet.
-          </Text>
-        ) : (
-          habitRows.map((habit) => (
-            <Pressable
-              key={habit._id}
-              onPress={() =>
-                router.push({
-                  pathname: "/(authenticated)/habit/[habitId]" as never,
-                  params: { habitId: habit._id },
-                })
-              }
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 12,
-              }}
-            >
-              <Text type="text-regular" color="#E5E7EB" style={{ flex: 1 }}>
-                {habit.name}
-              </Text>
-              <Text type="text-detail" color="#9CA3AF">
-                {habit.habitType === "scheduled"
-                  ? `${habit.targetDays?.length ?? 0} days/week`
-                  : `${habit.targetCompletions ?? 1}/day`}
-              </Text>
-              <Ionicons name="chevron-forward" size={18} color="#6B7280" />
-            </Pressable>
-          ))
+            ))}
+          </Sortable.Flex>
         )}
       </View>
 
