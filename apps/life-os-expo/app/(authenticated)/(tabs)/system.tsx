@@ -76,8 +76,14 @@ export default function SystemScreen() {
           </Text>
         ) : (
           projectRows.map((project) => (
-            <View
+            <Pressable
               key={project._id}
+              onPress={() =>
+                router.push({
+                  pathname: "/(authenticated)/project/[projectId]",
+                  params: { projectId: project._id },
+                })
+              }
               style={{
                 flexDirection: "row",
                 alignItems: "center",
@@ -87,7 +93,8 @@ export default function SystemScreen() {
               <Text type="text-regular" color="#E5E7EB" style={{ flex: 1 }}>
                 {project.name}
               </Text>
-            </View>
+              <Ionicons name="chevron-forward" size={18} color="#6B7280" />
+            </Pressable>
           ))
         )}
       </View>

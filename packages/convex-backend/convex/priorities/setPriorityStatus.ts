@@ -5,7 +5,7 @@ import { getCurrentProfileOrThrow } from "../lib/currentProfile";
 export const setPriorityStatus = mutation({
   args: {
     priorityId: v.id("priorities"),
-    status: v.union(v.literal("todo"), v.literal("in_progress"), v.literal("done")),
+    status: v.union(v.literal("todo"), v.literal("next_up"), v.literal("done")),
   },
   handler: async (ctx, args) => {
     const profile = await getCurrentProfileOrThrow(ctx);

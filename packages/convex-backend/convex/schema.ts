@@ -23,11 +23,7 @@ export default defineSchema({
     projectId: v.optional(v.id("projects")),
     name: v.string(),
     description: v.optional(v.string()),
-    status: v.union(
-      v.literal("todo"),
-      v.literal("in_progress"),
-      v.literal("done"),
-    ),
+    status: v.union(v.literal("todo"), v.literal("next_up"), v.literal("done")),
     isActive: v.boolean(),
     orderIndex: v.number(),
     activatedAt: v.optional(v.number()),

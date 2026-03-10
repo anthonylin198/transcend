@@ -5,7 +5,7 @@ import { getCurrentProfileOrThrow } from "../lib/currentProfile";
 export const listPrioritiesForCurrentUser = query({
   args: {
     status: v.optional(
-      v.union(v.literal("todo"), v.literal("in_progress"), v.literal("done")),
+      v.union(v.literal("todo"), v.literal("next_up"), v.literal("done")),
     ),
     isActive: v.optional(v.boolean()),
     unlinkedOnly: v.optional(v.boolean()),

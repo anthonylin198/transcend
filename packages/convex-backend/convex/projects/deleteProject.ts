@@ -14,7 +14,6 @@ export const deleteProject = mutation({
       throw new Error("Project not found");
     }
 
-    const now = Date.now();
     const linkedPriorities = await ctx.db
       .query("priorities")
       .withIndex("by_project_id", (q) => q.eq("projectId", project._id))
@@ -25,10 +24,7 @@ export const deleteProject = mutation({
         continue;
       }
 
-      await ctx.db.patch(priority._id, {
-        projectId: undefined,
-        updatedAt: now,
-      });
+      await ctx.db.delete(priority._id);
     }
 
     await ctx.db.delete(project._id);
