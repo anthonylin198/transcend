@@ -1,16 +1,20 @@
 import Text from "@/components/ui/Text";
+import { api, useQuery } from "@transcend/convex";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const projects = [
-  "Be mentally and physically healthy",
-  "Take care of family",
-  "Do meaningful work",
-];
-
 export default function SystemScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const projects = useQuery(
+    api.projects.listProjectsForCurrentUser.listProjectsForCurrentUser,
+    {},
+  );
+
+  const projectRows = projects ?? [];
+
   return (
     <View
       style={{
@@ -47,6 +51,7 @@ export default function SystemScreen() {
       />
 
       <Pressable
+        onPress={() => router.push("/(authenticated)/add-project")}
         style={{
           marginTop: 12,
           backgroundColor: "#18181B",
@@ -65,21 +70,26 @@ export default function SystemScreen() {
       </Pressable>
 
       <View style={{ marginTop: 18, gap: 18 }}>
-        {projects.map((project) => (
-          <View
-            key={project}
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <Text type="text-regular" color="#E5E7EB" style={{ flex: 1 }}>
-              {project}
-            </Text>
-            <Ionicons name="reorder-three-outline" size={20} color="#9CA3AF" />
-          </View>
-        ))}
+        {projectRows.length === 0 ? (
+          <Text type="text-detail" color="#6B7280">
+            No projects yet.
+          </Text>
+        ) : (
+          projectRows.map((project) => (
+            <View
+              key={project._id}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <Text type="text-regular" color="#E5E7EB" style={{ flex: 1 }}>
+                {project.name}
+              </Text>
+            </View>
+          ))
+        )}
       </View>
 
       <View style={{ flex: 1 }} />
