@@ -6,7 +6,7 @@ type BootStatus = "unauthenticated" | "loading" | "ready";
 export function useAuthBootstrap() {
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
   const homeBootstrap = useQuery(
-    api.home.bootstrap,
+    api.home.bootstrap.bootstrap,
     isAuthenticated ? {} : ("skip" as any),
   );
   const ensureProfile = useMutation(api.profile.ensureProfile);

@@ -14,7 +14,7 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as auth from "../auth.js";
-import type * as home from "../home.js";
+import type * as home_bootstrap from "../home/bootstrap.js";
 import type * as http from "../http.js";
 import type * as lib_currentProfile from "../lib/currentProfile.js";
 import type * as priorities_assignPriorityToProject from "../priorities/assignPriorityToProject.js";
@@ -45,7 +45,7 @@ import type * as tasks from "../tasks.js";
  */
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
-  home: typeof home;
+  "home/bootstrap": typeof home_bootstrap;
   http: typeof http;
   "lib/currentProfile": typeof lib_currentProfile;
   "priorities/assignPriorityToProject": typeof priorities_assignPriorityToProject;

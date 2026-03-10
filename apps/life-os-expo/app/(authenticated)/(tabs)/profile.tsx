@@ -10,7 +10,7 @@ export default function ProfileScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [syncingCalendar, setSyncingCalendar] = useState(false);
   const [calendarError, setCalendarError] = useState<string | null>(null);
-  const homeBootstrap = useQuery(api.home.bootstrap, {});
+  const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, {});
   const setCalendarSyncEnabled = useMutation(
     api.profile.setCalendarSyncEnabled,
   );

@@ -6,6 +6,7 @@ export const setPriorityStatus = mutation({
   args: {
     priorityId: v.id("priorities"),
     status: v.union(v.literal("todo"), v.literal("next_up"), v.literal("done")),
+    completedAtMs: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const profile = await getCurrentProfileOrThrow(ctx);
@@ -19,7 +20,9 @@ export const setPriorityStatus = mutation({
     await ctx.db.patch(priority._id, {
       status: args.status,
       completedAt:
-        args.status === "done" ? (priority.completedAt ?? now) : undefined,
+        args.status === "done"
+          ? (args.completedAtMs ?? priority.completedAt ?? now)
+          : undefined,
       updatedAt: now,
     });
   },

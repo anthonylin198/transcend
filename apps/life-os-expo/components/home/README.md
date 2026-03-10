@@ -7,7 +7,7 @@ This folder contains Home-specific UI and hooks.
 The app flow starts in `app/_layout.tsx`.
 
 - `useAuthBootstrap()` is called inside `AppRouter`.
-- `useAuthBootstrap()` combines Convex auth state + `api.home.bootstrap`.
+- `useAuthBootstrap()` combines Convex auth state + `api.home.bootstrap.bootstrap`.
 - While auth/bootstrap/fonts are loading, `AppRouter` renders `null`, so the splash screen stays visible.
 - `useAuthBootstrap` is part of that gate: until bootstrap is ready, routing does not render.
 - Once ready:
@@ -22,7 +22,7 @@ Inside `app/(authenticated)/(tabs)/_layout.tsx`, the tab shell is rendered and `
 
 `app/(authenticated)/(tabs)/index.tsx` currently:
 
-- fetches `api.home.bootstrap` for profile-derived flags (for example, `calendarSyncEnabled`)
+- fetches `api.home.bootstrap.bootstrap` for profile-derived flags (for example, `calendarSyncEnabled`)
 - builds pager days (`-7` to `+7`) around today
 - fetches calendar data on the client via `useCalendarEvents` (Home-specific hook)
 - passes day-specific calendar events into `CalendarSection`

@@ -6,6 +6,7 @@ export const setPriorityActive = mutation({
   args: {
     priorityId: v.id("priorities"),
     isActive: v.boolean(),
+    activatedAtMs: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const profile = await getCurrentProfileOrThrow(ctx);
@@ -16,12 +17,12 @@ export const setPriorityActive = mutation({
     }
 
     const now = Date.now();
+    const nextActivatedAt = args.isActive
+      ? (args.activatedAtMs ?? priority.activatedAt ?? now)
+      : priority.activatedAt;
     await ctx.db.patch(priority._id, {
       isActive: args.isActive,
-      activatedAt:
-        args.isActive && priority.activatedAt === undefined
-          ? now
-          : priority.activatedAt,
+      activatedAt: nextActivatedAt,
       updatedAt: now,
     });
   },

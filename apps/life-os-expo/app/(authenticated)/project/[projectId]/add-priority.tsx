@@ -1,10 +1,11 @@
 import { useMemo, useState } from "react";
-import { api, useMutation } from "@transcend/convex";
+import { api, useMutation, useQuery } from "@transcend/convex";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   Alert,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   TextInput,
@@ -32,15 +33,23 @@ export default function AddPriorityScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const params = useLocalSearchParams<{
-    projectId: string;
+    projectId?: string;
     defaultStatus?: string;
+    defaultIsActive?: string;
+    selectedDateMs?: string;
   }>();
-  const createPriority = useMutation(api.priorities.createPriority.createPriority);
+  const createPriority = useMutation(
+    api.priorities.createPriority.createPriority,
+  );
   const setPriorityStatus = useMutation(
     api.priorities.setPriorityStatus.setPriorityStatus,
   );
   const setPriorityActive = useMutation(
     api.priorities.setPriorityActive.setPriorityActive,
+  );
+  const projects = useQuery(
+    api.projects.listProjectsForCurrentUser.listProjectsForCurrentUser,
+    {},
   );
 
   const projectId = useMemo(() => {
@@ -56,25 +65,50 @@ export default function AddPriorityScreen() {
       : params.defaultStatus;
     return normalizeStatus(raw);
   }, [params.defaultStatus]);
+  const defaultIsActive = useMemo(() => {
+    const raw = Array.isArray(params.defaultIsActive)
+      ? params.defaultIsActive[0]
+      : params.defaultIsActive;
+    return raw === "true";
+  }, [params.defaultIsActive]);
+  const selectedDateMs = useMemo(() => {
+    const raw = Array.isArray(params.selectedDateMs)
+      ? params.selectedDateMs[0]
+      : params.selectedDateMs;
+    if (!raw) return undefined;
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }, [params.selectedDateMs]);
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<PriorityStatus>(defaultStatus);
-  const [isActive, setIsActive] = useState(false);
+  const [isActive, setIsActive] = useState(defaultIsActive);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+    projectId ?? null,
+  );
+  const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const canSubmit = name.trim().length > 0 && !submitting && !!projectId;
+  const canSubmit = name.trim().length > 0 && !submitting;
 
   const onCreate = async () => {
-    if (!canSubmit || !projectId) return;
+    if (!canSubmit) return;
 
     setSubmitting(true);
     try {
-      const priorityId = await createPriority({
-        projectId: projectId as never,
-        name: name.trim(),
-        description: description.trim() || undefined,
-      });
+      const priorityId = await createPriority(
+        selectedProjectId
+          ? {
+              projectId: selectedProjectId as never,
+              name: name.trim(),
+              description: description.trim() || undefined,
+            }
+          : {
+              name: name.trim(),
+              description: description.trim() || undefined,
+            },
+      );
 
       if (status !== "todo") {
         await setPriorityStatus({
@@ -87,6 +121,7 @@ export default function AddPriorityScreen() {
         await setPriorityActive({
           priorityId,
           isActive: true,
+          activatedAtMs: selectedDateMs,
         });
       }
 
@@ -133,6 +168,31 @@ export default function AddPriorityScreen() {
       </View>
 
       <View style={{ flex: 1, paddingHorizontal: 16, paddingTop: 20, gap: 18 }}>
+        <Pressable
+          onPress={() => setProjectModalOpen(true)}
+          style={{
+            borderBottomWidth: 1,
+            borderBottomColor: "#1F2937",
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            paddingBottom: 14,
+          }}
+        >
+          <Text type="text-regular" color="#9CA3AF">
+            Project
+          </Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <Text type="text-regular" color="#E5E7EB">
+              {selectedProjectId
+                ? (projects?.find((item) => item._id === selectedProjectId)?.name ??
+                  "Project")
+                : "None"}
+            </Text>
+            <Ionicons name="chevron-forward" size={18} color="#6B7280" />
+          </View>
+        </Pressable>
+
         <View>
           <Text type="text-detail" color="#9CA3AF" style={{ marginBottom: 8 }}>
             Priority name
@@ -177,7 +237,10 @@ export default function AddPriorityScreen() {
                     paddingVertical: 10,
                   }}
                 >
-                  <Text type="text-detail" color={selected ? "#F3F4F6" : "#9CA3AF"}>
+                  <Text
+                    type="text-detail"
+                    color={selected ? "#F3F4F6" : "#9CA3AF"}
+                  >
                     {option.label}
                   </Text>
                 </Pressable>
@@ -252,6 +315,56 @@ export default function AddPriorityScreen() {
           </Text>
         </Pressable>
       </View>
+
+      <Modal visible={projectModalOpen} transparent animationType="fade">
+        <Pressable
+          onPress={() => setProjectModalOpen(false)}
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: "flex-end",
+            padding: 16,
+          }}
+        >
+          <Pressable
+            onPress={(event) => event.stopPropagation()}
+            style={{
+              backgroundColor: "#111827",
+              borderWidth: 1,
+              borderColor: "#1F2937",
+              borderRadius: 12,
+              overflow: "hidden",
+            }}
+          >
+            <Pressable
+              onPress={() => {
+                setSelectedProjectId(null);
+                setProjectModalOpen(false);
+              }}
+              style={{ paddingHorizontal: 16, paddingVertical: 14 }}
+            >
+              <Text type="text-regular">None</Text>
+            </Pressable>
+            {projects?.map((project) => (
+              <Pressable
+                key={project._id}
+                onPress={() => {
+                  setSelectedProjectId(project._id);
+                  setProjectModalOpen(false);
+                }}
+                style={{
+                  paddingHorizontal: 16,
+                  paddingVertical: 14,
+                  borderTopWidth: 1,
+                  borderTopColor: "#1F2937",
+                }}
+              >
+                <Text type="text-regular">{project.name}</Text>
+              </Pressable>
+            ))}
+          </Pressable>
+        </Pressable>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }

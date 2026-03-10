@@ -2,20 +2,13 @@ import { useMemo } from "react";
 import { api, useQuery } from "@transcend/convex";
 import PagerView from "react-native-pager-view";
 import CalendarSection from "@/components/home/components/calendar/CalendarSection";
+import PrioritiesSection from "@/components/home/components/PrioritiesSection";
 import {
   getDateKey,
   useCalendarEvents,
 } from "@/components/home/hooks/useCalendarEvents";
 import Text from "@/components/ui/Text";
 import { Pressable, ScrollView, View } from "react-native";
-
-const priorities = [
-  "Amex card Trisha follow up",
-  "Book hotel for May Triathlon",
-  "Get ambulance study materials",
-  "Shop around insurance",
-  "Join apply gsuite cancels",
-];
 
 const habits = [
   "Wake up at 5:30am",
@@ -81,10 +74,6 @@ function ChecklistItem({ text }: { text: string }) {
 }
 
 export default function HomeScreen() {
-  const homeBootstrap = useQuery(api.home.bootstrap, {});
-
-  const canShowCalendar = homeBootstrap?.profile?.calendarSyncEnabled ?? false;
-
   const today = useMemo(() => toStartOfDay(new Date()), []);
   const days = useMemo(
     () =>
@@ -96,6 +85,12 @@ export default function HomeScreen() {
   const initialPage = DAY_WINDOW;
   const calendarRangeStart = days[0] ?? today;
   const calendarRangeEnd = days[days.length - 1] ?? today;
+  const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, {
+    rangeStartMs: calendarRangeStart.getTime(),
+    rangeEndMs: addDays(calendarRangeEnd, 1).getTime(),
+  });
+  const canShowCalendar = homeBootstrap?.profile?.calendarSyncEnabled ?? false;
+  const bootstrapPriorities = homeBootstrap?.priorities ?? [];
   const { eventsByDay, loadingCalendar } = useCalendarEvents({
     startDate: calendarRangeStart,
     endDate: calendarRangeEnd,
@@ -152,30 +147,11 @@ export default function HomeScreen() {
                 />
               ) : null}
 
-              <View style={{ gap: 14 }}>
-                <Text type="heading-4" color="#9CA3AF">
-                  Priorities
-                </Text>
-                <View style={{ gap: 14 }}>
-                  {priorities.map((item) => (
-                    <ChecklistItem key={item} text={item} />
-                  ))}
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: 12,
-                    }}
-                  >
-                    <Text type="heading-3" color="#9CA3AF">
-                      +
-                    </Text>
-                    <Text type="text-medium" color="#9CA3AF">
-                      Quick add
-                    </Text>
-                  </View>
-                </View>
-              </View>
+              <PrioritiesSection
+                priorities={bootstrapPriorities}
+                selectedDate={day}
+                today={today}
+              />
 
               <View style={{ gap: 14 }}>
                 <Text type="heading-4" color="#9CA3AF">
