@@ -28,6 +28,7 @@ export default defineSchema({
     orderIndex: v.number(),
     activatedAt: v.optional(v.number()),
     completedAt: v.optional(v.number()),
+    completedDateKey: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
@@ -38,6 +39,11 @@ export default defineSchema({
       "profileId",
       "status",
       "completedAt",
+    ])
+    .index("by_profile_id_status_completed_date_key", [
+      "profileId",
+      "status",
+      "completedDateKey",
     ])
     .index("by_project_id", ["projectId"])
     .index("by_profile_id_is_active", ["profileId", "isActive"])

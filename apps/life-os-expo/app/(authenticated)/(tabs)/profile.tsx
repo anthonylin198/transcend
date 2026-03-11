@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import * as Calendar from "expo-calendar";
 import { api } from "@transcend/convex";
 import { useMutation, useQuery } from "convex/react";
 import Text from "@/components/ui/Text";
+import { getHomeBootstrapRange } from "@/utils/homeBootstrapRange";
 import { Alert, Platform, Pressable, View } from "react-native";
 
 export default function ProfileScreen() {
@@ -11,7 +12,8 @@ export default function ProfileScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [syncingCalendar, setSyncingCalendar] = useState(false);
   const [calendarError, setCalendarError] = useState<string | null>(null);
-  const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, {});
+  const bootstrapRange = useMemo(() => getHomeBootstrapRange(), []);
+  const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, bootstrapRange);
   const setCalendarSyncEnabled = useMutation(
     api.profile.setCalendarSyncEnabled,
   );

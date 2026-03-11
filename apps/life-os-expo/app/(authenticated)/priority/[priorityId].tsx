@@ -32,6 +32,14 @@ type InitialPriority = {
   projectId?: string;
 };
 
+function toDateKey(value: Date | number) {
+  const date = new Date(value);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 export default function PriorityDetailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -137,6 +145,8 @@ export default function PriorityDetailScreen() {
         await setPriorityStatus({
           priorityId: priority._id as never,
           status: currentStatus,
+          completedDateKey:
+            currentStatus === "done" ? toDateKey(new Date()) : undefined,
         });
       }
 

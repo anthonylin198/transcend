@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { api, useMutation, useQuery } from "@transcend/convex";
+import { getHomeBootstrapRange } from "@/lib/homeBootstrapRange";
 
 export default function IntakeItemDetailsPage() {
   const params = useParams<{ itemId: string }>();
@@ -15,7 +16,8 @@ export default function IntakeItemDetailsPage() {
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, {});
+  const bootstrapRange = useMemo(() => getHomeBootstrapRange(), []);
+  const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, bootstrapRange);
   const updateIntakeListItem = useMutation(
     api.intake.updateIntakeListItem.updateIntakeListItem,
   );

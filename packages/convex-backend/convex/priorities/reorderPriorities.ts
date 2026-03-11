@@ -2,6 +2,10 @@ import { mutation } from "../_generated/server";
 import { v } from "convex/values";
 import { getCurrentProfileOrThrow } from "../lib/currentProfile";
 
+function toIsoDateKey(valueMs: number) {
+  return new Date(valueMs).toISOString().slice(0, 10);
+}
+
 export const reorderPriorities = mutation({
   args: {
     items: v.array(
@@ -59,10 +63,15 @@ export const reorderPriorities = mutation({
         throw new Error("Priority is linked to a project");
       }
 
+      const completedAt =
+        item.status === "done" ? (priority.completedAt ?? now) : undefined;
       await ctx.db.patch(priority._id, {
         status: item.status,
-        completedAt:
-          item.status === "done" ? (priority.completedAt ?? now) : undefined,
+        completedAt,
+        completedDateKey:
+          item.status === "done"
+            ? (priority.completedDateKey ?? toIsoDateKey(completedAt ?? now))
+            : undefined,
         orderIndex,
         updatedAt: now,
       });

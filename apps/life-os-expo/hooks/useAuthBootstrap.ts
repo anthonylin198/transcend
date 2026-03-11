@@ -7,7 +7,7 @@ type BootStatus = "unauthenticated" | "loading" | "ready";
 
 export function useAuthBootstrap() {
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
-  const { rangeStartMs, rangeEndMs } = getHomeBootstrapRange();
+  const { rangeStartDateKey, rangeEndDateKey } = getHomeBootstrapRange();
   const ensureProfile = useMutation(api.profile.ensureProfile);
 
   useEffect(() => {
@@ -21,8 +21,8 @@ export function useAuthBootstrap() {
     api.home.bootstrap.bootstrap,
     isAuthenticated
       ? {
-          rangeStartMs,
-          rangeEndMs,
+          rangeStartDateKey,
+          rangeEndDateKey,
         }
       : ("skip" as any),
   );

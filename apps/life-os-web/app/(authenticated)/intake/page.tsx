@@ -1,14 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { api, useMutation, useQuery } from "@transcend/convex";
+import { getHomeBootstrapRange } from "@/lib/homeBootstrapRange";
 
 export default function IntakePage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
-  const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, {});
+  const bootstrapRange = useMemo(() => getHomeBootstrapRange(), []);
+  const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, bootstrapRange);
   const createIntakeListItem = useMutation(
     api.intake.createIntakeListItem.createIntakeListItem,
   );

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { api, useMutation, useQuery } from "@transcend/convex";
+import { getHomeBootstrapRange } from "@/lib/homeBootstrapRange";
 
 const WEEK_DAYS = [
   "Monday",
@@ -25,7 +26,8 @@ export default function HabitDetailsPage() {
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, {});
+  const bootstrapRange = useMemo(() => getHomeBootstrapRange(), []);
+  const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, bootstrapRange);
   const updateHabit = useMutation(api.habits.updateHabit.updateHabit);
   const deleteHabit = useMutation(api.habits.deleteHabit.deleteHabit);
 

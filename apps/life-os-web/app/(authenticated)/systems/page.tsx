@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { api, useMutation, useQuery } from "@transcend/convex";
+import { getHomeBootstrapRange } from "@/lib/homeBootstrapRange";
 
 type SystemsTab = "projects" | "habits";
 
@@ -23,7 +24,8 @@ export default function SystemsPage() {
   const [newHabitDays, setNewHabitDays] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
-  const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, {});
+  const bootstrapRange = useMemo(() => getHomeBootstrapRange(), []);
+  const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, bootstrapRange);
   const createProject = useMutation(api.projects.createProject.createProject);
   const createHabit = useMutation(api.habits.createHabit.createHabit);
 

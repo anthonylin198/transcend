@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { api, useMutation, useQuery } from "@transcend/convex";
+import { getHomeBootstrapRange } from "@/lib/homeBootstrapRange";
 import {
   DragDropProvider,
   useDroppable,
@@ -34,6 +35,14 @@ function createEmptyBoard(): PriorityBoard {
     todo: [],
     done: [],
   };
+}
+
+function toDateKey(value: Date | number) {
+  const date = new Date(value);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function isPriorityStatus(value: string): value is PriorityStatus {
@@ -186,23 +195,25 @@ export default function ProjectDetailsPage() {
   const [newPriorityStatus, setNewPriorityStatus] =
     useState<PriorityStatus>("todo");
   const [creatingPriority, setCreatingPriority] = useState(false);
-  const [priorityBoard, setPriorityBoard] = useState<PriorityBoard>(
-    createEmptyBoard,
-  );
+  const [priorityBoard, setPriorityBoard] =
+    useState<PriorityBoard>(createEmptyBoard);
   const dragStartBoardRef = useRef<PriorityBoard | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [priorityError, setPriorityError] = useState<string | null>(null);
 
-  const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, {});
+  const bootstrapRange = useMemo(() => getHomeBootstrapRange(), []);
+  const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, bootstrapRange);
   const priorities = useQuery(
     api.priorities.listPrioritiesByProject.listPrioritiesByProject,
     params.projectId ? { projectId: params.projectId as never } : "skip",
   );
   const updateProject = useMutation(api.projects.updateProject.updateProject);
   const deleteProject = useMutation(api.projects.deleteProject.deleteProject);
-  const createPriority = useMutation(api.priorities.createPriority.createPriority);
+  const createPriority = useMutation(
+    api.priorities.createPriority.createPriority,
+  );
   const setPriorityStatus = useMutation(
     api.priorities.setPriorityStatus.setPriorityStatus,
   );
@@ -318,6 +329,8 @@ export default function ProjectDetailsPage() {
         await setPriorityStatus({
           priorityId,
           status: newPriorityStatus,
+          completedDateKey:
+            newPriorityStatus === "done" ? toDateKey(new Date()) : undefined,
         });
       }
       setNewPriorityName("");

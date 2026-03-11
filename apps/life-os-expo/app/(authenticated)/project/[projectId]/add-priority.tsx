@@ -23,6 +23,14 @@ const STATUS_OPTIONS = [
 
 type PriorityStatus = (typeof STATUS_OPTIONS)[number]["key"];
 
+function toDateKey(value: Date | number) {
+  const date = new Date(value);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 function normalizeStatus(value?: string): PriorityStatus {
   if (value === "next_up" || value === "done" || value === "todo") {
     return value;
@@ -115,6 +123,10 @@ export default function AddPriorityScreen() {
         await setPriorityStatus({
           priorityId,
           status,
+          completedDateKey:
+            status === "done"
+              ? toDateKey(selectedDateMs ?? Date.now())
+              : undefined,
         });
       }
 

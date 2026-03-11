@@ -15,10 +15,10 @@ export default function SystemScreen() {
   const [selectedTab, setSelectedTab] = useState<"projects" | "habits">(
     "projects",
   );
-  const { rangeStartMs, rangeEndMs } = getHomeBootstrapRange();
+  const { rangeStartDateKey, rangeEndDateKey } = getHomeBootstrapRange();
   const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, {
-    rangeStartMs,
-    rangeEndMs,
+    rangeStartDateKey,
+    rangeEndDateKey,
   });
 
   const reorderProjects = useMutation(

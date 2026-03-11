@@ -2,14 +2,17 @@ import { api } from "@transcend/convex";
 import { useQuery } from "convex/react";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { useMemo } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Text from "@/components/ui/Text";
+import { getHomeBootstrapRange } from "@/utils/homeBootstrapRange";
 
 export default function IntakeListScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, {});
+  const bootstrapRange = useMemo(() => getHomeBootstrapRange(), []);
+  const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, bootstrapRange);
   const rows = homeBootstrap?.intakeListItems ?? [];
 
   return (

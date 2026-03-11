@@ -13,14 +13,13 @@ import { getAuthUserId } from "@convex-dev/auth/server";
  * - completed data scoped to a date window (`done` priorities + habit completions)
  *
  * Date range behavior:
- * - `rangeStartMs` is inclusive and `rangeEndMs` is exclusive.
+ * - `rangeStartDateKey` is inclusive and `rangeEndDateKey` is exclusive.
  * - The range is meant to match the visible pager window on home (first day start -> day after last day start).
- * - If the range is missing, completion-based datasets return empty arrays to avoid unbounded historical reads.
  */
 export const bootstrap = query({
   args: {
-    rangeStartMs: v.optional(v.number()),
-    rangeEndMs: v.optional(v.number()),
+    rangeStartDateKey: v.string(),
+    rangeEndDateKey: v.string(),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -53,11 +52,6 @@ export const bootstrap = query({
       };
     }
 
-    const hasCompletedRange =
-      args.rangeStartMs !== undefined && args.rangeEndMs !== undefined;
-    const completedRangeStart = args.rangeStartMs ?? 0;
-    const completedRangeEnd = args.rangeEndMs ?? 0;
-
     const [
       nextUpPriorities,
       donePriorities,
@@ -74,30 +68,27 @@ export const bootstrap = query({
         .collect(),
       ctx.db
         .query("priorities")
-        .withIndex("by_profile_id_status_completed_at", (q) =>
+        .withIndex("by_profile_id_status_completed_date_key", (q) =>
           q
             .eq("profileId", profile._id)
             .eq("status", "done")
-            .gte("completedAt", completedRangeStart)
-            .lt("completedAt", completedRangeEnd),
+            .gte("completedDateKey", args.rangeStartDateKey)
+            .lt("completedDateKey", args.rangeEndDateKey),
         )
-        .collect()
-        .then((results) => (hasCompletedRange ? results : [])),
+        .collect(),
       ctx.db
         .query("habits")
         .withIndex("by_profile_id_order", (q) => q.eq("profileId", profile._id))
         .collect(),
-      hasCompletedRange
-        ? ctx.db
-            .query("habitCompletions")
-            .withIndex("by_profile_id_completed_at", (q) =>
-              q
-                .eq("profileId", profile._id)
-                .gte("completedAt", completedRangeStart)
-                .lt("completedAt", completedRangeEnd),
-            )
-            .collect()
-        : Promise.resolve([]),
+      ctx.db
+        .query("habitCompletions")
+        .withIndex("by_profile_id_date_key", (q) =>
+          q
+            .eq("profileId", profile._id)
+            .gte("dateKey", args.rangeStartDateKey)
+            .lt("dateKey", args.rangeEndDateKey),
+        )
+        .collect(),
       ctx.db
         .query("projects")
         .withIndex("by_profile_id_order", (q) => q.eq("profileId", profile._id))
