@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Text from "@/components/ui/Text";
+import { getHomeBootstrapRange } from "@/utils/homeBootstrapRange";
 
 const WEEK_DAYS = [
   "Monday",
@@ -28,16 +29,52 @@ const WEEK_DAYS = [
 export default function AddHabitScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const createHabit = useMutation(api.habits.createHabit.createHabit);
+  const bootstrapRange = getHomeBootstrapRange();
+  const createHabit = useMutation(
+    api.habits.createHabit.createHabit,
+  ).withOptimisticUpdate((localStore, args) => {
+    const current = localStore.getQuery(
+      api.home.bootstrap.bootstrap,
+      bootstrapRange,
+    );
+    if (!current || !current.profile) return;
+    const now = Date.now();
+    const optimisticId = `optimistic-habit-${now}-${Math.random()}`;
+    const maxOrderIndex = current.habits.reduce(
+      (max, item) => Math.max(max, item.orderIndex),
+      -1,
+    );
+    const optimisticHabit = {
+      _id: optimisticId as never,
+      _creationTime: now,
+      profileId: current.profile._id,
+      name: args.name,
+      description: args.description,
+      habitType: args.habitType,
+      targetDays: args.habitType === "scheduled" ? args.targetDays : undefined,
+      targetCompletions:
+        args.habitType === "anytime"
+          ? (args.targetCompletions ?? 1)
+          : undefined,
+      momentum: 0,
+      streakCount: 0,
+      orderIndex: maxOrderIndex + 1,
+      createdAt: now,
+      updatedAt: now,
+    } as (typeof current.habits)[number];
+
+    localStore.setQuery(api.home.bootstrap.bootstrap, bootstrapRange, {
+      ...current,
+      habits: [...current.habits, optimisticHabit],
+    });
+  });
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [targetDays, setTargetDays] = useState<string[]>([]);
   const [daysModalOpen, setDaysModalOpen] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
 
-  const canSubmit =
-    name.trim().length > 0 && targetDays.length > 0 && !submitting;
+  const canSubmit = name.trim().length > 0 && targetDays.length > 0;
 
   const onToggleDay = (day: string) => {
     setTargetDays((prev) =>
@@ -47,21 +84,19 @@ export default function AddHabitScreen() {
 
   const onCreate = async () => {
     if (!canSubmit) return;
-    setSubmitting(true);
+    const input = {
+      name: name.trim(),
+      description: description.trim() || undefined,
+      habitType: "scheduled" as const,
+      targetDays,
+    };
+    router.back();
     try {
-      await createHabit({
-        name: name.trim(),
-        description: description.trim() || undefined,
-        habitType: "scheduled",
-        targetDays,
-      });
-      router.back();
+      await createHabit(input);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to create habit";
       Alert.alert("Could not create habit", message);
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -175,7 +210,7 @@ export default function AddHabitScreen() {
           }}
         >
           <Text type="text-semibold" color={canSubmit ? "#111827" : "#9CA3AF"}>
-            {submitting ? "Creating..." : "Create Habit"}
+            Create Habit
           </Text>
         </Pressable>
       </View>

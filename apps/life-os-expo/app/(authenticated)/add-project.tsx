@@ -13,33 +13,59 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Text from "@/components/ui/Text";
+import { getHomeBootstrapRange } from "@/utils/homeBootstrapRange";
 
 export default function AddProjectScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const createProject = useMutation(api.projects.createProject.createProject);
+  const bootstrapRange = getHomeBootstrapRange();
+  const createProject = useMutation(
+    api.projects.createProject.createProject,
+  ).withOptimisticUpdate((localStore, args) => {
+    const current = localStore.getQuery(
+      api.home.bootstrap.bootstrap,
+      bootstrapRange,
+    );
+    if (!current || !current.profile) return;
+    const now = Date.now();
+    const optimisticId = `optimistic-project-${now}-${Math.random()}`;
+    const maxOrderIndex = current.projects.reduce(
+      (max, item) => Math.max(max, item.orderIndex),
+      -1,
+    );
+    const optimisticProject = {
+      _id: optimisticId as never,
+      _creationTime: now,
+      profileId: current.profile._id,
+      name: args.name,
+      description: args.description,
+      orderIndex: maxOrderIndex + 1,
+      createdAt: now,
+      updatedAt: now,
+    } as (typeof current.projects)[number];
+
+    localStore.setQuery(api.home.bootstrap.bootstrap, bootstrapRange, {
+      ...current,
+      projects: [...current.projects, optimisticProject],
+    });
+  });
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-
-  const canSubmit = name.trim().length > 0 && !submitting;
+  const canSubmit = name.trim().length > 0;
 
   const onCreate = async () => {
     if (!canSubmit) return;
-
-    setSubmitting(true);
+    const input = {
+      name: name.trim(),
+      description: description.trim() || undefined,
+    };
+    router.back();
     try {
-      await createProject({
-        name: name.trim(),
-        description: description.trim() || undefined,
-      });
-      router.back();
+      await createProject(input);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to create project";
       Alert.alert("Could not create project", message);
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -144,7 +170,7 @@ export default function AddProjectScreen() {
           }}
         >
           <Text type="text-semibold" color={canSubmit ? "#111827" : "#9CA3AF"}>
-            {submitting ? "Creating..." : "Create Project"}
+            Create Project
           </Text>
         </Pressable>
       </View>

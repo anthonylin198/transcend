@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Text from "@/components/ui/Text";
+import { appFonts } from "@/constants/fonts";
 
 export default function AddIntakeItemScreen() {
   const insets = useSafeAreaInsets();
@@ -95,9 +96,9 @@ export default function AddIntakeItemScreen() {
           autoFocus
           style={{
             color: "#F9FAFB",
-            fontSize: 42,
-            lineHeight: 48,
-            fontWeight: "600",
+            fontFamily: appFonts.semiBold,
+            fontSize: 34,
+            lineHeight: 40,
           }}
         />
 
@@ -111,8 +112,9 @@ export default function AddIntakeItemScreen() {
           style={{
             minHeight: 120,
             color: "#E5E7EB",
-            fontSize: 28,
-            lineHeight: 34,
+            fontFamily: appFonts.regular,
+            fontSize: 16,
+            lineHeight: 24,
             paddingTop: 2,
           }}
         />

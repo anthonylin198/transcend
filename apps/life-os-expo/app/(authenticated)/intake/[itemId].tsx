@@ -14,10 +14,13 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Text from "@/components/ui/Text";
+import { appFonts } from "@/constants/fonts";
+import { getHomeBootstrapRange } from "@/utils/homeBootstrapRange";
 
 export default function IntakeItemDetailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const bootstrapRange = useMemo(() => getHomeBootstrapRange(), []);
   const params = useLocalSearchParams<{
     itemId: string;
     initialItem?: string;
@@ -35,7 +38,6 @@ export default function IntakeItemDetailScreen() {
         _id: string;
         title: string;
         description?: string;
-        completed?: boolean;
       };
     } catch {
       return null;
@@ -54,22 +56,44 @@ export default function IntakeItemDetailScreen() {
   const updateIntakeListItem = useMutation(
     api.intake.updateIntakeListItem.updateIntakeListItem,
   );
-  const setIntakeListItemCompletion = useMutation(
-    api.intake.setIntakeListItemCompletion.setIntakeListItemCompletion,
-  );
   const deleteIntakeListItem = useMutation(
     api.intake.deleteIntakeListItem.deleteIntakeListItem,
-  );
+  ).withOptimisticUpdate((localStore, args) => {
+    const bootstrap = localStore.getQuery(
+      api.home.bootstrap.bootstrap,
+      bootstrapRange,
+    );
+    if (bootstrap !== undefined && bootstrap.profile) {
+      localStore.setQuery(api.home.bootstrap.bootstrap, bootstrapRange, {
+        ...bootstrap,
+        intakeListItems: bootstrap.intakeListItems.filter(
+          (item) => item._id !== args.intakeListItemId,
+        ),
+      });
+    }
+
+    const list = localStore.getQuery(
+      api.intake.listIntakeListItemsForCurrentUser
+        .listIntakeListItemsForCurrentUser,
+      {},
+    );
+    if (list !== undefined) {
+      localStore.setQuery(
+        api.intake.listIntakeListItemsForCurrentUser
+          .listIntakeListItemsForCurrentUser,
+        {},
+        list.filter((item) => item._id !== args.intakeListItemId),
+      );
+    }
+  });
 
   const [title, setTitle] = useState<string | null>(null);
   const [description, setDescription] = useState<string | null>(null);
-  const [completed, setCompleted] = useState<boolean | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const currentTitle = title ?? intakeListItem?.title ?? "";
   const currentDescription = description ?? intakeListItem?.description ?? "";
-  const currentCompleted = completed ?? intakeListItem?.completed ?? false;
 
   const persistAndGoBack = async () => {
     if (!intakeListItem || saving) return;
@@ -95,13 +119,6 @@ export default function IntakeItemDetailScreen() {
         });
       }
 
-      if (currentCompleted !== intakeListItem.completed) {
-        await setIntakeListItemCompletion({
-          intakeListItemId: intakeListItem._id,
-          completed: currentCompleted,
-        });
-      }
-
       router.back();
     } catch (error) {
       const message =
@@ -115,16 +132,17 @@ export default function IntakeItemDetailScreen() {
   const onDelete = async () => {
     if (!intakeListItem || saving) return;
     setSaving(true);
-    try {
-      await deleteIntakeListItem({ intakeListItemId: intakeListItem._id });
-      setMenuOpen(false);
-      router.replace("/(authenticated)/intake");
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to delete intake item";
-      Alert.alert("Could not delete intake item", message);
-      setSaving(false);
-    }
+    setMenuOpen(false);
+    router.back();
+    void (async () => {
+      try {
+        await deleteIntakeListItem({ intakeListItemId: intakeListItem._id });
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Failed to delete intake item";
+        Alert.alert("Could not delete intake item", message);
+      }
+    })();
   };
 
   return (
@@ -175,32 +193,11 @@ export default function IntakeItemDetailScreen() {
           placeholderTextColor="#6B7280"
           style={{
             color: "#F9FAFB",
-            fontSize: 52,
-            lineHeight: 56,
-            fontWeight: "600",
+            fontFamily: appFonts.semiBold,
+            fontSize: 34,
+            lineHeight: 40,
           }}
         />
-
-        <Pressable
-          onPress={() => setCompleted(!currentCompleted)}
-          style={{
-            borderTopWidth: 1,
-            borderBottomWidth: 1,
-            borderTopColor: "#1F2937",
-            borderBottomColor: "#1F2937",
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            paddingVertical: 14,
-          }}
-        >
-          <Text type="text-regular" color="#9CA3AF">
-            Completed
-          </Text>
-          <Text type="text-semibold" color="#D1D5DB">
-            {currentCompleted ? "Yes" : "No"}
-          </Text>
-        </Pressable>
 
         <TextInput
           value={currentDescription}
@@ -212,8 +209,9 @@ export default function IntakeItemDetailScreen() {
           style={{
             minHeight: 120,
             color: "#E5E7EB",
-            fontSize: 28,
-            lineHeight: 34,
+            fontFamily: appFonts.regular,
+            fontSize: 16,
+            lineHeight: 24,
             paddingTop: 2,
           }}
         />

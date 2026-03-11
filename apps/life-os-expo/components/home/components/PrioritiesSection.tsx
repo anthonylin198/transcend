@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { api } from "@transcend/convex";
 import { useMutation } from "convex/react";
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { Modal, Pressable, View } from "react-native";
 import Text from "@/components/ui/Text";
@@ -94,6 +95,7 @@ export default function PrioritiesSection({
 
   const onCompletePriority = async (priority: HomePriority) => {
     if (updatingIds.has(priority._id)) return;
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setUpdatingIds((prev) => new Set(prev).add(priority._id));
     try {
       if (priority.status === "done") {

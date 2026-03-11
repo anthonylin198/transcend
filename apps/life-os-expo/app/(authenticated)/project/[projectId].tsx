@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { api } from "@transcend/convex";
 import { useMutation, useQuery } from "convex/react";
 import { Ionicons } from "@expo/vector-icons";
@@ -13,6 +13,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Sortable from "react-native-sortables";
 import Text from "@/components/ui/Text";
+import { getHomeBootstrapRange } from "@/utils/homeBootstrapRange";
 
 const STATUS_SECTIONS = [
   { key: "next_up", label: "Next Up" },
@@ -23,9 +24,53 @@ const STATUS_SECTIONS = [
 export default function ProjectDetailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const bootstrapRange = useMemo(() => getHomeBootstrapRange(), []);
   const params = useLocalSearchParams<{ projectId: string }>();
   const [menuOpen, setMenuOpen] = useState(false);
-  const deleteProject = useMutation(api.projects.deleteProject.deleteProject);
+  const deleteProject = useMutation(
+    api.projects.deleteProject.deleteProject,
+  ).withOptimisticUpdate((localStore, args) => {
+    const bootstrap = localStore.getQuery(
+      api.home.bootstrap.bootstrap,
+      bootstrapRange,
+    );
+    if (bootstrap !== undefined) {
+      localStore.setQuery(api.home.bootstrap.bootstrap, bootstrapRange, {
+        ...bootstrap,
+        projects: bootstrap.projects.filter((item) => item._id !== args.projectId),
+        priorities: bootstrap.priorities.filter(
+          (item) => item.projectId !== args.projectId,
+        ),
+        categories: bootstrap.categories.filter(
+          (item) => item.projectId !== args.projectId,
+        ),
+      });
+    }
+
+    const projectsForUser = localStore.getQuery(
+      api.projects.listProjectsForCurrentUser.listProjectsForCurrentUser,
+      {},
+    );
+    if (projectsForUser !== undefined) {
+      localStore.setQuery(
+        api.projects.listProjectsForCurrentUser.listProjectsForCurrentUser,
+        {},
+        projectsForUser.filter((item) => item._id !== args.projectId),
+      );
+    }
+
+    const projectPriorities = localStore.getQuery(
+      api.priorities.listPrioritiesByProject.listPrioritiesByProject,
+      { projectId: args.projectId },
+    );
+    if (projectPriorities !== undefined) {
+      localStore.setQuery(
+        api.priorities.listPrioritiesByProject.listPrioritiesByProject,
+        { projectId: args.projectId },
+        [],
+      );
+    }
+  });
   const reorderPriorities = useMutation(
     api.priorities.reorderPriorities.reorderPriorities,
   );
@@ -47,9 +92,9 @@ export default function ProjectDetailScreen() {
 
   const onDeleteProject = async () => {
     if (!projectId) return;
-    await deleteProject({ projectId: projectId as never });
     setMenuOpen(false);
-    router.replace("/(authenticated)/(tabs)/system");
+    router.back();
+    void deleteProject({ projectId: projectId as never });
   };
 
   if (!projectId) {

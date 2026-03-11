@@ -105,7 +105,49 @@ export default function PriorityDetailScreen() {
   );
   const deletePriority = useMutation(
     api.priorities.deletePriority.deletePriority,
-  );
+  ).withOptimisticUpdate((localStore, args) => {
+    const bootstrap = localStore.getQuery(
+      api.home.bootstrap.bootstrap,
+      bootstrapRange,
+    );
+    if (bootstrap !== undefined) {
+      localStore.setQuery(api.home.bootstrap.bootstrap, bootstrapRange, {
+        ...bootstrap,
+        priorities: bootstrap.priorities.filter(
+          (item) => item._id !== args.priorityId,
+        ),
+        categories: bootstrap.categories.filter(
+          (item) => item._id !== args.priorityId,
+        ),
+      });
+    }
+
+    const allPriorities = localStore.getQuery(
+      api.priorities.listPrioritiesForCurrentUser.listPrioritiesForCurrentUser,
+      {},
+    );
+    if (allPriorities !== undefined) {
+      localStore.setQuery(
+        api.priorities.listPrioritiesForCurrentUser.listPrioritiesForCurrentUser,
+        {},
+        allPriorities.filter((item) => item._id !== args.priorityId),
+      );
+    }
+
+    if (fallbackProjectId) {
+      const projectPriorities = localStore.getQuery(
+        api.priorities.listPrioritiesByProject.listPrioritiesByProject,
+        { projectId: fallbackProjectId as never },
+      );
+      if (projectPriorities !== undefined) {
+        localStore.setQuery(
+          api.priorities.listPrioritiesByProject.listPrioritiesByProject,
+          { projectId: fallbackProjectId as never },
+          projectPriorities.filter((item) => item._id !== args.priorityId),
+        );
+      }
+    }
+  });
 
   const currentName = name ?? priority?.name ?? "";
   const currentDescription = description ?? priority?.description ?? "";
@@ -125,81 +167,74 @@ export default function PriorityDetailScreen() {
   const persistAndGoBack = async () => {
     if (!priority || saving) return;
     setSaving(true);
-    try {
-      const trimmedName = currentName.trim();
-      const normalizedDescription = currentDescription.trim();
+    router.back();
+    void (async () => {
+      try {
+        const trimmedName = currentName.trim();
+        const normalizedDescription = currentDescription.trim();
 
-      if (
-        trimmedName !== priority.name ||
-        normalizedDescription !== (priority.description ?? "")
-      ) {
-        await updatePriority({
-          priorityId: priority._id as never,
-          name: trimmedName,
-          description:
-            normalizedDescription.length > 0 ? normalizedDescription : null,
-        });
-      }
-
-      if (currentStatus !== priority.status) {
-        await setPriorityStatus({
-          priorityId: priority._id as never,
-          status: currentStatus,
-          completedDateKey:
-            currentStatus === "done" ? toDateKey(new Date()) : undefined,
-        });
-      }
-
-      if (currentIsActive !== priority.isActive) {
-        await setPriorityActive({
-          priorityId: priority._id as never,
-          isActive: currentIsActive,
-        });
-      }
-
-      if (currentProjectId !== (priority.projectId ?? undefined)) {
-        if (currentProjectId) {
-          await assignPriorityToProject({
+        if (
+          trimmedName !== priority.name ||
+          normalizedDescription !== (priority.description ?? "")
+        ) {
+          await updatePriority({
             priorityId: priority._id as never,
-            projectId: currentProjectId as never,
-          });
-        } else {
-          await unassignPriorityFromProject({
-            priorityId: priority._id as never,
+            name: trimmedName,
+            description:
+              normalizedDescription.length > 0 ? normalizedDescription : null,
           });
         }
-      }
 
-      router.back();
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to update priority";
-      Alert.alert("Could not save changes", message);
-    } finally {
-      setSaving(false);
-    }
+        if (currentStatus !== priority.status) {
+          await setPriorityStatus({
+            priorityId: priority._id as never,
+            status: currentStatus,
+            completedDateKey:
+              currentStatus === "done" ? toDateKey(new Date()) : undefined,
+          });
+        }
+
+        if (currentIsActive !== priority.isActive) {
+          await setPriorityActive({
+            priorityId: priority._id as never,
+            isActive: currentIsActive,
+          });
+        }
+
+        if (currentProjectId !== (priority.projectId ?? undefined)) {
+          if (currentProjectId) {
+            await assignPriorityToProject({
+              priorityId: priority._id as never,
+              projectId: currentProjectId as never,
+            });
+          } else {
+            await unassignPriorityFromProject({
+              priorityId: priority._id as never,
+            });
+          }
+        }
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Failed to update priority";
+        Alert.alert("Could not save changes", message);
+      }
+    })();
   };
 
   const onDelete = async () => {
     if (!priority || saving) return;
     setSaving(true);
-    try {
-      await deletePriority({ priorityId: priority._id as never });
-      setMenuOpen(false);
-      if (fallbackProjectId) {
-        router.replace({
-          pathname: "/(authenticated)/project/[projectId]",
-          params: { projectId: fallbackProjectId },
-        });
-        return;
+    setMenuOpen(false);
+    router.back();
+    void (async () => {
+      try {
+        await deletePriority({ priorityId: priority._id as never });
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Failed to delete priority";
+        Alert.alert("Could not delete priority", message);
       }
-      router.replace("/(authenticated)/(tabs)/system");
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to delete priority";
-      Alert.alert("Could not delete priority", message);
-      setSaving(false);
-    }
+    })();
   };
 
   return (

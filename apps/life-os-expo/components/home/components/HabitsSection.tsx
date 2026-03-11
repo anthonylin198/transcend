@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { api } from "@transcend/convex";
 import { useMutation } from "convex/react";
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { Pressable, View } from "react-native";
 import Text from "@/components/ui/Text";
@@ -67,6 +68,7 @@ export default function HabitsSection({
     if (updatingIds.has(habitId)) return;
     const currentlyCompleted = completionSet.has(habitId);
 
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setUpdatingIds((prev) => new Set(prev).add(habitId));
     try {
       await setHabitCompletion({
@@ -142,15 +144,6 @@ export default function HabitsSection({
           })}
         </View>
       )}
-      <Pressable
-        onPress={() => router.push("/(authenticated)/habit/add-habit" as never)}
-        style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
-      >
-        <Ionicons name="add" size={20} color="#9CA3AF" />
-        <Text type="text-medium" color="#9CA3AF">
-          Add habit
-        </Text>
-      </Pressable>
     </View>
   );
 }

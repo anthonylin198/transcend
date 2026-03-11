@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Text from "@/components/ui/Text";
+import { getHomeBootstrapRange } from "@/utils/homeBootstrapRange";
 
 const WEEK_DAYS = [
   "Monday",
@@ -34,6 +35,7 @@ type InitialHabit = {
 export default function HabitDetailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const bootstrapRange = useMemo(() => getHomeBootstrapRange(), []);
   const params = useLocalSearchParams<{
     habitId: string;
     initialHabit?: string;
@@ -62,7 +64,35 @@ export default function HabitDetailScreen() {
     (initialHabit && initialHabit._id === habitId ? initialHabit : undefined);
 
   const updateHabit = useMutation(api.habits.updateHabit.updateHabit);
-  const deleteHabit = useMutation(api.habits.deleteHabit.deleteHabit);
+  const deleteHabit = useMutation(
+    api.habits.deleteHabit.deleteHabit,
+  ).withOptimisticUpdate((localStore, args) => {
+    const bootstrap = localStore.getQuery(
+      api.home.bootstrap.bootstrap,
+      bootstrapRange,
+    );
+    if (bootstrap !== undefined && bootstrap.profile) {
+      localStore.setQuery(api.home.bootstrap.bootstrap, bootstrapRange, {
+        ...bootstrap,
+        habits: bootstrap.habits.filter((item) => item._id !== args.habitId),
+        habitCompletions: bootstrap.habitCompletions.filter(
+          (item) => item.habitId !== args.habitId,
+        ),
+      });
+    }
+
+    const habitsForUser = localStore.getQuery(
+      api.habits.listHabitsForCurrentUser.listHabitsForCurrentUser,
+      {},
+    );
+    if (habitsForUser !== undefined) {
+      localStore.setQuery(
+        api.habits.listHabitsForCurrentUser.listHabitsForCurrentUser,
+        {},
+        habitsForUser.filter((item) => item._id !== args.habitId),
+      );
+    }
+  });
 
   const [name, setName] = useState<string | null>(null);
   const [description, setDescription] = useState<string | null>(null);
@@ -94,50 +124,51 @@ export default function HabitDetailScreen() {
       return;
     }
     setSaving(true);
-    try {
-      const trimmedName = currentName.trim();
-      const normalizedDescription = currentDescription.trim();
-      const originalTargetDays = habit.targetDays ?? [];
-      const daysChanged =
-        currentTargetDays.length !== originalTargetDays.length ||
-        currentTargetDays.some((day) => !originalTargetDays.includes(day));
+    router.back();
+    void (async () => {
+      try {
+        const trimmedName = currentName.trim();
+        const normalizedDescription = currentDescription.trim();
+        const originalTargetDays = habit.targetDays ?? [];
+        const daysChanged =
+          currentTargetDays.length !== originalTargetDays.length ||
+          currentTargetDays.some((day) => !originalTargetDays.includes(day));
 
-      if (
-        trimmedName !== habit.name ||
-        normalizedDescription !== (habit.description ?? "") ||
-        daysChanged
-      ) {
-        await updateHabit({
-          habitId: habit._id as never,
-          name: trimmedName,
-          description:
-            normalizedDescription.length > 0 ? normalizedDescription : null,
-          targetDays: currentTargetDays,
-        });
+        if (
+          trimmedName !== habit.name ||
+          normalizedDescription !== (habit.description ?? "") ||
+          daysChanged
+        ) {
+          await updateHabit({
+            habitId: habit._id as never,
+            name: trimmedName,
+            description:
+              normalizedDescription.length > 0 ? normalizedDescription : null,
+            targetDays: currentTargetDays,
+          });
+        }
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Failed to update habit";
+        Alert.alert("Could not save changes", message);
       }
-      router.back();
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to update habit";
-      Alert.alert("Could not save changes", message);
-    } finally {
-      setSaving(false);
-    }
+    })();
   };
 
   const onDelete = async () => {
     if (!habit || saving) return;
     setSaving(true);
-    try {
-      await deleteHabit({ habitId: habit._id as never });
-      setMenuOpen(false);
-      router.replace("/(authenticated)/(tabs)/system");
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to delete habit";
-      Alert.alert("Could not delete habit", message);
-      setSaving(false);
-    }
+    setMenuOpen(false);
+    router.back();
+    void (async () => {
+      try {
+        await deleteHabit({ habitId: habit._id as never });
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Failed to delete habit";
+        Alert.alert("Could not delete habit", message);
+      }
+    })();
   };
 
   return (

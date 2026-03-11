@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Text from "@/components/ui/Text";
+import { getHomeBootstrapRange } from "@/utils/homeBootstrapRange";
 
 const STATUS_OPTIONS = [
   { key: "todo", label: "Backlog" },
@@ -41,6 +42,7 @@ function normalizeStatus(value?: string): PriorityStatus {
 export default function AddPriorityScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const bootstrapRange = useMemo(() => getHomeBootstrapRange(), []);
   const params = useLocalSearchParams<{
     projectId?: string;
     defaultStatus?: string;
@@ -49,13 +51,51 @@ export default function AddPriorityScreen() {
   }>();
   const createPriority = useMutation(
     api.priorities.createPriority.createPriority,
-  );
-  const setPriorityStatus = useMutation(
-    api.priorities.setPriorityStatus.setPriorityStatus,
-  );
-  const setPriorityActive = useMutation(
-    api.priorities.setPriorityActive.setPriorityActive,
-  );
+  ).withOptimisticUpdate((localStore, args) => {
+    const current = localStore.getQuery(
+      api.home.bootstrap.bootstrap,
+      bootstrapRange,
+    );
+    if (!current || !current.profile) return;
+
+    const now = Date.now();
+    const optimisticId = `optimistic-priority-${now}-${Math.random()}`;
+    const maxOrderIndex = current.priorities.reduce(
+      (max, item) => Math.max(max, item.orderIndex),
+      -1,
+    );
+    const completedAt =
+      args.status === "done" ? (args.completedAtMs ?? now) : undefined;
+    const optimisticPriority = {
+      _id: optimisticId as never,
+      _creationTime: now,
+      profileId: current.profile._id,
+      projectId: args.projectId,
+      name: args.name,
+      description: args.description,
+      status: args.status ?? "todo",
+      isActive: args.isActive ?? false,
+      orderIndex: maxOrderIndex + 1,
+      activatedAt:
+        args.isActive === true ? (args.activatedAtMs ?? now) : undefined,
+      completedAt,
+      completedDateKey:
+        args.status === "done"
+          ? (args.completedDateKey ?? toDateKey(completedAt ?? now))
+          : undefined,
+      createdAt: now,
+      updatedAt: now,
+    } as (typeof current.priorities)[number];
+
+    localStore.setQuery(api.home.bootstrap.bootstrap, bootstrapRange, {
+      ...current,
+      priorities: [...current.priorities, optimisticPriority],
+      categories:
+        optimisticPriority.status === "next_up" && optimisticPriority.isActive
+          ? [...current.categories, optimisticPriority]
+          : current.categories,
+    });
+  });
   const projects = useQuery(
     api.projects.listProjectsForCurrentUser.listProjectsForCurrentUser,
     {},
@@ -97,54 +137,44 @@ export default function AddPriorityScreen() {
     projectId ?? null,
   );
   const [projectModalOpen, setProjectModalOpen] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
 
-  const canSubmit = name.trim().length > 0 && !submitting;
+  const canSubmit = name.trim().length > 0;
 
   const onCreate = async () => {
     if (!canSubmit) return;
-
-    setSubmitting(true);
-    try {
-      const priorityId = await createPriority(
-        selectedProjectId
-          ? {
-              projectId: selectedProjectId as never,
-              name: name.trim(),
-              description: description.trim() || undefined,
-            }
-          : {
-              name: name.trim(),
-              description: description.trim() || undefined,
-            },
-      );
-
-      if (status !== "todo") {
-        await setPriorityStatus({
-          priorityId,
+    const now = Date.now();
+    const completedAtMs =
+      status === "done" ? (selectedDateMs ?? now) : undefined;
+    const createInput = selectedProjectId
+      ? {
+          projectId: selectedProjectId as never,
+          name: name.trim(),
+          description: description.trim() || undefined,
           status,
+          isActive,
+          activatedAtMs: isActive ? (selectedDateMs ?? now) : undefined,
+          completedAtMs,
           completedDateKey:
-            status === "done"
-              ? toDateKey(selectedDateMs ?? Date.now())
-              : undefined,
-        });
-      }
+            status === "done" ? toDateKey(completedAtMs ?? now) : undefined,
+        }
+      : {
+          name: name.trim(),
+          description: description.trim() || undefined,
+          status,
+          isActive,
+          activatedAtMs: isActive ? (selectedDateMs ?? now) : undefined,
+          completedAtMs,
+          completedDateKey:
+            status === "done" ? toDateKey(completedAtMs ?? now) : undefined,
+        };
 
-      if (isActive) {
-        await setPriorityActive({
-          priorityId,
-          isActive: true,
-          activatedAtMs: selectedDateMs,
-        });
-      }
-
-      router.back();
+    router.back();
+    try {
+      await createPriority(createInput);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to create priority";
       Alert.alert("Could not create priority", message);
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -181,6 +211,28 @@ export default function AddPriorityScreen() {
       </View>
 
       <View style={{ flex: 1, paddingHorizontal: 16, paddingTop: 20, gap: 18 }}>
+        <View>
+          <Text type="text-detail" color="#9CA3AF" style={{ marginBottom: 8 }}>
+            Priority name
+          </Text>
+          <TextInput
+            value={name}
+            onChangeText={setName}
+            placeholder="Enter priority name"
+            placeholderTextColor="#6B7280"
+            autoFocus
+            style={{
+              color: "#F9FAFB",
+              borderBottomWidth: 1,
+              borderBottomColor: "#374151",
+              paddingVertical: 8,
+              fontSize: 34,
+              lineHeight: 40,
+              fontWeight: "600",
+            }}
+          />
+        </View>
+
         <Pressable
           onPress={() => setProjectModalOpen(true)}
           style={{
@@ -205,28 +257,6 @@ export default function AddPriorityScreen() {
             <Ionicons name="chevron-forward" size={18} color="#6B7280" />
           </View>
         </Pressable>
-
-        <View>
-          <Text type="text-detail" color="#9CA3AF" style={{ marginBottom: 8 }}>
-            Priority name
-          </Text>
-          <TextInput
-            value={name}
-            onChangeText={setName}
-            placeholder="Enter priority name"
-            placeholderTextColor="#6B7280"
-            autoFocus
-            style={{
-              color: "#F9FAFB",
-              borderBottomWidth: 1,
-              borderBottomColor: "#374151",
-              paddingVertical: 8,
-              fontSize: 34,
-              lineHeight: 40,
-              fontWeight: "600",
-            }}
-          />
-        </View>
 
         <View style={{ gap: 10 }}>
           <Text type="text-detail" color="#9CA3AF">
@@ -324,7 +354,7 @@ export default function AddPriorityScreen() {
           }}
         >
           <Text type="text-semibold" color={canSubmit ? "#111827" : "#9CA3AF"}>
-            {submitting ? "Creating..." : "Create Priority"}
+            Create Priority
           </Text>
         </Pressable>
       </View>
