@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@convex-dev/auth": "^0.0.90",
+    "@dnd-kit/react": "^0.3.2",
     "@transcend/convex": "workspace:^",
     "convex": "^1.25.0",
     "next": "16.1.6",
