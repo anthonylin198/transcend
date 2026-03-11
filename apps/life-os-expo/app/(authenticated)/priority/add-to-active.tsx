@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { api } from "@transcend/convex";
 import { useMutation, useQuery } from "convex/react";
 import { Ionicons } from "@expo/vector-icons";
@@ -6,6 +6,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Alert, Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Text from "@/components/ui/Text";
+import { getHomeBootstrapRange } from "@/utils/homeBootstrapRange";
 
 type PriorityItem = {
   _id: string;
@@ -25,63 +26,57 @@ type Group = {
 export default function AddToActiveScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const params = useLocalSearchParams<{ selectedDateMs?: string }>();
-  const projects = useQuery(
-    api.projects.listProjectsForCurrentUser.listProjectsForCurrentUser,
-    {},
-  );
-  const priorities = useQuery(
-    api.priorities.listPrioritiesForCurrentUser.listPrioritiesForCurrentUser,
-    {},
-  );
+  const params = useLocalSearchParams<{
+    selectedDateMs?: string;
+  }>();
   const setPriorityActive = useMutation(
     api.priorities.setPriorityActive.setPriorityActive,
   );
   const [addingIds, setAddingIds] = useState<Set<string>>(new Set());
 
-  const selectedDateMs = useMemo(() => {
-    const raw = Array.isArray(params.selectedDateMs)
-      ? params.selectedDateMs[0]
-      : params.selectedDateMs;
-    if (!raw) return Date.now();
-    const parsed = Number(raw);
-    return Number.isFinite(parsed) ? parsed : Date.now();
-  }, [params.selectedDateMs]);
+  const rawSelectedDateMs = Array.isArray(params.selectedDateMs)
+    ? params.selectedDateMs[0]
+    : params.selectedDateMs;
+  const parsedSelectedDateMs = Number(rawSelectedDateMs);
+  const selectedDateMs = Number.isFinite(parsedSelectedDateMs)
+    ? parsedSelectedDateMs
+    : Date.now();
+  const bootstrapRange = getHomeBootstrapRange(new Date(selectedDateMs));
 
-  const groups = useMemo(() => {
-    const nextPriorities = (priorities ?? []).filter(
-      (priority) => priority.status === "next_up",
-    ) as PriorityItem[];
+  const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, bootstrapRange);
 
-    const unlinked = nextPriorities.filter((priority) => !priority.projectId);
-    const linked = nextPriorities.filter((priority) => priority.projectId);
+  const projects = homeBootstrap?.projects ?? [];
+  const priorities = homeBootstrap?.priorities ?? [];
+  const nextPriorities = priorities.filter(
+    (priority) => priority.status === "next_up",
+  ) as PriorityItem[];
 
-    const groupsByProjectId = new Map<string, PriorityItem[]>();
-    for (const priority of linked) {
-      const bucket = groupsByProjectId.get(priority.projectId!) ?? [];
-      bucket.push(priority);
-      groupsByProjectId.set(priority.projectId!, bucket);
-    }
+  const unlinked = nextPriorities.filter((priority) => !priority.projectId);
+  const linked = nextPriorities.filter((priority) => priority.projectId);
 
-    const projectGroups: Group[] = (projects ?? [])
-      .map((project) => ({
-        key: project._id,
-        title: project.name,
-        priorities: (groupsByProjectId.get(project._id) ?? []).sort(
-          (a, b) => a.orderIndex - b.orderIndex,
-        ),
-      }))
-      .filter((group) => group.priorities.length > 0);
+  const groupsByProjectId = new Map<string, PriorityItem[]>();
+  for (const priority of linked) {
+    const bucket = groupsByProjectId.get(priority.projectId!) ?? [];
+    bucket.push(priority);
+    groupsByProjectId.set(priority.projectId!, bucket);
+  }
 
-    const result: Group[] = [...projectGroups];
-    result.push({
-      key: "unlinked",
-      title: "Unlinked Priorities",
-      priorities: unlinked.sort((a, b) => a.orderIndex - b.orderIndex),
-    });
+  const projectGroups: Group[] = projects
+    .map((project) => ({
+      key: project._id,
+      title: project.name,
+      priorities: (groupsByProjectId.get(project._id) ?? []).sort(
+        (a, b) => a.orderIndex - b.orderIndex,
+      ),
+    }))
+    .filter((group) => group.priorities.length > 0);
 
-    return result;
-  }, [priorities, projects]);
+  const groups: Group[] = [...projectGroups];
+  groups.push({
+    key: "unlinked",
+    title: "Unlinked Priorities",
+    priorities: unlinked.sort((a, b) => a.orderIndex - b.orderIndex),
+  });
 
   const onToggleActive = async (priority: PriorityItem) => {
     const priorityId = priority._id;

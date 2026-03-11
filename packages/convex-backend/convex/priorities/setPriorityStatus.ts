@@ -33,7 +33,7 @@ export const setPriorityStatus = mutation({
         args.status === "done"
           ? (args.completedDateKey ??
             priority.completedDateKey ??
-            toIsoDateKey(completedAt))
+            toIsoDateKey(completedAt ?? now))
           : undefined,
       updatedAt: now,
     });

@@ -6,7 +6,7 @@ import { getAuthUserId } from "@convex-dev/auth/server";
  * Home bootstrap query used by multiple tabs/views as a shared preload source.
  *
  * It fetches, in parallel:
- * - active next-up priorities (returned as `categories`, and included in `priorities`)
+ * - all next-up priorities (returned in `priorities`), plus active ones in `categories`
  * - habits
  * - projects (without nested priorities)
  * - intake list items
@@ -105,7 +105,7 @@ export const bootstrap = query({
     const activeNextUpPriorities = nextUpPriorities
       .filter((priority) => priority.isActive)
       .sort((a, b) => a.orderIndex - b.orderIndex);
-    const priorities = [...activeNextUpPriorities, ...donePriorities].sort(
+    const priorities = [...nextUpPriorities, ...donePriorities].sort(
       (a, b) => a.orderIndex - b.orderIndex,
     );
     return {
