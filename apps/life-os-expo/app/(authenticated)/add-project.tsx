@@ -13,42 +13,11 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Text from "@/components/ui/Text";
-import { getHomeBootstrapRange } from "@/utils/homeBootstrapRange";
 
 export default function AddProjectScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const bootstrapRange = getHomeBootstrapRange();
-  const createProject = useMutation(
-    api.projects.createProject.createProject,
-  ).withOptimisticUpdate((localStore, args) => {
-    const current = localStore.getQuery(
-      api.home.bootstrap.bootstrap,
-      bootstrapRange,
-    );
-    if (!current || !current.profile) return;
-    const now = Date.now();
-    const optimisticId = `optimistic-project-${now}-${Math.random()}`;
-    const maxOrderIndex = current.projects.reduce(
-      (max, item) => Math.max(max, item.orderIndex),
-      -1,
-    );
-    const optimisticProject = {
-      _id: optimisticId as never,
-      _creationTime: now,
-      profileId: current.profile._id,
-      name: args.name,
-      description: args.description,
-      orderIndex: maxOrderIndex + 1,
-      createdAt: now,
-      updatedAt: now,
-    } as (typeof current.projects)[number];
-
-    localStore.setQuery(api.home.bootstrap.bootstrap, bootstrapRange, {
-      ...current,
-      projects: [...current.projects, optimisticProject],
-    });
-  });
+  const createProject = useMutation(api.projects.createProject.createProject);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const canSubmit = name.trim().length > 0;

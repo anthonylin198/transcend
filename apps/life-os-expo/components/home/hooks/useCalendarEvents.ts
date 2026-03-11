@@ -121,5 +121,5 @@ export function useCalendarEvents({
     void loadCalendarEvents();
   }, [loadCalendarEvents]);
 
-  return { eventsByDay, loadingCalendar };
+  return { eventsByDay, loadingCalendar, reloadCalendarEvents: loadCalendarEvents };
 }

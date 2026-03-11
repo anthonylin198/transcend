@@ -217,6 +217,8 @@ export default function ProjectDetailScreen() {
           itemEntering={null}
           customHandle
           dragActivationDelay={220}
+          enableActiveItemSnap={false}
+          activeItemScale={1.03}
           onDragEnd={({ order }) => {
             const currentPriorities = priorities;
             if (!projectId || currentPriorities === undefined) return;
@@ -296,11 +298,30 @@ export default function ProjectDetailScreen() {
                 style={{
                   marginTop: row.status === "next_up" ? 0 : 4,
                   marginBottom: 4,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
                 }}
               >
                 <Text type="text-semibold" color="#9CA3AF">
                   {row.label}
                 </Text>
+                <Pressable
+                  onPress={() =>
+                    router.push({
+                      pathname: "/(authenticated)/project/[projectId]/add-priority",
+                      params: {
+                        projectId,
+                        defaultStatus: row.status,
+                        defaultIsActive: row.status === "next_up" ? "true" : "false",
+                      },
+                    })
+                  }
+                  hitSlop={8}
+                  style={{ paddingHorizontal: 2, paddingVertical: 2 }}
+                >
+                  <Ionicons name="add" size={20} color="#9CA3AF" />
+                </Pressable>
               </View>
             ) : (
               <Sortable.Handle key={row.key}>

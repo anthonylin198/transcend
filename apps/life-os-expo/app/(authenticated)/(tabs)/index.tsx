@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "@transcend/convex";
 import { useQuery } from "convex/react";
 import PagerView from "react-native-pager-view";
@@ -15,7 +15,15 @@ import {
   HOME_DAY_WINDOW,
   getHomeBootstrapRange,
 } from "@/utils/homeBootstrapRange";
-import { Animated, Easing, Pressable, ScrollView, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import {
+  Animated,
+  Easing,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 function toStartOfDay(value: Date) {
@@ -75,7 +83,9 @@ export default function HomeScreen() {
   const bootstrapHabits = homeBootstrap?.habits ?? [];
   const bootstrapHabitCompletions = homeBootstrap?.habitCompletions ?? [];
   const entranceAnimation = useRef(new Animated.Value(0)).current;
-  const { eventsByDay, loadingCalendar } = useCalendarEvents({
+  const pagerRef = useRef<PagerView>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { eventsByDay, loadingCalendar, reloadCalendarEvents } = useCalendarEvents({
     startDate: calendarRangeStart,
     endDate: calendarRangeEnd,
   });
@@ -100,9 +110,19 @@ export default function HomeScreen() {
     }).start();
   }, [entranceAnimation]);
 
+  const onRefresh = async () => {
+    setIsRefreshing(true);
+    pagerRef.current?.setPage(initialPage);
+    try {
+      await reloadCalendarEvents();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>
-      <PagerView style={{ flex: 1 }} initialPage={initialPage}>
+      <PagerView ref={pagerRef} style={{ flex: 1 }} initialPage={initialPage}>
         {days.map((day) => {
           const dayGreeting = getGreeting(day, today);
           const dayDateLabel = new Intl.DateTimeFormat(undefined, {
@@ -125,6 +145,14 @@ export default function HomeScreen() {
                 paddingBottom: 150,
                 gap: 24,
               }}
+              refreshControl={
+                <RefreshControl
+                  refreshing={isRefreshing}
+                  onRefresh={() => void onRefresh()}
+                  tintColor="#9CA3AF"
+                  progressBackgroundColor="#000000"
+                />
+              }
             >
               <Animated.View style={entranceStyle}>
                 <View style={{ alignItems: "center", gap: 4 }}>
@@ -188,9 +216,7 @@ export default function HomeScreen() {
           <Text type="text-medium" color="#9CA3AF">
             View Intake List
           </Text>
-          <Text type="heading-4" color="#9CA3AF">
-            ›
-          </Text>
+          <Ionicons name="ellipsis-horizontal" size={24} color="#FFFFFF" />
         </Pressable>
       </View>
     </View>

@@ -14,7 +14,6 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Text from "@/components/ui/Text";
-import { getHomeBootstrapRange } from "@/utils/homeBootstrapRange";
 
 const WEEK_DAYS = [
   "Monday",
@@ -29,45 +28,7 @@ const WEEK_DAYS = [
 export default function AddHabitScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const bootstrapRange = getHomeBootstrapRange();
-  const createHabit = useMutation(
-    api.habits.createHabit.createHabit,
-  ).withOptimisticUpdate((localStore, args) => {
-    const current = localStore.getQuery(
-      api.home.bootstrap.bootstrap,
-      bootstrapRange,
-    );
-    if (!current || !current.profile) return;
-    const now = Date.now();
-    const optimisticId = `optimistic-habit-${now}-${Math.random()}`;
-    const maxOrderIndex = current.habits.reduce(
-      (max, item) => Math.max(max, item.orderIndex),
-      -1,
-    );
-    const optimisticHabit = {
-      _id: optimisticId as never,
-      _creationTime: now,
-      profileId: current.profile._id,
-      name: args.name,
-      description: args.description,
-      habitType: args.habitType,
-      targetDays: args.habitType === "scheduled" ? args.targetDays : undefined,
-      targetCompletions:
-        args.habitType === "anytime"
-          ? (args.targetCompletions ?? 1)
-          : undefined,
-      momentum: 0,
-      streakCount: 0,
-      orderIndex: maxOrderIndex + 1,
-      createdAt: now,
-      updatedAt: now,
-    } as (typeof current.habits)[number];
-
-    localStore.setQuery(api.home.bootstrap.bootstrap, bootstrapRange, {
-      ...current,
-      habits: [...current.habits, optimisticHabit],
-    });
-  });
+  const createHabit = useMutation(api.habits.createHabit.createHabit);
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");

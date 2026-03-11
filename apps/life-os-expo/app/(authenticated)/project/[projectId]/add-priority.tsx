@@ -17,9 +17,9 @@ import Text from "@/components/ui/Text";
 import { getHomeBootstrapRange } from "@/utils/homeBootstrapRange";
 
 const STATUS_OPTIONS = [
-  { key: "todo", label: "Backlog" },
-  { key: "next_up", label: "Next Up" },
-  { key: "done", label: "Completed" },
+  { key: "todo", label: "Todo" },
+  { key: "next_up", label: "Next up" },
+  { key: "done", label: "Complete" },
 ] as const;
 
 type PriorityStatus = (typeof STATUS_OPTIONS)[number]["key"];
@@ -103,9 +103,9 @@ export default function AddPriorityScreen() {
 
   const projectId = useMemo(() => {
     if (Array.isArray(params.projectId)) {
-      return params.projectId[0];
+      return params.projectId[0] === "unlinked" ? undefined : params.projectId[0];
     }
-    return params.projectId;
+    return params.projectId === "unlinked" ? undefined : params.projectId;
   }, [params.projectId]);
 
   const defaultStatus = useMemo(() => {

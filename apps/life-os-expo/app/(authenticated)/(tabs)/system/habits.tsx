@@ -66,7 +66,11 @@ export default function SystemHabitsScreen() {
                 flexDirection="column"
                 flexWrap="nowrap"
                 gap={18}
+                itemEntering={null}
                 dragActivationDelay={220}
+                width="fill"
+                enableActiveItemSnap={false}
+                activeItemScale={1.03}
                 onDragEnd={({ order }) => {
                   const nextHabits = order(habits as HabitRow[]);
 
@@ -89,11 +93,9 @@ export default function SystemHabitsScreen() {
                     }
                     style={{
                       flexDirection: "row",
-                      direction: "ltr",
                       alignItems: "center",
                       justifyContent: "space-between",
                       width: rowWidth,
-                      alignSelf: "stretch",
                     }}
                   >
                     <Text

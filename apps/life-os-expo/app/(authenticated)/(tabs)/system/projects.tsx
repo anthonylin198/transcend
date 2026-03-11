@@ -63,7 +63,11 @@ export default function SystemProjectsScreen() {
                 flexDirection="column"
                 flexWrap="nowrap"
                 gap={18}
+                itemEntering={null}
                 dragActivationDelay={220}
+                width="fill"
+                enableActiveItemSnap={false}
+                activeItemScale={1.03}
                 onDragEnd={({ order }) => {
                   const nextProjects = order(projects as ProjectRow[]);
 
@@ -83,11 +87,9 @@ export default function SystemProjectsScreen() {
                     }
                     style={{
                       flexDirection: "row",
-                      direction: "ltr",
                       alignItems: "center",
                       justifyContent: "space-between",
                       width: rowWidth,
-                      alignSelf: "stretch",
                     }}
                   >
                     <Text
@@ -130,7 +132,6 @@ export default function SystemProjectsScreen() {
             paddingTop: 16,
             paddingBottom: 10,
             flexDirection: "row",
-            direction: "ltr",
             alignItems: "center",
             justifyContent: "space-between",
           }}
@@ -138,9 +139,7 @@ export default function SystemProjectsScreen() {
           <Text type="text-medium" color="#9CA3AF">
             Unlinked Priorities
           </Text>
-          <Text type="heading-4" color="#9CA3AF">
-            ›
-          </Text>
+          <Ionicons name="ellipsis-horizontal" size={24} color="#FFFFFF" />
         </Pressable>
       </View>
     </View>
