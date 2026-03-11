@@ -139,7 +139,9 @@ export default function IntakeItemDetailScreen() {
         await deleteIntakeListItem({ intakeListItemId: intakeListItem._id });
       } catch (error) {
         const message =
-          error instanceof Error ? error.message : "Failed to delete intake item";
+          error instanceof Error
+            ? error.message
+            : "Failed to delete intake item";
         Alert.alert("Could not delete intake item", message);
       }
     })();

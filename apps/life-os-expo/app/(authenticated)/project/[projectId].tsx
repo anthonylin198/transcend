@@ -34,10 +34,12 @@ export default function ProjectDetailScreen() {
       api.home.bootstrap.bootstrap,
       bootstrapRange,
     );
-    if (bootstrap !== undefined) {
+    if (bootstrap !== undefined && bootstrap.profile) {
       localStore.setQuery(api.home.bootstrap.bootstrap, bootstrapRange, {
         ...bootstrap,
-        projects: bootstrap.projects.filter((item) => item._id !== args.projectId),
+        projects: bootstrap.projects.filter(
+          (item) => item._id !== args.projectId,
+        ),
         priorities: bootstrap.priorities.filter(
           (item) => item.projectId !== args.projectId,
         ),
@@ -78,6 +80,7 @@ export default function ProjectDetailScreen() {
   const projectId = Array.isArray(params.projectId)
     ? params.projectId[0]
     : params.projectId;
+  const isUnlinkedView = projectId === "unlinked";
 
   const projects = useQuery(
     api.projects.listProjectsForCurrentUser.listProjectsForCurrentUser,
@@ -85,16 +88,37 @@ export default function ProjectDetailScreen() {
   );
   const project = projects?.find((item) => item._id === projectId);
 
-  const priorities = useQuery(
+  const projectPriorities = useQuery(
     api.priorities.listPrioritiesByProject.listPrioritiesByProject,
-    projectId ? { projectId: projectId as never } : "skip",
+    !isUnlinkedView && projectId ? { projectId: projectId as never } : "skip",
   );
+  const unlinkedPriorities = useQuery(
+    api.priorities.listPrioritiesForCurrentUser.listPrioritiesForCurrentUser,
+    isUnlinkedView ? { unlinkedOnly: true } : "skip",
+  );
+  const priorities = isUnlinkedView ? unlinkedPriorities : projectPriorities;
+  const isLoading = projects === undefined || priorities === undefined;
+  const priorityRows = priorities ?? [];
 
   const onDeleteProject = async () => {
     if (!projectId) return;
     setMenuOpen(false);
     router.back();
     void deleteProject({ projectId: projectId as never });
+  };
+
+  const onEditProject = () => {
+    if (!projectId) return;
+    setMenuOpen(false);
+    router.push({
+      pathname: "/(authenticated)/project/[projectId]/edit" as never,
+      params: project
+        ? {
+            projectId,
+            initialProject: JSON.stringify(project),
+          }
+        : { projectId },
+    });
   };
 
   if (!projectId) {
@@ -114,25 +138,6 @@ export default function ProjectDetailScreen() {
     );
   }
 
-  if (projects === undefined || priorities === undefined) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: "black",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 10,
-        }}
-      >
-        <ActivityIndicator size="small" color="#9CA3AF" />
-        <Text type="text-regular" color="#9CA3AF">
-          Loading project...
-        </Text>
-      </View>
-    );
-  }
-
   const sortableRows: (
     | {
         type: "label";
@@ -143,25 +148,27 @@ export default function ProjectDetailScreen() {
     | {
         type: "priority";
         key: string;
-        priority: (typeof priorities)[number];
+        priority: (typeof priorityRows)[number];
       }
   )[] = [];
 
-  for (const section of STATUS_SECTIONS) {
-    sortableRows.push({
-      type: "label",
-      key: `label-${section.key}`,
-      status: section.key,
-      label: section.label,
-    });
+  if (!isLoading) {
+    for (const section of STATUS_SECTIONS) {
+      sortableRows.push({
+        type: "label",
+        key: `label-${section.key}`,
+        status: section.key,
+        label: section.label,
+      });
 
-    for (const priority of priorities) {
-      if (priority.status === section.key) {
-        sortableRows.push({
-          type: "priority",
-          key: priority._id,
-          priority,
-        });
+      for (const priority of priorityRows) {
+        if (priority.status === section.key) {
+          sortableRows.push({
+            type: "priority",
+            key: priority._id,
+            priority,
+          });
+        }
       }
     }
   }
@@ -187,10 +194,18 @@ export default function ProjectDetailScreen() {
           <Pressable onPress={() => router.back()} style={{ padding: 6 }}>
             <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
           </Pressable>
-          <Text type="heading-4">{project?.name ?? "Project"}</Text>
-          <Pressable onPress={() => setMenuOpen(true)} style={{ padding: 6 }}>
-            <Ionicons name="ellipsis-horizontal" size={22} color="#FFFFFF" />
-          </Pressable>
+          <Text type="heading-4">
+            {isUnlinkedView
+              ? "Unlinked Priorities"
+              : (project?.name ?? "Project")}
+          </Text>
+          {isUnlinkedView ? (
+            <View style={{ width: 36 }} />
+          ) : (
+            <Pressable onPress={() => setMenuOpen(true)} style={{ padding: 6 }}>
+              <Ionicons name="ellipsis-horizontal" size={22} color="#FFFFFF" />
+            </Pressable>
+          )}
         </View>
       </View>
 
@@ -199,10 +214,12 @@ export default function ProjectDetailScreen() {
           flexDirection="column"
           flexWrap="nowrap"
           gap={14}
+          itemEntering={null}
           customHandle
           dragActivationDelay={220}
           onDragEnd={({ order }) => {
-            if (!projectId) return;
+            const currentPriorities = priorities;
+            if (!projectId || currentPriorities === undefined) return;
 
             const nextRows = order(sortableRows);
             const nextUpLabelIndex = nextRows.findIndex(
@@ -215,7 +232,7 @@ export default function ProjectDetailScreen() {
             const doneLabelIndex = nextRows.findIndex(
               (row) => row.type === "label" && row.status === "done",
             );
-            const nextPriorities: typeof priorities = [];
+            const nextPriorities: typeof currentPriorities = [];
 
             nextRows.forEach((row, rowIndex) => {
               if (row.type === "label") {
@@ -241,7 +258,7 @@ export default function ProjectDetailScreen() {
               });
             });
 
-            if (nextPriorities.length !== priorities.length) {
+            if (nextPriorities.length !== currentPriorities.length) {
               // Guard against malformed drag output so we never persist partial data.
               return;
             }
@@ -251,10 +268,27 @@ export default function ProjectDetailScreen() {
                 priorityId: priority._id as never,
                 status: priority.status,
               })),
-              projectId: projectId as never,
+              projectId: isUnlinkedView ? null : (projectId as never),
             });
           }}
         >
+          {isLoading ? (
+            <View
+              style={{
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 10,
+                paddingVertical: 20,
+              }}
+            >
+              <ActivityIndicator size="small" color="#9CA3AF" />
+              <Text type="text-regular" color="#9CA3AF">
+                {isUnlinkedView
+                  ? "Loading priorities..."
+                  : "Loading project..."}
+              </Text>
+            </View>
+          ) : null}
           {sortableRows.map((row) =>
             row.type === "label" ? (
               <View
@@ -274,11 +308,16 @@ export default function ProjectDetailScreen() {
                   onPress={() =>
                     router.push({
                       pathname: "/(authenticated)/priority/[priorityId]",
-                      params: {
-                        priorityId: row.priority._id,
-                        projectId,
-                        initialPriority: JSON.stringify(row.priority),
-                      },
+                      params: isUnlinkedView
+                        ? {
+                            priorityId: row.priority._id,
+                            initialPriority: JSON.stringify(row.priority),
+                          }
+                        : {
+                            priorityId: row.priority._id,
+                            projectId,
+                            initialPriority: JSON.stringify(row.priority),
+                          },
                     })
                   }
                   style={{
@@ -308,37 +347,52 @@ export default function ProjectDetailScreen() {
         </Sortable.Flex>
       </ScrollView>
 
-      <Modal visible={menuOpen} transparent animationType="fade">
-        <Pressable
-          onPress={() => setMenuOpen(false)}
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(0,0,0,0.5)",
-            justifyContent: "flex-end",
-            padding: 16,
-          }}
-        >
+      {!isUnlinkedView ? (
+        <Modal visible={menuOpen} transparent animationType="fade">
           <Pressable
-            onPress={(event) => event.stopPropagation()}
+            onPress={() => setMenuOpen(false)}
             style={{
-              backgroundColor: "#111827",
-              borderWidth: 1,
-              borderColor: "#1F2937",
-              borderRadius: 12,
-              overflow: "hidden",
+              flex: 1,
+              backgroundColor: "rgba(0,0,0,0.5)",
+              justifyContent: "flex-end",
+              padding: 16,
             }}
           >
             <Pressable
-              onPress={() => void onDeleteProject()}
-              style={{ paddingHorizontal: 16, paddingVertical: 14 }}
+              onPress={(event) => event.stopPropagation()}
+              style={{
+                backgroundColor: "#111827",
+                borderWidth: 1,
+                borderColor: "#1F2937",
+                borderRadius: 12,
+                overflow: "hidden",
+              }}
             >
-              <Text type="text-semibold" color="#F87171">
-                Delete Project
-              </Text>
+              <Pressable
+                onPress={onEditProject}
+                style={{ paddingHorizontal: 16, paddingVertical: 14 }}
+              >
+                <Text type="text-regular" color="#F3F4F6">
+                  Edit Project
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => void onDeleteProject()}
+                style={{
+                  paddingHorizontal: 16,
+                  paddingVertical: 14,
+                  borderTopWidth: 1,
+                  borderTopColor: "#1F2937",
+                }}
+              >
+                <Text type="text-semibold" color="#F87171">
+                  Delete Project
+                </Text>
+              </Pressable>
             </Pressable>
           </Pressable>
-        </Pressable>
-      </Modal>
+        </Modal>
+      ) : null}
     </View>
   );
 }

@@ -179,7 +179,7 @@ export default function HomeScreen() {
             borderTopColor: "#1F2937",
             paddingHorizontal: 20,
             paddingTop: 16,
-            paddingBottom: 10,
+            paddingBottom: 22,
             flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "center",

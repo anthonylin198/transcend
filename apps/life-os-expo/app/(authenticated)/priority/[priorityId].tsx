@@ -128,7 +128,8 @@ export default function PriorityDetailScreen() {
     );
     if (allPriorities !== undefined) {
       localStore.setQuery(
-        api.priorities.listPrioritiesForCurrentUser.listPrioritiesForCurrentUser,
+        api.priorities.listPrioritiesForCurrentUser
+          .listPrioritiesForCurrentUser,
         {},
         allPriorities.filter((item) => item._id !== args.priorityId),
       );
