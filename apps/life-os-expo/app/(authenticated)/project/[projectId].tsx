@@ -309,11 +309,13 @@ export default function ProjectDetailScreen() {
                 <Pressable
                   onPress={() =>
                     router.push({
-                      pathname: "/(authenticated)/project/[projectId]/add-priority",
+                      pathname:
+                        "/(authenticated)/project/[projectId]/add-priority",
                       params: {
                         projectId,
                         defaultStatus: row.status,
-                        defaultIsActive: row.status === "next_up" ? "true" : "false",
+                        defaultIsActive:
+                          row.status === "next_up" ? "true" : "false",
                       },
                     })
                   }

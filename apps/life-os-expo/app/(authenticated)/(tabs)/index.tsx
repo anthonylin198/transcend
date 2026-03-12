@@ -85,10 +85,11 @@ export default function HomeScreen() {
   const entranceAnimation = useRef(new Animated.Value(0)).current;
   const pagerRef = useRef<PagerView>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const { eventsByDay, loadingCalendar, reloadCalendarEvents } = useCalendarEvents({
-    startDate: calendarRangeStart,
-    endDate: calendarRangeEnd,
-  });
+  const { eventsByDay, loadingCalendar, reloadCalendarEvents } =
+    useCalendarEvents({
+      startDate: calendarRangeStart,
+      endDate: calendarRangeEnd,
+    });
   const entranceStyle = {
     opacity: entranceAnimation,
     transform: [

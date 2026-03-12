@@ -102,7 +102,9 @@ export default function AddPriorityScreen() {
 
   const projectId = useMemo(() => {
     if (Array.isArray(params.projectId)) {
-      return params.projectId[0] === "unlinked" ? undefined : params.projectId[0];
+      return params.projectId[0] === "unlinked"
+        ? undefined
+        : params.projectId[0];
     }
     return params.projectId === "unlinked" ? undefined : params.projectId;
   }, [params.projectId]);
