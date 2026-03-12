@@ -69,22 +69,49 @@ export default function PrioritiesSection({
     const todayMs = toStartOfDayMs(today);
     const isSelectedDateFuture = selectedDayMs > todayMs;
 
-    return priorities.filter((priority) => {
-      if (priority.status === "done") {
-        if (priority.completedAt === undefined) return false;
-        return toStartOfDayMs(priority.completedAt) === selectedDayMs;
-      }
-
-      if (priority.status === "next_up" && priority.activatedAt !== undefined) {
-        const activatedDayMs = toStartOfDayMs(priority.activatedAt);
-        if (isSelectedDateFuture) {
-          return activatedDayMs === selectedDayMs;
+    const filtered = priorities
+      .map((priority, index) => ({ priority, index }))
+      .filter(({ priority }) => {
+        if (priority.status === "done") {
+          if (priority.completedAt === undefined) return false;
+          return toStartOfDayMs(priority.completedAt) === selectedDayMs;
         }
-        return activatedDayMs <= selectedDayMs;
+
+        if (
+          priority.status === "next_up" &&
+          priority.isActive &&
+          priority.activatedAt !== undefined
+        ) {
+          const activatedDayMs = toStartOfDayMs(priority.activatedAt);
+          if (isSelectedDateFuture) {
+            return activatedDayMs === selectedDayMs;
+          }
+          return activatedDayMs <= selectedDayMs;
+        }
+
+        return false;
+      });
+
+    filtered.sort((left, right) => {
+      const leftIsActiveNextUp =
+        left.priority.status === "next_up" &&
+        left.priority.isActive &&
+        left.priority.activatedAt !== undefined;
+      const rightIsActiveNextUp =
+        right.priority.status === "next_up" &&
+        right.priority.isActive &&
+        right.priority.activatedAt !== undefined;
+
+      if (leftIsActiveNextUp && rightIsActiveNextUp) {
+        const leftActivatedAt = left.priority.activatedAt ?? 0;
+        const rightActivatedAt = right.priority.activatedAt ?? 0;
+        return leftActivatedAt - rightActivatedAt;
       }
 
-      return false;
+      return left.index - right.index;
     });
+
+    return filtered.map(({ priority }) => priority);
   }, [priorities, selectedDate, today]);
 
   const selectedDayCompletionMs = useMemo(() => {

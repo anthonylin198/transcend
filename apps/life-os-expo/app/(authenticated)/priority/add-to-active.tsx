@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { api } from "@transcend/convex";
 import { useMutation, useQuery } from "convex/react";
 import { Ionicons } from "@expo/vector-icons";
@@ -31,8 +30,32 @@ export default function AddToActiveScreen() {
   }>();
   const setPriorityActive = useMutation(
     api.priorities.setPriorityActive.setPriorityActive,
-  );
-  const [addingIds, setAddingIds] = useState<Set<string>>(new Set());
+  ).withOptimisticUpdate((localStore, args) => {
+    const bootstrap = localStore.getQuery(
+      api.home.bootstrap.bootstrap,
+      bootstrapRange,
+    );
+    if (bootstrap === undefined || !bootstrap.profile) return;
+
+    const nextPriorities = bootstrap.priorities.map((priority) => {
+      if (priority._id !== args.priorityId) {
+        return priority;
+      }
+      return {
+        ...priority,
+        isActive: args.isActive,
+        activatedAt: args.isActive ? Date.now() : undefined,
+      };
+    });
+
+    localStore.setQuery(api.home.bootstrap.bootstrap, bootstrapRange, {
+      ...bootstrap,
+      priorities: nextPriorities,
+      categories: nextPriorities.filter(
+        (priority) => priority.status === "next_up" && priority.isActive,
+      ),
+    });
+  });
 
   const rawSelectedDateMs = Array.isArray(params.selectedDateMs)
     ? params.selectedDateMs[0]
@@ -79,25 +102,16 @@ export default function AddToActiveScreen() {
   });
 
   const onToggleActive = async (priority: PriorityItem) => {
-    const priorityId = priority._id;
-    if (addingIds.has(priorityId)) return;
-    setAddingIds((prev) => new Set(prev).add(priorityId));
+    const nextIsActive = !priority.isActive;
     try {
       await setPriorityActive({
-        priorityId: priorityId as never,
-        isActive: !priority.isActive,
-        activatedAtMs: selectedDateMs,
+        priorityId: priority._id as never,
+        isActive: nextIsActive,
       });
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to activate priority";
       Alert.alert("Could not add priority", message);
-    } finally {
-      setAddingIds((prev) => {
-        const next = new Set(prev);
-        next.delete(priorityId);
-        return next;
-      });
     }
   };
 
@@ -191,7 +205,6 @@ export default function AddToActiveScreen() {
                   </Text>
                 ) : (
                   group.priorities.map((priority, index) => {
-                    const isUpdating = addingIds.has(priority._id);
                     const actionLabel = priority.isActive ? "Remove" : "Add";
                     return (
                       <View
@@ -212,7 +225,6 @@ export default function AddToActiveScreen() {
                         </Text>
                         <Pressable
                           onPress={() => void onToggleActive(priority)}
-                          disabled={isUpdating}
                           style={{
                             borderWidth: 1,
                             borderColor: priority.isActive
@@ -221,14 +233,13 @@ export default function AddToActiveScreen() {
                             borderRadius: 8,
                             paddingHorizontal: 12,
                             paddingVertical: 5,
-                            opacity: isUpdating ? 0.7 : 1,
                           }}
                         >
                           <Text
                             type="text-detail"
                             color={priority.isActive ? "#FCA5A5" : "#D1D5DB"}
                           >
-                            {isUpdating ? "Updating..." : actionLabel}
+                            {actionLabel}
                           </Text>
                         </Pressable>
                       </View>

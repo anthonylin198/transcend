@@ -216,7 +216,7 @@ export default function HomeScreen() {
           <Text type="text-medium" color="#9CA3AF">
             View Intake List
           </Text>
-          <Ionicons name="ellipsis-horizontal" size={24} color="#FFFFFF" />
+          <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
         </Pressable>
       </View>
     </View>

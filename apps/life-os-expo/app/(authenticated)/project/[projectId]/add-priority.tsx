@@ -76,8 +76,7 @@ export default function AddPriorityScreen() {
       status: args.status ?? "todo",
       isActive: args.isActive ?? false,
       orderIndex: maxOrderIndex + 1,
-      activatedAt:
-        args.isActive === true ? (args.activatedAtMs ?? now) : undefined,
+      activatedAt: args.isActive === true ? now : undefined,
       completedAt,
       completedDateKey:
         args.status === "done"
@@ -152,7 +151,6 @@ export default function AddPriorityScreen() {
           description: description.trim() || undefined,
           status,
           isActive,
-          activatedAtMs: isActive ? (selectedDateMs ?? now) : undefined,
           completedAtMs,
           completedDateKey:
             status === "done" ? toDateKey(completedAtMs ?? now) : undefined,
@@ -162,7 +160,6 @@ export default function AddPriorityScreen() {
           description: description.trim() || undefined,
           status,
           isActive,
-          activatedAtMs: isActive ? (selectedDateMs ?? now) : undefined,
           completedAtMs,
           completedDateKey:
             status === "done" ? toDateKey(completedAtMs ?? now) : undefined,
