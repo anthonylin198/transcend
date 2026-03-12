@@ -314,8 +314,7 @@ export default function ProjectDetailScreen() {
                       params: {
                         projectId,
                         defaultStatus: row.status,
-                        defaultIsActive:
-                          row.status === "next_up" ? "true" : "false",
+                        defaultIsActive: "false",
                       },
                     })
                   }

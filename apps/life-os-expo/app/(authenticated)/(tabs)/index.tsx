@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "@transcend/convex";
 import { useQuery } from "convex/react";
 import PagerView from "react-native-pager-view";
 import { useRouter } from "expo-router";
+import * as Haptics from "expo-haptics";
 import CalendarSection from "@/components/home/components/calendar/CalendarSection";
 import PrioritiesSection from "@/components/home/components/PrioritiesSection";
 import HabitsSection from "@/components/home/components/HabitsSection";
@@ -18,12 +19,14 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import {
   Animated,
+  AppState,
   Easing,
   Pressable,
   RefreshControl,
   ScrollView,
   View,
 } from "react-native";
+import { useIsFocused } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 function toStartOfDay(value: Date) {
@@ -65,7 +68,8 @@ function getGreeting(value: Date, today: Date) {
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const today = useMemo(() => toStartOfDay(new Date()), []);
+  const isFocused = useIsFocused();
+  const [today, setToday] = useState(() => toStartOfDay(new Date()));
   const bootstrapRange = useMemo(() => getHomeBootstrapRange(today), [today]);
   const days = useMemo(
     () =>
@@ -84,6 +88,8 @@ export default function HomeScreen() {
   const bootstrapHabitCompletions = homeBootstrap?.habitCompletions ?? [];
   const entranceAnimation = useRef(new Animated.Value(0)).current;
   const pagerRef = useRef<PagerView>(null);
+  const currentPageRef = useRef(initialPage);
+  const appStateRef = useRef(AppState.currentState);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { eventsByDay, loadingCalendar, reloadCalendarEvents } =
     useCalendarEvents({
@@ -103,6 +109,7 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     Animated.timing(entranceAnimation, {
       toValue: 1,
       duration: 420,
@@ -110,6 +117,36 @@ export default function HomeScreen() {
       useNativeDriver: true,
     }).start();
   }, [entranceAnimation]);
+
+  const syncToCurrentDay = useCallback(() => {
+    const nextToday = toStartOfDay(new Date());
+    const didDayChange = !isSameDay(today, nextToday);
+
+    if (didDayChange) {
+      setToday(nextToday);
+    }
+
+    if (currentPageRef.current !== initialPage) {
+      pagerRef.current?.setPage(initialPage);
+    }
+  }, [initialPage, today]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextState) => {
+      const previousState = appStateRef.current;
+      appStateRef.current = nextState;
+      const becameActive =
+        previousState.match(/inactive|background/) !== null &&
+        nextState === "active";
+      if (becameActive && isFocused) {
+        syncToCurrentDay();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [isFocused, syncToCurrentDay]);
 
   const onRefresh = async () => {
     setIsRefreshing(true);
@@ -123,7 +160,14 @@ export default function HomeScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>
-      <PagerView ref={pagerRef} style={{ flex: 1 }} initialPage={initialPage}>
+      <PagerView
+        ref={pagerRef}
+        style={{ flex: 1 }}
+        initialPage={initialPage}
+        onPageSelected={(event) => {
+          currentPageRef.current = event.nativeEvent.position;
+        }}
+      >
         {days.map((day) => {
           const dayGreeting = getGreeting(day, today);
           const dayDateLabel = new Intl.DateTimeFormat(undefined, {

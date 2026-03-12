@@ -43,7 +43,7 @@ export const createPriority = mutation({
     const orderIndex = lastPriority ? lastPriority.orderIndex + 1 : 0;
     const status = args.status ?? "todo";
     const isActive = args.isActive ?? false;
-    const activatedAt = isActive ? now : undefined;
+    const activatedAt = isActive ? (args.activatedAtMs ?? now) : undefined;
     const completedAt =
       status === "done" ? (args.completedAtMs ?? now) : undefined;
     const completedDateKey =

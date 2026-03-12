@@ -22,6 +22,19 @@ type Group = {
   priorities: PriorityItem[];
 };
 
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+function getActivatedAtMsForSelectedDay(selectedDateMs: number) {
+  const now = Date.now();
+  const selectedDayStart = new Date(selectedDateMs);
+  selectedDayStart.setHours(0, 0, 0, 0);
+  const selectedStartMs = selectedDayStart.getTime();
+  const todayStart = new Date(now);
+  todayStart.setHours(0, 0, 0, 0);
+  if (selectedStartMs === todayStart.getTime()) return now;
+  return selectedStartMs + (now % MS_PER_DAY);
+}
+
 export default function AddToActiveScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -44,7 +57,9 @@ export default function AddToActiveScreen() {
       return {
         ...priority,
         isActive: args.isActive,
-        activatedAt: args.isActive ? Date.now() : undefined,
+        activatedAt: args.isActive
+          ? (args.activatedAtMs ?? Date.now())
+          : undefined,
       };
     });
 
@@ -103,10 +118,14 @@ export default function AddToActiveScreen() {
 
   const onToggleActive = async (priority: PriorityItem) => {
     const nextIsActive = !priority.isActive;
+    const activatedAtMs = nextIsActive
+      ? getActivatedAtMsForSelectedDay(selectedDateMs)
+      : undefined;
     try {
       await setPriorityActive({
         priorityId: priority._id as never,
         isActive: nextIsActive,
+        activatedAtMs,
       });
     } catch (error) {
       const message =

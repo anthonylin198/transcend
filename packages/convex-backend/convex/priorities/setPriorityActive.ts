@@ -17,7 +17,9 @@ export const setPriorityActive = mutation({
     }
 
     const now = Date.now();
-    const nextActivatedAt = args.isActive ? now : undefined;
+    const nextActivatedAt = args.isActive
+      ? (args.activatedAtMs ?? now)
+      : undefined;
     await ctx.db.patch(priority._id, {
       isActive: args.isActive,
       activatedAt: nextActivatedAt,

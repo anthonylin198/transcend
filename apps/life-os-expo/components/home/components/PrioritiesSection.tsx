@@ -16,6 +16,8 @@ type HomePriority = {
   projectId?: string;
   activatedAt?: number;
   completedAt?: number;
+  createdAt?: number;
+  orderIndex?: number;
 };
 
 function toStartOfDayMs(value: Date | number) {
@@ -105,7 +107,20 @@ export default function PrioritiesSection({
       if (leftIsActiveNextUp && rightIsActiveNextUp) {
         const leftActivatedAt = left.priority.activatedAt ?? 0;
         const rightActivatedAt = right.priority.activatedAt ?? 0;
-        return leftActivatedAt - rightActivatedAt;
+        if (leftActivatedAt !== rightActivatedAt) {
+          return leftActivatedAt - rightActivatedAt;
+        }
+        const leftCreatedAt = left.priority.createdAt ?? 0;
+        const rightCreatedAt = right.priority.createdAt ?? 0;
+        if (leftCreatedAt !== rightCreatedAt) {
+          return leftCreatedAt - rightCreatedAt;
+        }
+        const leftOrderIndex = left.priority.orderIndex ?? 0;
+        const rightOrderIndex = right.priority.orderIndex ?? 0;
+        if (leftOrderIndex !== rightOrderIndex) {
+          return leftOrderIndex - rightOrderIndex;
+        }
+        return left.index - right.index;
       }
 
       return left.index - right.index;
@@ -251,7 +266,7 @@ export default function PrioritiesSection({
                     "/(authenticated)/priority/add-priority",
                     {
                       defaultStatus: "next_up",
-                      defaultIsActive: "true",
+                      defaultIsActive: "false",
                       selectedDateMs: String(toStartOfDayMs(selectedDate)),
                     },
                   );

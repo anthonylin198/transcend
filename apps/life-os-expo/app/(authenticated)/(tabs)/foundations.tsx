@@ -9,6 +9,7 @@ export default function FoundationsScreen() {
     "Review your calendar for the following week",
     "Review all your projects and cleanup",
     "Review all habits + description strategy update",
+    "Figure out meal plan for the following week",
   ];
 
   return (
