@@ -266,7 +266,7 @@ export default function PrioritiesSection({
                     "/(authenticated)/priority/add-priority",
                     {
                       defaultStatus: "next_up",
-                      defaultIsActive: "false",
+                      defaultIsActive: "true",
                       selectedDateMs: String(toStartOfDayMs(selectedDate)),
                     },
                   );

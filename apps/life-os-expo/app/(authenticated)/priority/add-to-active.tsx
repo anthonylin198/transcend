@@ -2,6 +2,7 @@ import { api } from "@transcend/convex";
 import { useMutation, useQuery } from "convex/react";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useMemo } from "react";
 import { Alert, Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Text from "@/components/ui/Text";
@@ -38,6 +39,7 @@ function getActivatedAtMsForSelectedDay(selectedDateMs: number) {
 export default function AddToActiveScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const bootstrapRange = useMemo(() => getHomeBootstrapRange(), []);
   const params = useLocalSearchParams<{
     selectedDateMs?: string;
   }>();
@@ -79,7 +81,6 @@ export default function AddToActiveScreen() {
   const selectedDateMs = Number.isFinite(parsedSelectedDateMs)
     ? parsedSelectedDateMs
     : Date.now();
-  const bootstrapRange = getHomeBootstrapRange(new Date(selectedDateMs));
 
   const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, bootstrapRange);
 
