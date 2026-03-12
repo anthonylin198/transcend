@@ -1,31 +1,33 @@
-import { useMemo } from "react";
-import { api, useQuery } from "@transcend/convex";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { api } from "@transcend/convex";
+import { useQuery } from "convex/react";
 import PagerView from "react-native-pager-view";
+import { useRouter } from "expo-router";
+import * as Haptics from "expo-haptics";
 import CalendarSection from "@/components/home/components/calendar/CalendarSection";
+import PrioritiesSection from "@/components/home/components/PrioritiesSection";
+import HabitsSection from "@/components/home/components/HabitsSection";
 import {
   getDateKey,
   useCalendarEvents,
 } from "@/components/home/hooks/useCalendarEvents";
 import Text from "@/components/ui/Text";
-import { Pressable, ScrollView, View } from "react-native";
-
-const priorities = [
-  "Amex card Trisha follow up",
-  "Book hotel for May Triathlon",
-  "Get ambulance study materials",
-  "Shop around insurance",
-  "Join apply gsuite cancels",
-];
-
-const habits = [
-  "Wake up at 5:30am",
-  "Morning meditation at least 15 mins + journal/read",
-  "Workout",
-  "Evening stretch routine",
-  "Electronics off at 9pm and prep for next day workout",
-];
-
-const DAY_WINDOW = 7;
+import {
+  HOME_DAY_WINDOW,
+  getHomeBootstrapRange,
+} from "@/utils/homeBootstrapRange";
+import { Ionicons } from "@expo/vector-icons";
+import {
+  Animated,
+  AppState,
+  Easing,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  View,
+} from "react-native";
+import { useIsFocused } from "@react-navigation/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 function toStartOfDay(value: Date) {
   const date = new Date(value);
@@ -63,47 +65,109 @@ function getGreeting(value: Date, today: Date) {
   return new Intl.DateTimeFormat(undefined, { weekday: "long" }).format(value);
 }
 
-function ChecklistItem({ text }: { text: string }) {
-  return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-      <View
-        style={{
-          width: 24,
-          height: 24,
-          borderRadius: 12,
-          borderWidth: 2,
-          borderColor: "#E5E7EB",
-        }}
-      />
-      <Text type="text-regular">{text}</Text>
-    </View>
-  );
-}
-
 export default function HomeScreen() {
-  const homeBootstrap = useQuery(api.home.bootstrap, {});
-
-  const canShowCalendar = homeBootstrap?.profile?.calendarSyncEnabled ?? false;
-
-  const today = useMemo(() => toStartOfDay(new Date()), []);
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const isFocused = useIsFocused();
+  const [today, setToday] = useState(() => toStartOfDay(new Date()));
+  const bootstrapRange = useMemo(() => getHomeBootstrapRange(today), [today]);
   const days = useMemo(
     () =>
-      Array.from({ length: DAY_WINDOW * 2 + 1 }, (_, index) =>
-        addDays(today, index - DAY_WINDOW),
+      Array.from({ length: HOME_DAY_WINDOW * 2 + 1 }, (_, index) =>
+        addDays(today, index - HOME_DAY_WINDOW),
       ),
     [today],
   );
-  const initialPage = DAY_WINDOW;
+  const initialPage = HOME_DAY_WINDOW;
   const calendarRangeStart = days[0] ?? today;
   const calendarRangeEnd = days[days.length - 1] ?? today;
-  const { eventsByDay, loadingCalendar } = useCalendarEvents({
-    startDate: calendarRangeStart,
-    endDate: calendarRangeEnd,
-  });
+  const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, bootstrapRange);
+  const canShowCalendar = homeBootstrap?.profile?.calendarSyncEnabled ?? false;
+  const bootstrapPriorities = homeBootstrap?.priorities ?? [];
+  const bootstrapHabits = homeBootstrap?.habits ?? [];
+  const bootstrapHabitCompletions = homeBootstrap?.habitCompletions ?? [];
+  const entranceAnimation = useRef(new Animated.Value(0)).current;
+  const pagerRef = useRef<PagerView>(null);
+  const currentPageRef = useRef(initialPage);
+  const appStateRef = useRef(AppState.currentState);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { eventsByDay, loadingCalendar, reloadCalendarEvents } =
+    useCalendarEvents({
+      startDate: calendarRangeStart,
+      endDate: calendarRangeEnd,
+    });
+  const entranceStyle = {
+    opacity: entranceAnimation,
+    transform: [
+      {
+        translateY: entranceAnimation.interpolate({
+          inputRange: [0, 1],
+          outputRange: [14, 0],
+        }),
+      },
+    ],
+  };
+
+  useEffect(() => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Animated.timing(entranceAnimation, {
+      toValue: 1,
+      duration: 420,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [entranceAnimation]);
+
+  const syncToCurrentDay = useCallback(() => {
+    const nextToday = toStartOfDay(new Date());
+    const didDayChange = !isSameDay(today, nextToday);
+
+    if (didDayChange) {
+      setToday(nextToday);
+    }
+
+    if (currentPageRef.current !== initialPage) {
+      pagerRef.current?.setPage(initialPage);
+    }
+  }, [initialPage, today]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextState) => {
+      const previousState = appStateRef.current;
+      appStateRef.current = nextState;
+      const becameActive =
+        previousState.match(/inactive|background/) !== null &&
+        nextState === "active";
+      if (becameActive && isFocused) {
+        syncToCurrentDay();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [isFocused, syncToCurrentDay]);
+
+  const onRefresh = async () => {
+    setIsRefreshing(true);
+    pagerRef.current?.setPage(initialPage);
+    try {
+      await reloadCalendarEvents();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>
-      <PagerView style={{ flex: 1 }} initialPage={initialPage}>
+      <PagerView
+        ref={pagerRef}
+        style={{ flex: 1 }}
+        initialPage={initialPage}
+        onPageSelected={(event) => {
+          currentPageRef.current = event.nativeEvent.position;
+        }}
+      >
         {days.map((day) => {
           const dayGreeting = getGreeting(day, today);
           const dayDateLabel = new Intl.DateTimeFormat(undefined, {
@@ -122,71 +186,50 @@ export default function HomeScreen() {
               }}
               contentContainerStyle={{
                 padding: 20,
+                paddingTop: insets.top + 16,
                 paddingBottom: 150,
                 gap: 24,
               }}
-            >
-              <View style={{ alignItems: "center", marginTop: 28, gap: 4 }}>
-                <Text type="heading-4" color="#E5E7EB">
-                  {dayGreeting}
-                </Text>
-                <Text type="text-medium" color="#9CA3AF">
-                  {dayDateLabel}
-                </Text>
-              </View>
-
-              <View style={{ gap: 8 }}>
-                <Text
-                  type="heading-4"
-                  color="#E5E7EB"
-                  style={{ lineHeight: 30 }}
-                >
-                  A good life is built in small, repeated choices.
-                </Text>
-              </View>
-
-              {canShowCalendar ? (
-                <CalendarSection
-                  calendarEvents={dayEvents}
-                  loadingCalendar={loadingCalendar}
+              refreshControl={
+                <RefreshControl
+                  refreshing={isRefreshing}
+                  onRefresh={() => void onRefresh()}
+                  tintColor="#9CA3AF"
+                  progressBackgroundColor="#000000"
                 />
-              ) : null}
-
-              <View style={{ gap: 14 }}>
-                <Text type="heading-4" color="#9CA3AF">
-                  Priorities
-                </Text>
-                <View style={{ gap: 14 }}>
-                  {priorities.map((item) => (
-                    <ChecklistItem key={item} text={item} />
-                  ))}
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: 12,
-                    }}
-                  >
-                    <Text type="heading-3" color="#9CA3AF">
-                      +
-                    </Text>
-                    <Text type="text-medium" color="#9CA3AF">
-                      Quick add
-                    </Text>
-                  </View>
+              }
+            >
+              <Animated.View style={entranceStyle}>
+                <View style={{ alignItems: "center", gap: 4 }}>
+                  <Text type="heading-4" color="#E5E7EB">
+                    {dayGreeting}
+                  </Text>
+                  <Text type="text-medium" color="#9CA3AF">
+                    {dayDateLabel}
+                  </Text>
                 </View>
-              </View>
 
-              <View style={{ gap: 14 }}>
-                <Text type="heading-4" color="#9CA3AF">
-                  Habits
-                </Text>
-                <View style={{ gap: 14 }}>
-                  {habits.map((item) => (
-                    <ChecklistItem key={item} text={item} />
-                  ))}
+                <View style={{ marginTop: 24, gap: 24 }}>
+                  {canShowCalendar ? (
+                    <CalendarSection
+                      calendarEvents={dayEvents}
+                      loadingCalendar={loadingCalendar}
+                    />
+                  ) : null}
+
+                  <PrioritiesSection
+                    priorities={bootstrapPriorities}
+                    selectedDate={day}
+                    today={today}
+                  />
+
+                  <HabitsSection
+                    habits={bootstrapHabits}
+                    habitCompletions={bootstrapHabitCompletions}
+                    selectedDate={day}
+                  />
                 </View>
-              </View>
+              </Animated.View>
             </ScrollView>
           );
         })}
@@ -203,12 +246,13 @@ export default function HomeScreen() {
         }}
       >
         <Pressable
+          onPress={() => router.push("/(authenticated)/intake")}
           style={{
             borderTopWidth: 1,
             borderTopColor: "#1F2937",
             paddingHorizontal: 20,
             paddingTop: 16,
-            paddingBottom: 10,
+            paddingBottom: 22,
             flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "center",
@@ -217,9 +261,7 @@ export default function HomeScreen() {
           <Text type="text-medium" color="#9CA3AF">
             View Intake List
           </Text>
-          <Text type="heading-4" color="#9CA3AF">
-            ›
-          </Text>
+          <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
         </Pressable>
       </View>
     </View>
