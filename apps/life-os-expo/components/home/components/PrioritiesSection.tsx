@@ -202,6 +202,7 @@ export default function PrioritiesSection({
                     params: {
                       priorityId: priority._id,
                       initialPriority: JSON.stringify(priority),
+                      selectedDateMs: String(toStartOfDayMs(selectedDate)),
                     },
                   })
                 }

@@ -2,12 +2,8 @@ import { mutation } from "../_generated/server";
 import { v } from "convex/values";
 import { getCurrentProfileOrThrow } from "../lib/currentProfile";
 
-function toDateKey(value: number) {
-  const date = new Date(value);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+function isDateKey(value: string) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value);
 }
 
 export const createPriority = mutation({
@@ -44,16 +40,28 @@ export const createPriority = mutation({
     const orderIndex = lastPriority ? lastPriority.orderIndex + 1 : 0;
     const status = args.status ?? "todo";
     const isActive = args.isActive ?? false;
+    if (isActive && !args.activeDateKey) {
+      throw new Error(
+        "activeDateKey is required when creating an active priority",
+      );
+    }
+    if (args.activeDateKey && !isDateKey(args.activeDateKey)) {
+      throw new Error("activeDateKey must be in YYYY-MM-DD format");
+    }
+    if (status === "done" && !args.completedDateKey) {
+      throw new Error(
+        "completedDateKey is required when creating a completed priority",
+      );
+    }
+    if (args.completedDateKey && !isDateKey(args.completedDateKey)) {
+      throw new Error("completedDateKey must be in YYYY-MM-DD format");
+    }
     const activatedAt = isActive ? (args.activatedAtMs ?? now) : undefined;
-    const activeDateKey = isActive
-      ? (args.activeDateKey ?? toDateKey(activatedAt ?? now))
-      : undefined;
+    const activeDateKey = isActive ? args.activeDateKey : undefined;
     const completedAt =
       status === "done" ? (args.completedAtMs ?? now) : undefined;
     const completedDateKey =
-      status === "done"
-        ? (args.completedDateKey ?? toDateKey(completedAt ?? now))
-        : undefined;
+      status === "done" ? args.completedDateKey : undefined;
 
     return await ctx.db.insert("priorities", {
       profileId: profile._id,

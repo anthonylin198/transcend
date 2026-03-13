@@ -2,12 +2,8 @@ import { mutation } from "../_generated/server";
 import { v } from "convex/values";
 import { getCurrentProfileOrThrow } from "../lib/currentProfile";
 
-function toDateKey(value: number) {
-  const date = new Date(value);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+function isDateKey(value: string) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value);
 }
 
 export const setPriorityActive = mutation({
@@ -29,9 +25,13 @@ export const setPriorityActive = mutation({
     const nextActivatedAt = args.isActive
       ? (args.activatedAtMs ?? now)
       : undefined;
-    const nextActiveDateKey = args.isActive
-      ? (args.activeDateKey ?? toDateKey(nextActivatedAt ?? now))
-      : undefined;
+    if (args.isActive && !args.activeDateKey) {
+      throw new Error("activeDateKey is required when activating a priority");
+    }
+    if (args.isActive && args.activeDateKey && !isDateKey(args.activeDateKey)) {
+      throw new Error("activeDateKey must be in YYYY-MM-DD format");
+    }
+    const nextActiveDateKey = args.isActive ? args.activeDateKey : undefined;
     await ctx.db.patch(priority._id, {
       isActive: args.isActive,
       activatedAt: nextActivatedAt,

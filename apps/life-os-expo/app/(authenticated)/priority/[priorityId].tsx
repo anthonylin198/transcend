@@ -47,6 +47,7 @@ export default function PriorityDetailScreen() {
     priorityId: string;
     projectId?: string;
     initialPriority?: string;
+    selectedDateMs?: string;
   }>();
   const priorityId = Array.isArray(params.priorityId)
     ? params.priorityId[0]
@@ -57,6 +58,13 @@ export default function PriorityDetailScreen() {
   const initialPriorityParam = Array.isArray(params.initialPriority)
     ? params.initialPriority[0]
     : params.initialPriority;
+  const rawSelectedDateMs = Array.isArray(params.selectedDateMs)
+    ? params.selectedDateMs[0]
+    : params.selectedDateMs;
+  const parsedSelectedDateMs = Number(rawSelectedDateMs);
+  const selectedDateMs = Number.isFinite(parsedSelectedDateMs)
+    ? parsedSelectedDateMs
+    : undefined;
   const initialPriority = useMemo<InitialPriority | null>(() => {
     if (!initialPriorityParam) return null;
     try {
@@ -196,9 +204,15 @@ export default function PriorityDetailScreen() {
         }
 
         if (currentIsActive !== priority.isActive) {
+          const activationNow = Date.now();
+          const activeDateReferenceMs = selectedDateMs ?? activationNow;
           await setPriorityActive({
             priorityId: priority._id as never,
             isActive: currentIsActive,
+            activatedAtMs: currentIsActive ? activationNow : undefined,
+            activeDateKey: currentIsActive
+              ? toDateKey(activeDateReferenceMs)
+              : undefined,
           });
         }
 
