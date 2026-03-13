@@ -23,17 +23,16 @@ type Group = {
   priorities: PriorityItem[];
 };
 
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
+function toDateKey(value: Date | number) {
+  const date = new Date(value);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
 
-function getActivatedAtMsForSelectedDay(selectedDateMs: number) {
-  const now = Date.now();
-  const selectedDayStart = new Date(selectedDateMs);
-  selectedDayStart.setHours(0, 0, 0, 0);
-  const selectedStartMs = selectedDayStart.getTime();
-  const todayStart = new Date(now);
-  todayStart.setHours(0, 0, 0, 0);
-  if (selectedStartMs === todayStart.getTime()) return now;
-  return selectedStartMs + (now % MS_PER_DAY);
+function getActivationTimestampMs() {
+  return Date.now();
 }
 
 export default function AddToActiveScreen() {
@@ -52,6 +51,7 @@ export default function AddToActiveScreen() {
     );
     if (bootstrap === undefined || !bootstrap.profile) return;
 
+    const now = Date.now();
     const nextPriorities = bootstrap.priorities.map((priority) => {
       if (priority._id !== args.priorityId) {
         return priority;
@@ -59,9 +59,9 @@ export default function AddToActiveScreen() {
       return {
         ...priority,
         isActive: args.isActive,
-        activatedAt: args.isActive
-          ? (args.activatedAtMs ?? Date.now())
-          : undefined,
+        activatedAt: args.isActive ? (args.activatedAtMs ?? now) : undefined,
+        activeDateKey: args.isActive ? args.activeDateKey : undefined,
+        updatedAt: now,
       };
     });
 
@@ -119,15 +119,15 @@ export default function AddToActiveScreen() {
 
   const onToggleActive = async (priority: PriorityItem) => {
     const nextIsActive = !priority.isActive;
-    const activatedAtMs = nextIsActive
-      ? getActivatedAtMsForSelectedDay(selectedDateMs)
-      : undefined;
+    const activatedAtMs = nextIsActive ? getActivationTimestampMs() : undefined;
+    const activeDateKey = nextIsActive ? toDateKey(selectedDateMs) : undefined;
     try {
       await setPriorityActive({
         priorityId: priority._id as never,
         isActive: nextIsActive,
         activatedAtMs,
-      });
+        activeDateKey,
+      } as never);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to activate priority";

@@ -91,11 +91,10 @@ export default function HomeScreen() {
   const currentPageRef = useRef(initialPage);
   const appStateRef = useRef(AppState.currentState);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const { eventsByDay, loadingCalendar, reloadCalendarEvents } =
-    useCalendarEvents({
-      startDate: calendarRangeStart,
-      endDate: calendarRangeEnd,
-    });
+  const { eventsByDay, reloadCalendarEvents } = useCalendarEvents({
+    startDate: calendarRangeStart,
+    endDate: calendarRangeEnd,
+  });
   const entranceStyle = {
     opacity: entranceAnimation,
     transform: [
@@ -124,12 +123,13 @@ export default function HomeScreen() {
 
     if (didDayChange) {
       setToday(nextToday);
+      void reloadCalendarEvents();
     }
 
     if (currentPageRef.current !== initialPage) {
       pagerRef.current?.setPage(initialPage);
     }
-  }, [initialPage, today]);
+  }, [initialPage, reloadCalendarEvents, today]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (nextState) => {
@@ -145,6 +145,16 @@ export default function HomeScreen() {
 
     return () => {
       subscription.remove();
+    };
+  }, [isFocused, syncToCurrentDay]);
+
+  useEffect(() => {
+    if (!isFocused) return;
+    const timer = setInterval(() => {
+      syncToCurrentDay();
+    }, 60_000);
+    return () => {
+      clearInterval(timer);
     };
   }, [isFocused, syncToCurrentDay]);
 
@@ -213,7 +223,6 @@ export default function HomeScreen() {
                   {canShowCalendar ? (
                     <CalendarSection
                       calendarEvents={dayEvents}
-                      loadingCalendar={loadingCalendar}
                     />
                   ) : null}
 

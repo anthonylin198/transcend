@@ -15,9 +15,9 @@ type HomePriority = {
   isActive?: boolean;
   projectId?: string;
   activatedAt?: number;
+  activeDateKey?: string;
   completedAt?: number;
   createdAt?: number;
-  orderIndex?: number;
 };
 
 function toStartOfDayMs(value: Date | number) {
@@ -32,6 +32,16 @@ function toDateKey(value: Date | number) {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+function getActivationSortMs(priority: HomePriority) {
+  if (priority.activatedAt !== undefined) {
+    return priority.activatedAt;
+  }
+  if (priority.createdAt !== undefined) {
+    return priority.createdAt;
+  }
+  return 0;
 }
 
 type PrioritiesSectionProps = {
@@ -70,6 +80,7 @@ export default function PrioritiesSection({
     const selectedDayMs = toStartOfDayMs(selectedDate);
     const todayMs = toStartOfDayMs(today);
     const isSelectedDateFuture = selectedDayMs > todayMs;
+    const selectedDateKey = toDateKey(selectedDate);
 
     const filtered = priorities
       .map((priority, index) => ({ priority, index }))
@@ -82,50 +93,39 @@ export default function PrioritiesSection({
         if (
           priority.status === "next_up" &&
           priority.isActive &&
-          priority.activatedAt !== undefined
+          (priority.activeDateKey !== undefined ||
+            priority.activatedAt !== undefined)
         ) {
-          const activatedDayMs = toStartOfDayMs(priority.activatedAt);
+          const activeDateKey =
+            priority.activeDateKey ??
+            (priority.activatedAt !== undefined
+              ? toDateKey(priority.activatedAt)
+              : undefined);
+          if (activeDateKey === undefined) return false;
           if (isSelectedDateFuture) {
-            return activatedDayMs === selectedDayMs;
+            return activeDateKey === selectedDateKey;
           }
-          return activatedDayMs <= selectedDayMs;
+          return activeDateKey <= selectedDateKey;
         }
 
         return false;
       });
 
     filtered.sort((left, right) => {
-      const leftIsActiveNextUp =
-        left.priority.status === "next_up" &&
-        left.priority.isActive &&
-        left.priority.activatedAt !== undefined;
-      const rightIsActiveNextUp =
-        right.priority.status === "next_up" &&
-        right.priority.isActive &&
-        right.priority.activatedAt !== undefined;
+      const leftActivationMs = getActivationSortMs(left.priority);
+      const rightActivationMs = getActivationSortMs(right.priority);
+      if (leftActivationMs !== rightActivationMs) {
+        return leftActivationMs - rightActivationMs;
+      }
 
-      if (leftIsActiveNextUp && rightIsActiveNextUp) {
-        const leftActivatedAt = left.priority.activatedAt ?? 0;
-        const rightActivatedAt = right.priority.activatedAt ?? 0;
-        if (leftActivatedAt !== rightActivatedAt) {
-          return leftActivatedAt - rightActivatedAt;
-        }
-        const leftCreatedAt = left.priority.createdAt ?? 0;
-        const rightCreatedAt = right.priority.createdAt ?? 0;
-        if (leftCreatedAt !== rightCreatedAt) {
-          return leftCreatedAt - rightCreatedAt;
-        }
-        const leftOrderIndex = left.priority.orderIndex ?? 0;
-        const rightOrderIndex = right.priority.orderIndex ?? 0;
-        if (leftOrderIndex !== rightOrderIndex) {
-          return leftOrderIndex - rightOrderIndex;
-        }
-        return left.index - right.index;
+      const leftCreatedAt = left.priority.createdAt ?? 0;
+      const rightCreatedAt = right.priority.createdAt ?? 0;
+      if (leftCreatedAt !== rightCreatedAt) {
+        return leftCreatedAt - rightCreatedAt;
       }
 
       return left.index - right.index;
     });
-
     return filtered.map(({ priority }) => priority);
   }, [priorities, selectedDate, today]);
 

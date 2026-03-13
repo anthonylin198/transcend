@@ -27,6 +27,7 @@ export default defineSchema({
     isActive: v.boolean(),
     orderIndex: v.number(),
     activatedAt: v.optional(v.number()),
+    activeDateKey: v.optional(v.string()),
     completedAt: v.optional(v.number()),
     completedDateKey: v.optional(v.string()),
     createdAt: v.number(),

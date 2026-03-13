@@ -20,6 +20,7 @@ export const createPriority = mutation({
     ),
     isActive: v.optional(v.boolean()),
     activatedAtMs: v.optional(v.number()),
+    activeDateKey: v.optional(v.string()),
     completedAtMs: v.optional(v.number()),
     completedDateKey: v.optional(v.string()),
   },
@@ -44,6 +45,9 @@ export const createPriority = mutation({
     const status = args.status ?? "todo";
     const isActive = args.isActive ?? false;
     const activatedAt = isActive ? (args.activatedAtMs ?? now) : undefined;
+    const activeDateKey = isActive
+      ? (args.activeDateKey ?? toDateKey(activatedAt ?? now))
+      : undefined;
     const completedAt =
       status === "done" ? (args.completedAtMs ?? now) : undefined;
     const completedDateKey =
@@ -60,6 +64,7 @@ export const createPriority = mutation({
       isActive,
       orderIndex,
       activatedAt,
+      activeDateKey,
       completedAt,
       completedDateKey,
       createdAt: now,

@@ -23,8 +23,6 @@ const STATUS_OPTIONS = [
 ] as const;
 
 type PriorityStatus = (typeof STATUS_OPTIONS)[number]["key"];
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
-
 function toDateKey(value: Date | number) {
   const date = new Date(value);
   const year = date.getFullYear();
@@ -43,13 +41,7 @@ function normalizeStatus(value?: string): PriorityStatus {
 function getActivatedAtMsForSelectedDay(selectedDateMs?: number) {
   const now = Date.now();
   if (selectedDateMs === undefined) return now;
-  const selectedDayStart = new Date(selectedDateMs);
-  selectedDayStart.setHours(0, 0, 0, 0);
-  const selectedStartMs = selectedDayStart.getTime();
-  const todayStart = new Date(now);
-  todayStart.setHours(0, 0, 0, 0);
-  if (selectedStartMs === todayStart.getTime()) return now;
-  return selectedStartMs + (now % MS_PER_DAY);
+  return now;
 }
 
 export default function AddPriorityScreen() {
@@ -91,6 +83,10 @@ export default function AddPriorityScreen() {
       orderIndex: maxOrderIndex + 1,
       activatedAt:
         args.isActive === true ? (args.activatedAtMs ?? now) : undefined,
+      activeDateKey:
+        args.isActive === true
+          ? (args.activeDateKey ?? toDateKey(args.activatedAtMs ?? now))
+          : undefined,
       completedAt,
       completedDateKey:
         args.status === "done"
@@ -162,6 +158,10 @@ export default function AddPriorityScreen() {
       isActive && status === "next_up"
         ? getActivatedAtMsForSelectedDay(selectedDateMs)
         : undefined;
+    const activeDateKey =
+      isActive && status === "next_up"
+        ? toDateKey(selectedDateMs ?? activatedAtMs ?? now)
+        : undefined;
     const completedAtMs =
       status === "done" ? (selectedDateMs ?? now) : undefined;
     const createInput = selectedProjectId
@@ -172,6 +172,7 @@ export default function AddPriorityScreen() {
           status,
           isActive,
           activatedAtMs,
+          activeDateKey,
           completedAtMs,
           completedDateKey:
             status === "done" ? toDateKey(completedAtMs ?? now) : undefined,
@@ -182,6 +183,7 @@ export default function AddPriorityScreen() {
           status,
           isActive,
           activatedAtMs,
+          activeDateKey,
           completedAtMs,
           completedDateKey:
             status === "done" ? toDateKey(completedAtMs ?? now) : undefined,
