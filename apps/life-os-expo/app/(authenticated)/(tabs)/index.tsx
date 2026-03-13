@@ -194,6 +194,7 @@ export default function HomeScreen() {
                 flex: 1,
                 backgroundColor: "black",
               }}
+              showsVerticalScrollIndicator={false}
               contentContainerStyle={{
                 padding: 20,
                 paddingTop: insets.top + 16,
