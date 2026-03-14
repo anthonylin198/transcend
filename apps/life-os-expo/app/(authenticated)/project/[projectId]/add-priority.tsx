@@ -9,6 +9,7 @@ import {
   Modal,
   Platform,
   Pressable,
+  ScrollView,
   TextInput,
   View,
 } from "react-native";
@@ -201,7 +202,7 @@ export default function AddPriorityScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={{ flex: 1, backgroundColor: "black" }}
     >
       <View
@@ -231,28 +232,35 @@ export default function AddPriorityScreen() {
         </View>
       </View>
 
-      <View style={{ flex: 1, paddingHorizontal: 16, paddingTop: 20, gap: 18 }}>
-        <View>
-          <Text type="text-detail" color="#9CA3AF" style={{ marginBottom: 8 }}>
-            Priority name
-          </Text>
-          <TextInput
-            value={name}
-            onChangeText={setName}
-            placeholder="Enter priority name"
-            placeholderTextColor="#6B7280"
-            autoFocus
-            style={{
-              color: "#F9FAFB",
-              borderBottomWidth: 1,
-              borderBottomColor: "#374151",
-              paddingVertical: 8,
-              fontSize: 34,
-              lineHeight: 40,
-              fontWeight: "600",
-            }}
-          />
-        </View>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: 8,
+          paddingBottom: 16,
+          gap: 18,
+        }}
+        keyboardDismissMode="on-drag"
+        showsVerticalScrollIndicator={false}
+      >
+        <TextInput
+          value={name}
+          onChangeText={setName}
+          placeholder="Priority name"
+          placeholderTextColor="#6B7280"
+          autoFocus
+          multiline
+          scrollEnabled={false}
+          style={{
+            color: "#F9FAFB",
+            borderBottomWidth: 1,
+            borderBottomColor: "#374151",
+            paddingVertical: 8,
+            fontSize: 24,
+            lineHeight: 30,
+            fontWeight: "500",
+          }}
+        />
 
         <Pressable
           onPress={() => setProjectModalOpen(true)}
@@ -335,24 +343,23 @@ export default function AddPriorityScreen() {
           </Text>
         </Pressable>
 
-        <View>
-          <TextInput
-            value={description}
-            onChangeText={setDescription}
-            placeholder="Add a description..."
-            placeholderTextColor="#6B7280"
-            multiline
-            textAlignVertical="top"
-            style={{
-              minHeight: 120,
-              color: "#E5E7EB",
-              fontSize: 18,
-              lineHeight: 24,
-              paddingTop: 2,
-            }}
-          />
-        </View>
-      </View>
+        <TextInput
+          value={description}
+          onChangeText={setDescription}
+          placeholder="Add a description..."
+          placeholderTextColor="#6B7280"
+          multiline
+          scrollEnabled={false}
+          textAlignVertical="top"
+          style={{
+            minHeight: 120,
+            color: "#E5E7EB",
+            fontSize: 16,
+            lineHeight: 22,
+            paddingTop: 2,
+          }}
+        />
+      </ScrollView>
 
       <View
         style={{
