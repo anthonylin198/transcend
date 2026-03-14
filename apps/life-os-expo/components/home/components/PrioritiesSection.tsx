@@ -34,6 +34,10 @@ function toDateKey(value: Date | number) {
   return `${year}-${month}-${day}`;
 }
 
+function toIsoDateKeyFromMs(valueMs: number) {
+  return new Date(valueMs).toISOString().slice(0, 10);
+}
+
 function getActivationSortMs(priority: HomePriority) {
   if (priority.activatedAt !== undefined) {
     return priority.activatedAt;
@@ -58,7 +62,58 @@ export default function PrioritiesSection({
   const router = useRouter();
   const setPriorityStatus = useMutation(
     api.priorities.setPriorityStatus.setPriorityStatus,
-  );
+  ).withOptimisticUpdate((localStore, args) => {
+    const allBootstrapQueries = localStore.getAllQueries(
+      api.home.bootstrap.bootstrap,
+    );
+    allBootstrapQueries.forEach(({ args: queryArgs, value }) => {
+      if (!value || value.profile === null) return;
+      const existingPriority = value.priorities.find(
+        (priority) => priority._id === args.priorityId,
+      );
+      if (!existingPriority) return;
+
+      const nextPriorities = value.priorities.map((priority) =>
+        priority._id === args.priorityId
+          ? {
+              ...priority,
+              status: args.status,
+              completedAt: (() => {
+                if (args.status !== "done") return undefined;
+                return args.completedAtMs ?? priority.completedAt ?? Date.now();
+              })(),
+              completedDateKey: (() => {
+                if (args.status !== "done") return undefined;
+                const completedAtMs =
+                  args.completedAtMs ?? priority.completedAt ?? Date.now();
+                return (
+                  args.completedDateKey ??
+                  priority.completedDateKey ??
+                  toIsoDateKeyFromMs(completedAtMs)
+                );
+              })(),
+            }
+          : priority,
+      );
+      const nextCategories = value.categories.filter(
+        (priority) => priority._id !== args.priorityId,
+      );
+      if (args.status === "next_up" && existingPriority.isActive) {
+        nextCategories.push({
+          ...existingPriority,
+          status: "next_up",
+          completedAt: undefined,
+          completedDateKey: undefined,
+        });
+      }
+
+      localStore.setQuery(api.home.bootstrap.bootstrap, queryArgs, {
+        ...value,
+        priorities: nextPriorities,
+        categories: nextCategories,
+      });
+    });
+  });
   const [quickAddModalOpen, setQuickAddModalOpen] = useState(false);
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
   const navigateFromQuickAdd = (
@@ -181,9 +236,6 @@ export default function PrioritiesSection({
               <Pressable
                 onPress={() => void onCompletePriority(priority)}
                 disabled={updatingIds.has(priority._id)}
-                style={{
-                  opacity: updatingIds.has(priority._id) ? 0.75 : 1,
-                }}
               >
                 <Ionicons
                   name={
