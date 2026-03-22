@@ -222,9 +222,7 @@ export default function HomeScreen() {
 
                 <View style={{ marginTop: 24, gap: 24 }}>
                   {canShowCalendar ? (
-                    <CalendarSection
-                      calendarEvents={dayEvents}
-                    />
+                    <CalendarSection calendarEvents={dayEvents} />
                   ) : null}
 
                   <PrioritiesSection
