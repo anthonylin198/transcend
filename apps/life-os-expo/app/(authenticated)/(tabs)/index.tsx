@@ -119,17 +119,20 @@ export default function HomeScreen() {
 
   const syncToCurrentDay = useCallback(() => {
     const nextToday = toStartOfDay(new Date());
-    const didDayChange = !isSameDay(today, nextToday);
 
-    if (didDayChange) {
+    if (!isSameDay(today, nextToday)) {
+      // Updating `today` remounts the PagerView (keyed by date) centered on
+      // the new day; the bootstrap query and calendar hook refetch since
+      // their args derive from `today`.
+      currentPageRef.current = initialPage;
       setToday(nextToday);
-      void reloadCalendarEvents();
+      return;
     }
 
     if (currentPageRef.current !== initialPage) {
       pagerRef.current?.setPage(initialPage);
     }
-  }, [initialPage, reloadCalendarEvents, today]);
+  }, [initialPage, today]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (nextState) => {
@@ -171,6 +174,10 @@ export default function HomeScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>
       <PagerView
+        // PagerView can't handle its children all changing (every page key
+        // shifts when the day rolls over), which leaves blank pages. Keying
+        // by the current day forces a clean remount instead.
+        key={getDateKey(today)}
         ref={pagerRef}
         style={{ flex: 1 }}
         initialPage={initialPage}

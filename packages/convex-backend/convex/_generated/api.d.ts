@@ -31,6 +31,7 @@ import type * as lib_currentProfile from "../lib/currentProfile.js";
 import type * as priorities_assignPriorityToProject from "../priorities/assignPriorityToProject.js";
 import type * as priorities_createPriority from "../priorities/createPriority.js";
 import type * as priorities_deletePriority from "../priorities/deletePriority.js";
+import type * as priorities_listDonePriorities from "../priorities/listDonePriorities.js";
 import type * as priorities_listPrioritiesByProject from "../priorities/listPrioritiesByProject.js";
 import type * as priorities_listPrioritiesForCurrentUser from "../priorities/listPrioritiesForCurrentUser.js";
 import type * as priorities_reorderPriorities from "../priorities/reorderPriorities.js";
@@ -73,6 +74,7 @@ declare const fullApi: ApiFromModules<{
   "priorities/assignPriorityToProject": typeof priorities_assignPriorityToProject;
   "priorities/createPriority": typeof priorities_createPriority;
   "priorities/deletePriority": typeof priorities_deletePriority;
+  "priorities/listDonePriorities": typeof priorities_listDonePriorities;
   "priorities/listPrioritiesByProject": typeof priorities_listPrioritiesByProject;
   "priorities/listPrioritiesForCurrentUser": typeof priorities_listPrioritiesForCurrentUser;
   "priorities/reorderPriorities": typeof priorities_reorderPriorities;

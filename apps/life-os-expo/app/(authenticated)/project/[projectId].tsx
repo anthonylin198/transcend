@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { api } from "@transcend/convex";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation, usePaginatedQuery, useQuery } from "convex/react";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
@@ -63,12 +63,12 @@ export default function ProjectDetailScreen() {
 
     const projectPriorities = localStore.getQuery(
       api.priorities.listPrioritiesByProject.listPrioritiesByProject,
-      { projectId: args.projectId },
+      { projectId: args.projectId, excludeDone: true },
     );
     if (projectPriorities !== undefined) {
       localStore.setQuery(
         api.priorities.listPrioritiesByProject.listPrioritiesByProject,
-        { projectId: args.projectId },
+        { projectId: args.projectId, excludeDone: true },
         [],
       );
     }
@@ -90,15 +90,27 @@ export default function ProjectDetailScreen() {
 
   const projectPriorities = useQuery(
     api.priorities.listPrioritiesByProject.listPrioritiesByProject,
-    !isUnlinkedView && projectId ? { projectId: projectId as never } : "skip",
+    !isUnlinkedView && projectId
+      ? { projectId: projectId as never, excludeDone: true }
+      : "skip",
   );
   const unlinkedPriorities = useQuery(
     api.priorities.listPrioritiesForCurrentUser.listPrioritiesForCurrentUser,
-    isUnlinkedView ? { unlinkedOnly: true } : "skip",
+    isUnlinkedView ? { unlinkedOnly: true, excludeDone: true } : "skip",
+  );
+  const donePriorities = usePaginatedQuery(
+    api.priorities.listDonePriorities.listDonePriorities,
+    projectId
+      ? isUnlinkedView
+        ? {}
+        : { projectId: projectId as never }
+      : "skip",
+    { initialNumItems: 5 },
   );
   const priorities = isUnlinkedView ? unlinkedPriorities : projectPriorities;
   const isLoading = projects === undefined || priorities === undefined;
   const priorityRows = priorities ?? [];
+  const doneRows = donePriorities.results;
 
   const onDeleteProject = async () => {
     if (!projectId) return;
@@ -161,14 +173,16 @@ export default function ProjectDetailScreen() {
         label: section.label,
       });
 
-      for (const priority of priorityRows) {
-        if (priority.status === section.key) {
-          sortableRows.push({
-            type: "priority",
-            key: priority._id,
-            priority,
-          });
-        }
+      const sectionRows =
+        section.key === "done"
+          ? doneRows
+          : priorityRows.filter((priority) => priority.status === section.key);
+      for (const priority of sectionRows) {
+        sortableRows.push({
+          type: "priority",
+          key: priority._id,
+          priority,
+        });
       }
     }
   }
@@ -260,7 +274,10 @@ export default function ProjectDetailScreen() {
               });
             });
 
-            if (nextPriorities.length !== currentPriorities.length) {
+            if (
+              nextPriorities.length !==
+              currentPriorities.length + doneRows.length
+            ) {
               // Guard against malformed drag output so we never persist partial data.
               return;
             }
@@ -367,6 +384,31 @@ export default function ProjectDetailScreen() {
             ),
           )}
         </Sortable.Flex>
+
+        {!isLoading ? (
+          <View style={{ marginTop: 14, gap: 14 }}>
+            {donePriorities.status === "LoadingFirstPage" ||
+            donePriorities.status === "LoadingMore" ? (
+              <ActivityIndicator size="small" color="#9CA3AF" />
+            ) : null}
+            {donePriorities.status === "CanLoadMore" ? (
+              <Pressable
+                onPress={() => donePriorities.loadMore(10)}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 6,
+                  paddingVertical: 4,
+                }}
+              >
+                <Ionicons name="chevron-down" size={16} color="#9CA3AF" />
+                <Text type="text-detail" color="#9CA3AF">
+                  Show more done items
+                </Text>
+              </Pressable>
+            ) : null}
+          </View>
+        ) : null}
       </ScrollView>
 
       {!isUnlinkedView ? (

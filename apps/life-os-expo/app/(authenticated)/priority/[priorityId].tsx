@@ -147,12 +147,12 @@ export default function PriorityDetailScreen() {
     if (fallbackProjectId) {
       const projectPriorities = localStore.getQuery(
         api.priorities.listPrioritiesByProject.listPrioritiesByProject,
-        { projectId: fallbackProjectId as never },
+        { projectId: fallbackProjectId as never, excludeDone: true },
       );
       if (projectPriorities !== undefined) {
         localStore.setQuery(
           api.priorities.listPrioritiesByProject.listPrioritiesByProject,
-          { projectId: fallbackProjectId as never },
+          { projectId: fallbackProjectId as never, excludeDone: true },
           projectPriorities.filter((item) => item._id !== args.priorityId),
         );
       }
