@@ -193,6 +193,8 @@ export default function IntakeItemDetailScreen() {
           onChangeText={setTitle}
           placeholder="What's on your mind?"
           placeholderTextColor="#6B7280"
+          multiline
+          scrollEnabled={false}
           style={{
             color: "#F9FAFB",
             fontFamily: appFonts.semiBold,

@@ -94,6 +94,8 @@ export default function AddIntakeItemScreen() {
           placeholder="What's on your mind?"
           placeholderTextColor="#6B7280"
           autoFocus
+          multiline
+          scrollEnabled={false}
           style={{
             color: "#F9FAFB",
             fontFamily: appFonts.semiBold,
