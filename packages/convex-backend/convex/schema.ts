@@ -47,11 +47,7 @@ export default defineSchema({
       "completedDateKey",
     ])
     .index("by_project_id", ["projectId"])
-    .index("by_project_id_status_order", [
-      "projectId",
-      "status",
-      "orderIndex",
-    ])
+    .index("by_project_id_status_order", ["projectId", "status", "orderIndex"])
     .index("by_profile_id_status_order", ["profileId", "status", "orderIndex"])
     .index("by_profile_id_is_active", ["profileId", "isActive"])
     .index("by_profile_id_project_id", ["profileId", "projectId"]),
