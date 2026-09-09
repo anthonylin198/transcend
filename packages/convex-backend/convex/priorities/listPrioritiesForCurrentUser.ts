@@ -9,17 +9,21 @@ export const listPrioritiesForCurrentUser = query({
     ),
     isActive: v.optional(v.boolean()),
     unlinkedOnly: v.optional(v.boolean()),
+    excludeDone: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const profile = await getCurrentProfileOrThrow(ctx);
 
     if (args.unlinkedOnly) {
-      const priorities = await ctx.db
+      let dbQuery = ctx.db
         .query("priorities")
         .withIndex("by_profile_id_project_id", (q) =>
           q.eq("profileId", profile._id).eq("projectId", undefined),
-        )
-        .collect();
+        );
+      if (args.excludeDone) {
+        dbQuery = dbQuery.filter((q) => q.neq(q.field("status"), "done"));
+      }
+      const priorities = await dbQuery.collect();
 
       return priorities
         .filter((priority) =>

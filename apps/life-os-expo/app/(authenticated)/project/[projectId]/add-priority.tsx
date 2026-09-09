@@ -9,6 +9,7 @@ import {
   Modal,
   Platform,
   Pressable,
+  ScrollView,
   TextInput,
   View,
 } from "react-native";
@@ -23,8 +24,6 @@ const STATUS_OPTIONS = [
 ] as const;
 
 type PriorityStatus = (typeof STATUS_OPTIONS)[number]["key"];
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
-
 function toDateKey(value: Date | number) {
   const date = new Date(value);
   const year = date.getFullYear();
@@ -43,13 +42,7 @@ function normalizeStatus(value?: string): PriorityStatus {
 function getActivatedAtMsForSelectedDay(selectedDateMs?: number) {
   const now = Date.now();
   if (selectedDateMs === undefined) return now;
-  const selectedDayStart = new Date(selectedDateMs);
-  selectedDayStart.setHours(0, 0, 0, 0);
-  const selectedStartMs = selectedDayStart.getTime();
-  const todayStart = new Date(now);
-  todayStart.setHours(0, 0, 0, 0);
-  if (selectedStartMs === todayStart.getTime()) return now;
-  return selectedStartMs + (now % MS_PER_DAY);
+  return now;
 }
 
 export default function AddPriorityScreen() {
@@ -77,6 +70,13 @@ export default function AddPriorityScreen() {
       (max, item) => Math.max(max, item.orderIndex),
       -1,
     );
+    const maxActiveOrderIndex = current.priorities.reduce(
+      (max, item) =>
+        item.activeOrderIndex !== undefined
+          ? Math.max(max, item.activeOrderIndex)
+          : max,
+      -1,
+    );
     const completedAt =
       args.status === "done" ? (args.completedAtMs ?? now) : undefined;
     const optimisticPriority = {
@@ -89,8 +89,14 @@ export default function AddPriorityScreen() {
       status: args.status ?? "todo",
       isActive: args.isActive ?? false,
       orderIndex: maxOrderIndex + 1,
+      activeOrderIndex:
+        args.isActive === true ? maxActiveOrderIndex + 1 : undefined,
       activatedAt:
         args.isActive === true ? (args.activatedAtMs ?? now) : undefined,
+      activeDateKey:
+        args.isActive === true
+          ? (args.activeDateKey ?? toDateKey(args.activatedAtMs ?? now))
+          : undefined,
       completedAt,
       completedDateKey:
         args.status === "done"
@@ -162,6 +168,10 @@ export default function AddPriorityScreen() {
       isActive && status === "next_up"
         ? getActivatedAtMsForSelectedDay(selectedDateMs)
         : undefined;
+    const activeDateKey =
+      isActive && status === "next_up"
+        ? toDateKey(selectedDateMs ?? activatedAtMs ?? now)
+        : undefined;
     const completedAtMs =
       status === "done" ? (selectedDateMs ?? now) : undefined;
     const createInput = selectedProjectId
@@ -172,6 +182,7 @@ export default function AddPriorityScreen() {
           status,
           isActive,
           activatedAtMs,
+          activeDateKey,
           completedAtMs,
           completedDateKey:
             status === "done" ? toDateKey(completedAtMs ?? now) : undefined,
@@ -182,6 +193,7 @@ export default function AddPriorityScreen() {
           status,
           isActive,
           activatedAtMs,
+          activeDateKey,
           completedAtMs,
           completedDateKey:
             status === "done" ? toDateKey(completedAtMs ?? now) : undefined,
@@ -199,7 +211,7 @@ export default function AddPriorityScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={{ flex: 1, backgroundColor: "black" }}
     >
       <View
@@ -229,28 +241,35 @@ export default function AddPriorityScreen() {
         </View>
       </View>
 
-      <View style={{ flex: 1, paddingHorizontal: 16, paddingTop: 20, gap: 18 }}>
-        <View>
-          <Text type="text-detail" color="#9CA3AF" style={{ marginBottom: 8 }}>
-            Priority name
-          </Text>
-          <TextInput
-            value={name}
-            onChangeText={setName}
-            placeholder="Enter priority name"
-            placeholderTextColor="#6B7280"
-            autoFocus
-            style={{
-              color: "#F9FAFB",
-              borderBottomWidth: 1,
-              borderBottomColor: "#374151",
-              paddingVertical: 8,
-              fontSize: 34,
-              lineHeight: 40,
-              fontWeight: "600",
-            }}
-          />
-        </View>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: 8,
+          paddingBottom: 16,
+          gap: 18,
+        }}
+        keyboardDismissMode="on-drag"
+        showsVerticalScrollIndicator={false}
+      >
+        <TextInput
+          value={name}
+          onChangeText={setName}
+          placeholder="Priority name"
+          placeholderTextColor="#6B7280"
+          autoFocus
+          multiline
+          scrollEnabled={false}
+          style={{
+            color: "#F9FAFB",
+            borderBottomWidth: 1,
+            borderBottomColor: "#374151",
+            paddingVertical: 8,
+            fontSize: 24,
+            lineHeight: 30,
+            fontWeight: "500",
+          }}
+        />
 
         <Pressable
           onPress={() => setProjectModalOpen(true)}
@@ -333,24 +352,23 @@ export default function AddPriorityScreen() {
           </Text>
         </Pressable>
 
-        <View>
-          <TextInput
-            value={description}
-            onChangeText={setDescription}
-            placeholder="Add a description..."
-            placeholderTextColor="#6B7280"
-            multiline
-            textAlignVertical="top"
-            style={{
-              minHeight: 120,
-              color: "#E5E7EB",
-              fontSize: 18,
-              lineHeight: 24,
-              paddingTop: 2,
-            }}
-          />
-        </View>
-      </View>
+        <TextInput
+          value={description}
+          onChangeText={setDescription}
+          placeholder="Add a description..."
+          placeholderTextColor="#6B7280"
+          multiline
+          scrollEnabled={false}
+          textAlignVertical="top"
+          style={{
+            minHeight: 120,
+            color: "#E5E7EB",
+            fontSize: 16,
+            lineHeight: 22,
+            paddingTop: 2,
+          }}
+        />
+      </ScrollView>
 
       <View
         style={{

@@ -5,6 +5,7 @@ import { getCurrentProfileOrThrow } from "../lib/currentProfile";
 export const listPrioritiesByProject = query({
   args: {
     projectId: v.id("projects"),
+    excludeDone: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const profile = await getCurrentProfileOrThrow(ctx);
@@ -14,10 +15,13 @@ export const listPrioritiesByProject = query({
       throw new Error("Project not found");
     }
 
-    const priorities = await ctx.db
+    let dbQuery = ctx.db
       .query("priorities")
-      .withIndex("by_project_id", (q) => q.eq("projectId", args.projectId))
-      .collect();
+      .withIndex("by_project_id", (q) => q.eq("projectId", args.projectId));
+    if (args.excludeDone) {
+      dbQuery = dbQuery.filter((q) => q.neq(q.field("status"), "done"));
+    }
+    const priorities = await dbQuery.collect();
 
     return priorities.sort((a, b) => a.orderIndex - b.orderIndex);
   },

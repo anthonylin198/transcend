@@ -9,6 +9,7 @@ import {
   Modal,
   Platform,
   Pressable,
+  ScrollView,
   TextInput,
   View,
 } from "react-native";
@@ -47,6 +48,7 @@ export default function PriorityDetailScreen() {
     priorityId: string;
     projectId?: string;
     initialPriority?: string;
+    selectedDateMs?: string;
   }>();
   const priorityId = Array.isArray(params.priorityId)
     ? params.priorityId[0]
@@ -57,6 +59,13 @@ export default function PriorityDetailScreen() {
   const initialPriorityParam = Array.isArray(params.initialPriority)
     ? params.initialPriority[0]
     : params.initialPriority;
+  const rawSelectedDateMs = Array.isArray(params.selectedDateMs)
+    ? params.selectedDateMs[0]
+    : params.selectedDateMs;
+  const parsedSelectedDateMs = Number(rawSelectedDateMs);
+  const selectedDateMs = Number.isFinite(parsedSelectedDateMs)
+    ? parsedSelectedDateMs
+    : undefined;
   const initialPriority = useMemo<InitialPriority | null>(() => {
     if (!initialPriorityParam) return null;
     try {
@@ -138,12 +147,12 @@ export default function PriorityDetailScreen() {
     if (fallbackProjectId) {
       const projectPriorities = localStore.getQuery(
         api.priorities.listPrioritiesByProject.listPrioritiesByProject,
-        { projectId: fallbackProjectId as never },
+        { projectId: fallbackProjectId as never, excludeDone: true },
       );
       if (projectPriorities !== undefined) {
         localStore.setQuery(
           api.priorities.listPrioritiesByProject.listPrioritiesByProject,
-          { projectId: fallbackProjectId as never },
+          { projectId: fallbackProjectId as never, excludeDone: true },
           projectPriorities.filter((item) => item._id !== args.priorityId),
         );
       }
@@ -196,9 +205,15 @@ export default function PriorityDetailScreen() {
         }
 
         if (currentIsActive !== priority.isActive) {
+          const activationNow = Date.now();
+          const activeDateReferenceMs = selectedDateMs ?? activationNow;
           await setPriorityActive({
             priorityId: priority._id as never,
             isActive: currentIsActive,
+            activatedAtMs: currentIsActive ? activationNow : undefined,
+            activeDateKey: currentIsActive
+              ? toDateKey(activeDateReferenceMs)
+              : undefined,
           });
         }
 
@@ -240,7 +255,7 @@ export default function PriorityDetailScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={{ flex: 1, backgroundColor: "black" }}
     >
       <View
@@ -278,20 +293,32 @@ export default function PriorityDetailScreen() {
         </View>
       </View>
 
-      <View style={{ flex: 1, paddingHorizontal: 16, paddingTop: 20, gap: 18 }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: 8,
+          paddingBottom: Math.max(insets.bottom, 16),
+          gap: 18,
+        }}
+        keyboardDismissMode="on-drag"
+        showsVerticalScrollIndicator={false}
+      >
         <TextInput
           value={currentName}
           onChangeText={setName}
           placeholder="Priority name"
           placeholderTextColor="#6B7280"
+          multiline
+          scrollEnabled={false}
           style={{
             color: "#F9FAFB",
             borderBottomWidth: 1,
             borderBottomColor: "#374151",
             paddingVertical: 8,
-            fontSize: 40,
-            lineHeight: 48,
-            fontWeight: "600",
+            fontSize: 24,
+            lineHeight: 30,
+            fontWeight: "500",
           }}
         />
 
@@ -379,16 +406,17 @@ export default function PriorityDetailScreen() {
           placeholder="Add a description..."
           placeholderTextColor="#6B7280"
           multiline
+          scrollEnabled={false}
           textAlignVertical="top"
           style={{
             minHeight: 120,
             color: "#E5E7EB",
-            fontSize: 18,
-            lineHeight: 24,
+            fontSize: 16,
+            lineHeight: 22,
             paddingTop: 2,
           }}
         />
-      </View>
+      </ScrollView>
 
       <Modal visible={projectModalOpen} transparent animationType="fade">
         <Pressable

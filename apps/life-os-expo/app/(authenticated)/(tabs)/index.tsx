@@ -91,11 +91,10 @@ export default function HomeScreen() {
   const currentPageRef = useRef(initialPage);
   const appStateRef = useRef(AppState.currentState);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const { eventsByDay, loadingCalendar, reloadCalendarEvents } =
-    useCalendarEvents({
-      startDate: calendarRangeStart,
-      endDate: calendarRangeEnd,
-    });
+  const { eventsByDay, reloadCalendarEvents } = useCalendarEvents({
+    startDate: calendarRangeStart,
+    endDate: calendarRangeEnd,
+  });
   const entranceStyle = {
     opacity: entranceAnimation,
     transform: [
@@ -120,10 +119,14 @@ export default function HomeScreen() {
 
   const syncToCurrentDay = useCallback(() => {
     const nextToday = toStartOfDay(new Date());
-    const didDayChange = !isSameDay(today, nextToday);
 
-    if (didDayChange) {
+    if (!isSameDay(today, nextToday)) {
+      // Updating `today` remounts the PagerView (keyed by date) centered on
+      // the new day; the bootstrap query and calendar hook refetch since
+      // their args derive from `today`.
+      currentPageRef.current = initialPage;
       setToday(nextToday);
+      return;
     }
 
     if (currentPageRef.current !== initialPage) {
@@ -148,6 +151,16 @@ export default function HomeScreen() {
     };
   }, [isFocused, syncToCurrentDay]);
 
+  useEffect(() => {
+    if (!isFocused) return;
+    const timer = setInterval(() => {
+      syncToCurrentDay();
+    }, 60_000);
+    return () => {
+      clearInterval(timer);
+    };
+  }, [isFocused, syncToCurrentDay]);
+
   const onRefresh = async () => {
     setIsRefreshing(true);
     pagerRef.current?.setPage(initialPage);
@@ -161,6 +174,10 @@ export default function HomeScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>
       <PagerView
+        // PagerView can't handle its children all changing (every page key
+        // shifts when the day rolls over), which leaves blank pages. Keying
+        // by the current day forces a clean remount instead.
+        key={getDateKey(today)}
         ref={pagerRef}
         style={{ flex: 1 }}
         initialPage={initialPage}
@@ -184,6 +201,7 @@ export default function HomeScreen() {
                 flex: 1,
                 backgroundColor: "black",
               }}
+              showsVerticalScrollIndicator={false}
               contentContainerStyle={{
                 padding: 20,
                 paddingTop: insets.top + 16,
@@ -211,10 +229,7 @@ export default function HomeScreen() {
 
                 <View style={{ marginTop: 24, gap: 24 }}>
                   {canShowCalendar ? (
-                    <CalendarSection
-                      calendarEvents={dayEvents}
-                      loadingCalendar={loadingCalendar}
-                    />
+                    <CalendarSection calendarEvents={dayEvents} />
                   ) : null}
 
                   <PrioritiesSection

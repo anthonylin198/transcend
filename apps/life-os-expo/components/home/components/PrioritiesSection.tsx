@@ -1,11 +1,17 @@
 import { useMemo, useState } from "react";
 import { api } from "@transcend/convex";
 import { useMutation } from "convex/react";
+import type { FunctionArgs } from "convex/server";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
-import { Modal, Pressable, View } from "react-native";
+import { Modal, Pressable, View, useWindowDimensions } from "react-native";
+import Sortable from "react-native-sortables";
 import Text from "@/components/ui/Text";
+
+type PriorityId = FunctionArgs<
+  typeof api.priorities.reorderActivePriorities.reorderActivePriorities
+>["priorityIds"][number];
 
 type HomePriority = {
   _id: string;
@@ -14,10 +20,11 @@ type HomePriority = {
   status: "todo" | "next_up" | "done";
   isActive?: boolean;
   projectId?: string;
+  activeOrderIndex?: number;
   activatedAt?: number;
+  activeDateKey?: string;
   completedAt?: number;
   createdAt?: number;
-  orderIndex?: number;
 };
 
 function toStartOfDayMs(value: Date | number) {
@@ -34,6 +41,20 @@ function toDateKey(value: Date | number) {
   return `${year}-${month}-${day}`;
 }
 
+function toIsoDateKeyFromMs(valueMs: number) {
+  return new Date(valueMs).toISOString().slice(0, 10);
+}
+
+function getActivationSortMs(priority: HomePriority) {
+  if (priority.activatedAt !== undefined) {
+    return priority.activatedAt;
+  }
+  if (priority.createdAt !== undefined) {
+    return priority.createdAt;
+  }
+  return 0;
+}
+
 type PrioritiesSectionProps = {
   priorities: HomePriority[];
   selectedDate: Date;
@@ -46,9 +67,86 @@ export default function PrioritiesSection({
   today,
 }: PrioritiesSectionProps) {
   const router = useRouter();
+  const { width: screenWidth } = useWindowDimensions();
+  // Rows need an explicit width inside Sortable.Flex; the home screen content
+  // has 20px horizontal padding on each side.
+  const rowWidth = Math.max(screenWidth - 40, 0);
   const setPriorityStatus = useMutation(
     api.priorities.setPriorityStatus.setPriorityStatus,
-  );
+  ).withOptimisticUpdate((localStore, args) => {
+    const allBootstrapQueries = localStore.getAllQueries(
+      api.home.bootstrap.bootstrap,
+    );
+    allBootstrapQueries.forEach(({ args: queryArgs, value }) => {
+      if (!value || value.profile === null) return;
+      const existingPriority = value.priorities.find(
+        (priority) => priority._id === args.priorityId,
+      );
+      if (!existingPriority) return;
+
+      const nextPriorities = value.priorities.map((priority) =>
+        priority._id === args.priorityId
+          ? {
+              ...priority,
+              status: args.status,
+              completedAt: (() => {
+                if (args.status !== "done") return undefined;
+                return args.completedAtMs ?? priority.completedAt ?? Date.now();
+              })(),
+              completedDateKey: (() => {
+                if (args.status !== "done") return undefined;
+                const completedAtMs =
+                  args.completedAtMs ?? priority.completedAt ?? Date.now();
+                return (
+                  args.completedDateKey ??
+                  priority.completedDateKey ??
+                  toIsoDateKeyFromMs(completedAtMs)
+                );
+              })(),
+            }
+          : priority,
+      );
+      const nextCategories = value.categories.filter(
+        (priority) => priority._id !== args.priorityId,
+      );
+      if (args.status === "next_up" && existingPriority.isActive) {
+        nextCategories.push({
+          ...existingPriority,
+          status: "next_up",
+          completedAt: undefined,
+          completedDateKey: undefined,
+        });
+      }
+
+      localStore.setQuery(api.home.bootstrap.bootstrap, queryArgs, {
+        ...value,
+        priorities: nextPriorities,
+        categories: nextCategories,
+      });
+    });
+  });
+  const reorderActivePriorities = useMutation(
+    api.priorities.reorderActivePriorities.reorderActivePriorities,
+  ).withOptimisticUpdate((localStore, args) => {
+    const indexById = new Map<string, number>(
+      args.priorityIds.map((priorityId, index) => [priorityId, index]),
+    );
+    const allBootstrapQueries = localStore.getAllQueries(
+      api.home.bootstrap.bootstrap,
+    );
+    allBootstrapQueries.forEach(({ args: queryArgs, value }) => {
+      if (!value || value.profile === null) return;
+      const nextPriorities = value.priorities.map((priority) => {
+        const nextIndex = indexById.get(priority._id);
+        if (nextIndex === undefined) return priority;
+        return { ...priority, activeOrderIndex: nextIndex };
+      });
+      localStore.setQuery(api.home.bootstrap.bootstrap, queryArgs, {
+        ...value,
+        priorities: nextPriorities,
+      });
+    });
+  });
   const [quickAddModalOpen, setQuickAddModalOpen] = useState(false);
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
   const navigateFromQuickAdd = (
@@ -70,6 +168,7 @@ export default function PrioritiesSection({
     const selectedDayMs = toStartOfDayMs(selectedDate);
     const todayMs = toStartOfDayMs(today);
     const isSelectedDateFuture = selectedDayMs > todayMs;
+    const selectedDateKey = toDateKey(selectedDate);
 
     const filtered = priorities
       .map((priority, index) => ({ priority, index }))
@@ -82,50 +181,49 @@ export default function PrioritiesSection({
         if (
           priority.status === "next_up" &&
           priority.isActive &&
-          priority.activatedAt !== undefined
+          (priority.activeDateKey !== undefined ||
+            priority.activatedAt !== undefined)
         ) {
-          const activatedDayMs = toStartOfDayMs(priority.activatedAt);
+          const activeDateKey =
+            priority.activeDateKey ??
+            (priority.activatedAt !== undefined
+              ? toDateKey(priority.activatedAt)
+              : undefined);
+          if (activeDateKey === undefined) return false;
           if (isSelectedDateFuture) {
-            return activatedDayMs === selectedDayMs;
+            return activeDateKey === selectedDateKey;
           }
-          return activatedDayMs <= selectedDayMs;
+          return activeDateKey <= selectedDateKey;
         }
 
         return false;
       });
 
     filtered.sort((left, right) => {
-      const leftIsActiveNextUp =
-        left.priority.status === "next_up" &&
-        left.priority.isActive &&
-        left.priority.activatedAt !== undefined;
-      const rightIsActiveNextUp =
-        right.priority.status === "next_up" &&
-        right.priority.isActive &&
-        right.priority.activatedAt !== undefined;
+      // Manual order wins; items without an index (legacy data) fall back to
+      // activation time and sort after indexed ones.
+      const leftActiveOrder =
+        left.priority.activeOrderIndex ?? Number.POSITIVE_INFINITY;
+      const rightActiveOrder =
+        right.priority.activeOrderIndex ?? Number.POSITIVE_INFINITY;
+      if (leftActiveOrder !== rightActiveOrder) {
+        return leftActiveOrder - rightActiveOrder;
+      }
 
-      if (leftIsActiveNextUp && rightIsActiveNextUp) {
-        const leftActivatedAt = left.priority.activatedAt ?? 0;
-        const rightActivatedAt = right.priority.activatedAt ?? 0;
-        if (leftActivatedAt !== rightActivatedAt) {
-          return leftActivatedAt - rightActivatedAt;
-        }
-        const leftCreatedAt = left.priority.createdAt ?? 0;
-        const rightCreatedAt = right.priority.createdAt ?? 0;
-        if (leftCreatedAt !== rightCreatedAt) {
-          return leftCreatedAt - rightCreatedAt;
-        }
-        const leftOrderIndex = left.priority.orderIndex ?? 0;
-        const rightOrderIndex = right.priority.orderIndex ?? 0;
-        if (leftOrderIndex !== rightOrderIndex) {
-          return leftOrderIndex - rightOrderIndex;
-        }
-        return left.index - right.index;
+      const leftActivationMs = getActivationSortMs(left.priority);
+      const rightActivationMs = getActivationSortMs(right.priority);
+      if (leftActivationMs !== rightActivationMs) {
+        return leftActivationMs - rightActivationMs;
+      }
+
+      const leftCreatedAt = left.priority.createdAt ?? 0;
+      const rightCreatedAt = right.priority.createdAt ?? 0;
+      if (leftCreatedAt !== rightCreatedAt) {
+        return leftCreatedAt - rightCreatedAt;
       }
 
       return left.index - right.index;
     });
-
     return filtered.map(({ priority }) => priority);
   }, [priorities, selectedDate, today]);
 
@@ -172,55 +270,84 @@ export default function PrioritiesSection({
           No priorities
         </Text>
       ) : (
-        <View style={{ gap: 14 }}>
-          {visiblePriorities.map((priority) => (
-            <View
-              key={priority._id}
-              style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
-            >
-              <Pressable
-                onPress={() => void onCompletePriority(priority)}
-                disabled={updatingIds.has(priority._id)}
+        <View style={{ width: "100%", alignSelf: "stretch" }}>
+          <Sortable.Flex
+            flexDirection="column"
+            flexWrap="nowrap"
+            gap={14}
+            itemEntering={null}
+            itemExiting={null}
+            // Only animate layout during drag reordering; optimistic
+            // adds/removes should appear instantly.
+            itemsLayoutTransitionMode="reorder"
+            dragActivationDelay={220}
+            width="fill"
+            enableActiveItemSnap={false}
+            activeItemScale={1.03}
+            onDragStart={() => {
+              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            }}
+            onDragEnd={({ order }) => {
+              const nextPriorities = order(visiblePriorities);
+              void reorderActivePriorities({
+                priorityIds: nextPriorities.map(
+                  (priority) => priority._id as PriorityId,
+                ),
+              });
+            }}
+          >
+            {visiblePriorities.map((priority) => (
+              <View
+                key={priority._id}
                 style={{
-                  opacity: updatingIds.has(priority._id) ? 0.75 : 1,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 10,
+                  width: rowWidth,
                 }}
               >
-                <Ionicons
-                  name={
-                    priority.status === "done"
-                      ? "checkmark-circle"
-                      : "ellipse-outline"
-                  }
-                  size={22}
-                  color={priority.status === "done" ? "#E5E7EB" : "#9CA3AF"}
-                />
-              </Pressable>
-              <Pressable
-                onPress={() =>
-                  router.push({
-                    pathname: "/(authenticated)/priority/[priorityId]",
-                    params: {
-                      priorityId: priority._id,
-                      initialPriority: JSON.stringify(priority),
-                    },
-                  })
-                }
-                style={{ flex: 1 }}
-              >
-                <Text
-                  type="text-regular"
-                  color="#E5E7EB"
-                  style={
-                    priority.status === "done"
-                      ? { flex: 1, textDecorationLine: "line-through" }
-                      : { flex: 1 }
-                  }
+                <Pressable
+                  onPress={() => void onCompletePriority(priority)}
+                  disabled={updatingIds.has(priority._id)}
                 >
-                  {priority.name}
-                </Text>
-              </Pressable>
-            </View>
-          ))}
+                  <Ionicons
+                    name={
+                      priority.status === "done"
+                        ? "checkmark-circle"
+                        : "ellipse-outline"
+                    }
+                    size={22}
+                    color={priority.status === "done" ? "#E5E7EB" : "#9CA3AF"}
+                  />
+                </Pressable>
+                <Pressable
+                  onPress={() =>
+                    router.push({
+                      pathname: "/(authenticated)/priority/[priorityId]",
+                      params: {
+                        priorityId: priority._id,
+                        initialPriority: JSON.stringify(priority),
+                        selectedDateMs: String(toStartOfDayMs(selectedDate)),
+                      },
+                    })
+                  }
+                  style={{ flex: 1 }}
+                >
+                  <Text
+                    type="text-regular"
+                    color="#E5E7EB"
+                    style={
+                      priority.status === "done"
+                        ? { flex: 1, textDecorationLine: "line-through" }
+                        : { flex: 1 }
+                    }
+                  >
+                    {priority.name}
+                  </Text>
+                </Pressable>
+              </View>
+            ))}
+          </Sortable.Flex>
         </View>
       )}
       <Pressable
@@ -266,7 +393,7 @@ export default function PrioritiesSection({
                     "/(authenticated)/priority/add-priority",
                     {
                       defaultStatus: "next_up",
-                      defaultIsActive: "false",
+                      defaultIsActive: "true",
                       selectedDateMs: String(toStartOfDayMs(selectedDate)),
                     },
                   );

@@ -11,21 +11,15 @@ function formatEventTime(date: Date) {
 
 export default function CalendarSection({
   calendarEvents,
-  loadingCalendar,
 }: {
   calendarEvents: CalendarEventItem[];
-  loadingCalendar: boolean;
 }) {
   return (
     <View style={{ gap: 10 }}>
       <Text type="heading-4" color="#9CA3AF">
         Calendar
       </Text>
-      {loadingCalendar ? (
-        <Text type="text-regular" color="#9CA3AF">
-          Loading calendar...
-        </Text>
-      ) : calendarEvents.length === 0 ? (
+      {calendarEvents.length === 0 ? (
         <Text type="text-regular" color="#9CA3AF">
           No events
         </Text>

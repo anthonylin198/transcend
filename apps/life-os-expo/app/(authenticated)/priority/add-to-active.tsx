@@ -2,6 +2,7 @@ import { api } from "@transcend/convex";
 import { useMutation, useQuery } from "convex/react";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useMemo } from "react";
 import { Alert, Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Text from "@/components/ui/Text";
@@ -22,22 +23,22 @@ type Group = {
   priorities: PriorityItem[];
 };
 
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
+function toDateKey(value: Date | number) {
+  const date = new Date(value);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
 
-function getActivatedAtMsForSelectedDay(selectedDateMs: number) {
-  const now = Date.now();
-  const selectedDayStart = new Date(selectedDateMs);
-  selectedDayStart.setHours(0, 0, 0, 0);
-  const selectedStartMs = selectedDayStart.getTime();
-  const todayStart = new Date(now);
-  todayStart.setHours(0, 0, 0, 0);
-  if (selectedStartMs === todayStart.getTime()) return now;
-  return selectedStartMs + (now % MS_PER_DAY);
+function getActivationTimestampMs() {
+  return Date.now();
 }
 
 export default function AddToActiveScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const bootstrapRange = useMemo(() => getHomeBootstrapRange(), []);
   const params = useLocalSearchParams<{
     selectedDateMs?: string;
   }>();
@@ -50,16 +51,32 @@ export default function AddToActiveScreen() {
     );
     if (bootstrap === undefined || !bootstrap.profile) return;
 
+    const now = Date.now();
+    const maxActiveOrderIndex = bootstrap.priorities.reduce(
+      (max, item) =>
+        item.activeOrderIndex !== undefined
+          ? Math.max(max, item.activeOrderIndex)
+          : max,
+      -1,
+    );
     const nextPriorities = bootstrap.priorities.map((priority) => {
       if (priority._id !== args.priorityId) {
         return priority;
       }
+      // Newly activated priorities append to the bottom of the active list;
+      // an already-active priority keeps its position.
+      const nextActiveOrderIndex = args.isActive
+        ? priority.isActive
+          ? priority.activeOrderIndex
+          : maxActiveOrderIndex + 1
+        : undefined;
       return {
         ...priority,
         isActive: args.isActive,
-        activatedAt: args.isActive
-          ? (args.activatedAtMs ?? Date.now())
-          : undefined,
+        activatedAt: args.isActive ? (args.activatedAtMs ?? now) : undefined,
+        activeDateKey: args.isActive ? args.activeDateKey : undefined,
+        activeOrderIndex: nextActiveOrderIndex,
+        updatedAt: now,
       };
     });
 
@@ -79,7 +96,6 @@ export default function AddToActiveScreen() {
   const selectedDateMs = Number.isFinite(parsedSelectedDateMs)
     ? parsedSelectedDateMs
     : Date.now();
-  const bootstrapRange = getHomeBootstrapRange(new Date(selectedDateMs));
 
   const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, bootstrapRange);
 
@@ -118,15 +134,15 @@ export default function AddToActiveScreen() {
 
   const onToggleActive = async (priority: PriorityItem) => {
     const nextIsActive = !priority.isActive;
-    const activatedAtMs = nextIsActive
-      ? getActivatedAtMsForSelectedDay(selectedDateMs)
-      : undefined;
+    const activatedAtMs = nextIsActive ? getActivationTimestampMs() : undefined;
+    const activeDateKey = nextIsActive ? toDateKey(selectedDateMs) : undefined;
     try {
       await setPriorityActive({
         priorityId: priority._id as never,
         isActive: nextIsActive,
         activatedAtMs,
-      });
+        activeDateKey,
+      } as never);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to activate priority";

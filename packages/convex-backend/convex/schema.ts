@@ -26,7 +26,9 @@ export default defineSchema({
     status: v.union(v.literal("todo"), v.literal("next_up"), v.literal("done")),
     isActive: v.boolean(),
     orderIndex: v.number(),
+    activeOrderIndex: v.optional(v.number()),
     activatedAt: v.optional(v.number()),
+    activeDateKey: v.optional(v.string()),
     completedAt: v.optional(v.number()),
     completedDateKey: v.optional(v.string()),
     createdAt: v.number(),
@@ -46,6 +48,8 @@ export default defineSchema({
       "completedDateKey",
     ])
     .index("by_project_id", ["projectId"])
+    .index("by_project_id_status_order", ["projectId", "status", "orderIndex"])
+    .index("by_profile_id_status_order", ["profileId", "status", "orderIndex"])
     .index("by_profile_id_is_active", ["profileId", "isActive"])
     .index("by_profile_id_project_id", ["profileId", "projectId"]),
   habits: defineTable({
