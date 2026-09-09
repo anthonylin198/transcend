@@ -26,6 +26,7 @@ export default defineSchema({
     status: v.union(v.literal("todo"), v.literal("next_up"), v.literal("done")),
     isActive: v.boolean(),
     orderIndex: v.number(),
+    activeOrderIndex: v.optional(v.number()),
     activatedAt: v.optional(v.number()),
     activeDateKey: v.optional(v.string()),
     completedAt: v.optional(v.number()),

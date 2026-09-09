@@ -52,15 +52,30 @@ export default function AddToActiveScreen() {
     if (bootstrap === undefined || !bootstrap.profile) return;
 
     const now = Date.now();
+    const maxActiveOrderIndex = bootstrap.priorities.reduce(
+      (max, item) =>
+        item.activeOrderIndex !== undefined
+          ? Math.max(max, item.activeOrderIndex)
+          : max,
+      -1,
+    );
     const nextPriorities = bootstrap.priorities.map((priority) => {
       if (priority._id !== args.priorityId) {
         return priority;
       }
+      // Newly activated priorities append to the bottom of the active list;
+      // an already-active priority keeps its position.
+      const nextActiveOrderIndex = args.isActive
+        ? priority.isActive
+          ? priority.activeOrderIndex
+          : maxActiveOrderIndex + 1
+        : undefined;
       return {
         ...priority,
         isActive: args.isActive,
         activatedAt: args.isActive ? (args.activatedAtMs ?? now) : undefined,
         activeDateKey: args.isActive ? args.activeDateKey : undefined,
+        activeOrderIndex: nextActiveOrderIndex,
         updatedAt: now,
       };
     });

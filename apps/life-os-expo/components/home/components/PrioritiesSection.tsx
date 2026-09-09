@@ -1,11 +1,17 @@
 import { useMemo, useState } from "react";
 import { api } from "@transcend/convex";
 import { useMutation } from "convex/react";
+import type { FunctionArgs } from "convex/server";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
-import { Modal, Pressable, View } from "react-native";
+import { Modal, Pressable, View, useWindowDimensions } from "react-native";
+import Sortable from "react-native-sortables";
 import Text from "@/components/ui/Text";
+
+type PriorityId = FunctionArgs<
+  typeof api.priorities.reorderActivePriorities.reorderActivePriorities
+>["priorityIds"][number];
 
 type HomePriority = {
   _id: string;
@@ -14,6 +20,7 @@ type HomePriority = {
   status: "todo" | "next_up" | "done";
   isActive?: boolean;
   projectId?: string;
+  activeOrderIndex?: number;
   activatedAt?: number;
   activeDateKey?: string;
   completedAt?: number;
@@ -60,6 +67,10 @@ export default function PrioritiesSection({
   today,
 }: PrioritiesSectionProps) {
   const router = useRouter();
+  const { width: screenWidth } = useWindowDimensions();
+  // Rows need an explicit width inside Sortable.Flex; the home screen content
+  // has 20px horizontal padding on each side.
+  const rowWidth = Math.max(screenWidth - 40, 0);
   const setPriorityStatus = useMutation(
     api.priorities.setPriorityStatus.setPriorityStatus,
   ).withOptimisticUpdate((localStore, args) => {
@@ -111,6 +122,28 @@ export default function PrioritiesSection({
         ...value,
         priorities: nextPriorities,
         categories: nextCategories,
+      });
+    });
+  });
+  const reorderActivePriorities = useMutation(
+    api.priorities.reorderActivePriorities.reorderActivePriorities,
+  ).withOptimisticUpdate((localStore, args) => {
+    const indexById = new Map<string, number>(
+      args.priorityIds.map((priorityId, index) => [priorityId, index]),
+    );
+    const allBootstrapQueries = localStore.getAllQueries(
+      api.home.bootstrap.bootstrap,
+    );
+    allBootstrapQueries.forEach(({ args: queryArgs, value }) => {
+      if (!value || value.profile === null) return;
+      const nextPriorities = value.priorities.map((priority) => {
+        const nextIndex = indexById.get(priority._id);
+        if (nextIndex === undefined) return priority;
+        return { ...priority, activeOrderIndex: nextIndex };
+      });
+      localStore.setQuery(api.home.bootstrap.bootstrap, queryArgs, {
+        ...value,
+        priorities: nextPriorities,
       });
     });
   });
@@ -167,6 +200,16 @@ export default function PrioritiesSection({
       });
 
     filtered.sort((left, right) => {
+      // Manual order wins; items without an index (legacy data) fall back to
+      // activation time and sort after indexed ones.
+      const leftActiveOrder =
+        left.priority.activeOrderIndex ?? Number.POSITIVE_INFINITY;
+      const rightActiveOrder =
+        right.priority.activeOrderIndex ?? Number.POSITIVE_INFINITY;
+      if (leftActiveOrder !== rightActiveOrder) {
+        return leftActiveOrder - rightActiveOrder;
+      }
+
       const leftActivationMs = getActivationSortMs(left.priority);
       const rightActivationMs = getActivationSortMs(right.priority);
       if (leftActivationMs !== rightActivationMs) {
@@ -227,53 +270,84 @@ export default function PrioritiesSection({
           No priorities
         </Text>
       ) : (
-        <View style={{ gap: 14 }}>
-          {visiblePriorities.map((priority) => (
-            <View
-              key={priority._id}
-              style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
-            >
-              <Pressable
-                onPress={() => void onCompletePriority(priority)}
-                disabled={updatingIds.has(priority._id)}
+        <View style={{ width: "100%", alignSelf: "stretch" }}>
+          <Sortable.Flex
+            flexDirection="column"
+            flexWrap="nowrap"
+            gap={14}
+            itemEntering={null}
+            itemExiting={null}
+            // Only animate layout during drag reordering; optimistic
+            // adds/removes should appear instantly.
+            itemsLayoutTransitionMode="reorder"
+            dragActivationDelay={220}
+            width="fill"
+            enableActiveItemSnap={false}
+            activeItemScale={1.03}
+            onDragStart={() => {
+              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            }}
+            onDragEnd={({ order }) => {
+              const nextPriorities = order(visiblePriorities);
+              void reorderActivePriorities({
+                priorityIds: nextPriorities.map(
+                  (priority) => priority._id as PriorityId,
+                ),
+              });
+            }}
+          >
+            {visiblePriorities.map((priority) => (
+              <View
+                key={priority._id}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 10,
+                  width: rowWidth,
+                }}
               >
-                <Ionicons
-                  name={
-                    priority.status === "done"
-                      ? "checkmark-circle"
-                      : "ellipse-outline"
-                  }
-                  size={22}
-                  color={priority.status === "done" ? "#E5E7EB" : "#9CA3AF"}
-                />
-              </Pressable>
-              <Pressable
-                onPress={() =>
-                  router.push({
-                    pathname: "/(authenticated)/priority/[priorityId]",
-                    params: {
-                      priorityId: priority._id,
-                      initialPriority: JSON.stringify(priority),
-                      selectedDateMs: String(toStartOfDayMs(selectedDate)),
-                    },
-                  })
-                }
-                style={{ flex: 1 }}
-              >
-                <Text
-                  type="text-regular"
-                  color="#E5E7EB"
-                  style={
-                    priority.status === "done"
-                      ? { flex: 1, textDecorationLine: "line-through" }
-                      : { flex: 1 }
-                  }
+                <Pressable
+                  onPress={() => void onCompletePriority(priority)}
+                  disabled={updatingIds.has(priority._id)}
                 >
-                  {priority.name}
-                </Text>
-              </Pressable>
-            </View>
-          ))}
+                  <Ionicons
+                    name={
+                      priority.status === "done"
+                        ? "checkmark-circle"
+                        : "ellipse-outline"
+                    }
+                    size={22}
+                    color={priority.status === "done" ? "#E5E7EB" : "#9CA3AF"}
+                  />
+                </Pressable>
+                <Pressable
+                  onPress={() =>
+                    router.push({
+                      pathname: "/(authenticated)/priority/[priorityId]",
+                      params: {
+                        priorityId: priority._id,
+                        initialPriority: JSON.stringify(priority),
+                        selectedDateMs: String(toStartOfDayMs(selectedDate)),
+                      },
+                    })
+                  }
+                  style={{ flex: 1 }}
+                >
+                  <Text
+                    type="text-regular"
+                    color="#E5E7EB"
+                    style={
+                      priority.status === "done"
+                        ? { flex: 1, textDecorationLine: "line-through" }
+                        : { flex: 1 }
+                    }
+                  >
+                    {priority.name}
+                  </Text>
+                </Pressable>
+              </View>
+            ))}
+          </Sortable.Flex>
         </View>
       )}
       <Pressable

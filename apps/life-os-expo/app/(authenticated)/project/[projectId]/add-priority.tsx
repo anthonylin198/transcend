@@ -70,6 +70,13 @@ export default function AddPriorityScreen() {
       (max, item) => Math.max(max, item.orderIndex),
       -1,
     );
+    const maxActiveOrderIndex = current.priorities.reduce(
+      (max, item) =>
+        item.activeOrderIndex !== undefined
+          ? Math.max(max, item.activeOrderIndex)
+          : max,
+      -1,
+    );
     const completedAt =
       args.status === "done" ? (args.completedAtMs ?? now) : undefined;
     const optimisticPriority = {
@@ -82,6 +89,8 @@ export default function AddPriorityScreen() {
       status: args.status ?? "todo",
       isActive: args.isActive ?? false,
       orderIndex: maxOrderIndex + 1,
+      activeOrderIndex:
+        args.isActive === true ? maxActiveOrderIndex + 1 : undefined,
       activatedAt:
         args.isActive === true ? (args.activatedAtMs ?? now) : undefined,
       activeDateKey:

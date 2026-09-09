@@ -1,6 +1,7 @@
 import { mutation } from "../_generated/server";
 import { v } from "convex/values";
 import { getCurrentProfileOrThrow } from "../lib/currentProfile";
+import { getNextActiveOrderIndex } from "../lib/activeOrderIndex";
 
 function isDateKey(value: string) {
   return /^\d{4}-\d{2}-\d{2}$/.test(value);
@@ -58,6 +59,9 @@ export const createPriority = mutation({
     }
     const activatedAt = isActive ? (args.activatedAtMs ?? now) : undefined;
     const activeDateKey = isActive ? args.activeDateKey : undefined;
+    const activeOrderIndex = isActive
+      ? await getNextActiveOrderIndex(ctx, profile._id)
+      : undefined;
     const completedAt =
       status === "done" ? (args.completedAtMs ?? now) : undefined;
     const completedDateKey =
@@ -71,6 +75,7 @@ export const createPriority = mutation({
       status,
       isActive,
       orderIndex,
+      activeOrderIndex,
       activatedAt,
       activeDateKey,
       completedAt,

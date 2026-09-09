@@ -27,6 +27,7 @@ import type * as intake_deleteIntakeListItem from "../intake/deleteIntakeListIte
 import type * as intake_listIntakeListItemsForCurrentUser from "../intake/listIntakeListItemsForCurrentUser.js";
 import type * as intake_setIntakeListItemCompletion from "../intake/setIntakeListItemCompletion.js";
 import type * as intake_updateIntakeListItem from "../intake/updateIntakeListItem.js";
+import type * as lib_activeOrderIndex from "../lib/activeOrderIndex.js";
 import type * as lib_currentProfile from "../lib/currentProfile.js";
 import type * as priorities_assignPriorityToProject from "../priorities/assignPriorityToProject.js";
 import type * as priorities_createPriority from "../priorities/createPriority.js";
@@ -34,6 +35,7 @@ import type * as priorities_deletePriority from "../priorities/deletePriority.js
 import type * as priorities_listDonePriorities from "../priorities/listDonePriorities.js";
 import type * as priorities_listPrioritiesByProject from "../priorities/listPrioritiesByProject.js";
 import type * as priorities_listPrioritiesForCurrentUser from "../priorities/listPrioritiesForCurrentUser.js";
+import type * as priorities_reorderActivePriorities from "../priorities/reorderActivePriorities.js";
 import type * as priorities_reorderPriorities from "../priorities/reorderPriorities.js";
 import type * as priorities_setPriorityActive from "../priorities/setPriorityActive.js";
 import type * as priorities_setPriorityStatus from "../priorities/setPriorityStatus.js";
@@ -70,6 +72,7 @@ declare const fullApi: ApiFromModules<{
   "intake/listIntakeListItemsForCurrentUser": typeof intake_listIntakeListItemsForCurrentUser;
   "intake/setIntakeListItemCompletion": typeof intake_setIntakeListItemCompletion;
   "intake/updateIntakeListItem": typeof intake_updateIntakeListItem;
+  "lib/activeOrderIndex": typeof lib_activeOrderIndex;
   "lib/currentProfile": typeof lib_currentProfile;
   "priorities/assignPriorityToProject": typeof priorities_assignPriorityToProject;
   "priorities/createPriority": typeof priorities_createPriority;
@@ -77,6 +80,7 @@ declare const fullApi: ApiFromModules<{
   "priorities/listDonePriorities": typeof priorities_listDonePriorities;
   "priorities/listPrioritiesByProject": typeof priorities_listPrioritiesByProject;
   "priorities/listPrioritiesForCurrentUser": typeof priorities_listPrioritiesForCurrentUser;
+  "priorities/reorderActivePriorities": typeof priorities_reorderActivePriorities;
   "priorities/reorderPriorities": typeof priorities_reorderPriorities;
   "priorities/setPriorityActive": typeof priorities_setPriorityActive;
   "priorities/setPriorityStatus": typeof priorities_setPriorityStatus;
