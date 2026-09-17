@@ -404,15 +404,13 @@ export default function HomePage() {
             <ul className="space-y-1">
               {visiblePriorities.map((priority) => {
                 const isDone = priority.status === "done";
-                const isUpdating = updatingPriorityIds.has(priority._id);
                 return (
                   <li key={priority._id}>
                     <button
                       type="button"
                       onClick={() => void onCompletePriority(priority)}
-                      disabled={isUpdating}
                       aria-pressed={isDone}
-                      className="group flex w-full cursor-pointer items-center gap-3 rounded-md px-1.5 py-2 text-left hover:bg-zinc-900 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="group flex w-full cursor-pointer items-center gap-3 rounded-md px-1.5 py-2 text-left hover:bg-zinc-900"
                     >
                       <CompletionMark completed={isDone} />
                       <span
@@ -447,15 +445,13 @@ export default function HomePage() {
                 const isCompleted =
                   pendingCompletionByHabitId.get(habit._id) ??
                   completionSet.has(habit._id);
-                const isUpdating = updatingHabitIds.has(habit._id);
                 return (
                   <li key={habit._id}>
                     <button
                       type="button"
                       onClick={() => void onToggleHabit(habit._id)}
-                      disabled={isUpdating}
                       aria-pressed={isCompleted}
-                      className="group flex w-full cursor-pointer items-center gap-3 rounded-md px-1.5 py-2 text-left hover:bg-zinc-900 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="group flex w-full cursor-pointer items-center gap-3 rounded-md px-1.5 py-2 text-left hover:bg-zinc-900"
                     >
                       <CompletionMark completed={isCompleted} />
                       <span
