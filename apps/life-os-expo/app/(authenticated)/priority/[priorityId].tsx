@@ -9,11 +9,14 @@ import {
   Modal,
   Platform,
   Pressable,
-  ScrollView,
   TextInput,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  DescriptionTextInput,
+  KeyboardAwareFormScroll,
+} from "@/components/ui/KeyboardAwareFormScroll";
 import Text from "@/components/ui/Text";
 import { getHomeBootstrapRange } from "@/utils/homeBootstrapRange";
 
@@ -293,16 +296,13 @@ export default function PriorityDetailScreen() {
         </View>
       </View>
 
-      <ScrollView
-        style={{ flex: 1 }}
+      <KeyboardAwareFormScroll
         contentContainerStyle={{
           paddingHorizontal: 16,
           paddingTop: 8,
-          paddingBottom: Math.max(insets.bottom, 16),
-          gap: 18,
+          paddingBottom: Math.max(insets.bottom, 16) + 80,
+          flexGrow: 1,
         }}
-        keyboardDismissMode="on-drag"
-        showsVerticalScrollIndicator={false}
       >
         <TextInput
           value={currentName}
@@ -400,23 +400,18 @@ export default function PriorityDetailScreen() {
           </Text>
         </Pressable>
 
-        <TextInput
+        <DescriptionTextInput
           value={currentDescription}
           onChangeText={setDescription}
           placeholder="Add a description..."
           placeholderTextColor="#6B7280"
-          multiline
-          scrollEnabled={false}
-          textAlignVertical="top"
           style={{
-            minHeight: 120,
             color: "#E5E7EB",
             fontSize: 16,
             lineHeight: 22,
-            paddingTop: 2,
           }}
         />
-      </ScrollView>
+      </KeyboardAwareFormScroll>
 
       <Modal visible={projectModalOpen} transparent animationType="fade">
         <Pressable

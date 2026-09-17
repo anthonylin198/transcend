@@ -13,6 +13,10 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  DescriptionTextInput,
+  KeyboardAwareFormScroll,
+} from "@/components/ui/KeyboardAwareFormScroll";
 import Text from "@/components/ui/Text";
 import { getHomeBootstrapRange } from "@/utils/homeBootstrapRange";
 
@@ -173,7 +177,7 @@ export default function HabitDetailScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={{ flex: 1, backgroundColor: "black" }}
     >
       <View
@@ -211,7 +215,14 @@ export default function HabitDetailScreen() {
         </View>
       </View>
 
-      <View style={{ flex: 1, paddingHorizontal: 16, paddingTop: 20, gap: 18 }}>
+      <KeyboardAwareFormScroll
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: 20,
+          paddingBottom: Math.max(insets.bottom, 16) + 80,
+          flexGrow: 1,
+        }}
+      >
         <TextInput
           value={currentName}
           onChangeText={setName}
@@ -252,22 +263,18 @@ export default function HabitDetailScreen() {
           </View>
         </Pressable>
 
-        <TextInput
+        <DescriptionTextInput
           value={currentDescription}
           onChangeText={setDescription}
           placeholder="Write a description of the habit here..."
           placeholderTextColor="#6B7280"
-          multiline
-          textAlignVertical="top"
           style={{
-            minHeight: 120,
             color: "#E5E7EB",
             fontSize: 18,
             lineHeight: 24,
-            paddingTop: 2,
           }}
         />
-      </View>
+      </KeyboardAwareFormScroll>
 
       <Modal visible={daysModalOpen} transparent animationType="fade">
         <Pressable
