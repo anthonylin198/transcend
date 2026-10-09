@@ -14,6 +14,9 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as auth from "../auth.js";
+import type * as calorieLogs_createCalorieLog from "../calorieLogs/createCalorieLog.js";
+import type * as calorieLogs_deleteCalorieLog from "../calorieLogs/deleteCalorieLog.js";
+import type * as calorieLogs_listCalorieLogs from "../calorieLogs/listCalorieLogs.js";
 import type * as habits_createHabit from "../habits/createHabit.js";
 import type * as habits_deleteHabit from "../habits/deleteHabit.js";
 import type * as habits_listHabitsForCurrentUser from "../habits/listHabitsForCurrentUser.js";
@@ -29,6 +32,7 @@ import type * as intake_setIntakeListItemCompletion from "../intake/setIntakeLis
 import type * as intake_updateIntakeListItem from "../intake/updateIntakeListItem.js";
 import type * as lib_activeOrderIndex from "../lib/activeOrderIndex.js";
 import type * as lib_currentProfile from "../lib/currentProfile.js";
+import type * as lib_dateKey from "../lib/dateKey.js";
 import type * as priorities_assignPriorityToProject from "../priorities/assignPriorityToProject.js";
 import type * as priorities_createPriority from "../priorities/createPriority.js";
 import type * as priorities_deletePriority from "../priorities/deletePriority.js";
@@ -59,6 +63,9 @@ import type * as tasks from "../tasks.js";
  */
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  "calorieLogs/createCalorieLog": typeof calorieLogs_createCalorieLog;
+  "calorieLogs/deleteCalorieLog": typeof calorieLogs_deleteCalorieLog;
+  "calorieLogs/listCalorieLogs": typeof calorieLogs_listCalorieLogs;
   "habits/createHabit": typeof habits_createHabit;
   "habits/deleteHabit": typeof habits_deleteHabit;
   "habits/listHabitsForCurrentUser": typeof habits_listHabitsForCurrentUser;
@@ -74,6 +81,7 @@ declare const fullApi: ApiFromModules<{
   "intake/updateIntakeListItem": typeof intake_updateIntakeListItem;
   "lib/activeOrderIndex": typeof lib_activeOrderIndex;
   "lib/currentProfile": typeof lib_currentProfile;
+  "lib/dateKey": typeof lib_dateKey;
   "priorities/assignPriorityToProject": typeof priorities_assignPriorityToProject;
   "priorities/createPriority": typeof priorities_createPriority;
   "priorities/deletePriority": typeof priorities_deletePriority;

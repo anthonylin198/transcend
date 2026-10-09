@@ -65,11 +65,11 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="foundations"
+          name="tools"
           options={{
-            title: "Foundations",
+            title: "Tools",
             tabBarIcon: ({ color }) => (
-              <Ionicons size={24} name="book" color={color} />
+              <Ionicons size={24} name="construct" color={color} />
             ),
           }}
         />

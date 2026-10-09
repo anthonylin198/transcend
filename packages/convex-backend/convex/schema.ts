@@ -90,6 +90,14 @@ export default defineSchema({
   })
     .index("by_profile_id", ["profileId"])
     .index("by_profile_id_created_at", ["profileId", "createdAt"]),
+  calorieLogs: defineTable({
+    profileId: v.id("profiles"),
+    // Local calendar day (YYYY-MM-DD) supplied by the client. Not derived from createdAt.
+    date: v.string(),
+    calories: v.number(),
+    proteinG: v.number(),
+    createdAt: v.number(),
+  }).index("by_profile_id_date", ["profileId", "date"]),
   tasks: defineTable({
     text: v.string(),
     isCompleted: v.boolean(),
