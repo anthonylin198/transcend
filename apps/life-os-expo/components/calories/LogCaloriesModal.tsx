@@ -119,7 +119,12 @@ function LogCaloriesForm({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <Modal visible transparent animationType="fade" onRequestClose={requestClose}>
+    <Modal
+      visible
+      transparent
+      animationType="fade"
+      onRequestClose={requestClose}
+    >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
@@ -136,7 +141,13 @@ function LogCaloriesForm({ onClose }: { onClose: () => void }) {
             accessibilityLabel="Dismiss log calories"
             accessibilityRole="button"
             onPress={requestClose}
-            style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0 }}
+            style={{
+              position: "absolute",
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0,
+            }}
           />
           <View
             accessibilityViewIsModal

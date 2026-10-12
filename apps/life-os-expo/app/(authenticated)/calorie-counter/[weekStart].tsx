@@ -92,8 +92,14 @@ export default function CalorieWeekScreen() {
             >
               <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
             </Pressable>
-            <Text type="heading-4" accessibilityRole="header" style={{ flex: 1 }}>
-              {weekStart && weekEnd ? formatWeekRange(weekStart, weekEnd) : "Week"}
+            <Text
+              type="heading-4"
+              accessibilityRole="header"
+              style={{ flex: 1 }}
+            >
+              {weekStart && weekEnd
+                ? formatWeekRange(weekStart, weekEnd)
+                : "Week"}
             </Text>
           </View>
 
@@ -152,7 +158,8 @@ export default function CalorieWeekScreen() {
                         {formatShortDate(parseLocalDateKey(dateKey))}
                       </Text>
                       <Text type="text-regular" color="#9CA3AF">
-                        {formatCalories(calories)} cal · {formatProtein(protein)}g
+                        {formatCalories(calories)} cal ·{" "}
+                        {formatProtein(protein)}g
                       </Text>
                     </View>
                   );

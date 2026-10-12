@@ -72,7 +72,10 @@ export function averageLoggedDays<T extends DatedCalorieLog>(
   endDateInclusive: string,
   excludeDate?: string,
 ) {
-  const totalsByDate = new Map<string, { calories: number; proteinG: number }>();
+  const totalsByDate = new Map<
+    string,
+    { calories: number; proteinG: number }
+  >();
 
   for (const log of logs) {
     if (log.date < startDate || log.date > endDateInclusive) continue;
@@ -138,7 +141,9 @@ export function groupLogsByWeek<T extends DatedCalorieLog>(logs: T[]) {
   }
 
   return [...byWeek.entries()]
-    .sort(([startA], [startB]) => (startA < startB ? 1 : startA > startB ? -1 : 0))
+    .sort(([startA], [startB]) =>
+      startA < startB ? 1 : startA > startB ? -1 : 0,
+    )
     .map(([startKey, entries]) => {
       const endKey = toLocalDateKey(addDays(parseLocalDateKey(startKey), 6));
       return {

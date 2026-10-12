@@ -35,10 +35,7 @@ export function useLocalToday() {
 
     const schedule = () => {
       if (timeout) clearTimeout(timeout);
-      const delay = Math.min(
-        msUntilNextLocalMidnight(),
-        FOREGROUND_RECHECK_MS,
-      );
+      const delay = Math.min(msUntilNextLocalMidnight(), FOREGROUND_RECHECK_MS);
       timeout = setTimeout(() => {
         refresh();
         if (AppState.currentState === "active") schedule();

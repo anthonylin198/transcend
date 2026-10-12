@@ -91,7 +91,8 @@ export default function PreviousWeeksScreen() {
                     accessibilityLabel={`${rangeLabel}, ${formatCalories(week.average.calories)} calories, ${formatProtein(week.average.proteinG)} grams protein`}
                     onPress={() =>
                       router.push({
-                        pathname: "/(authenticated)/calorie-counter/[weekStart]",
+                        pathname:
+                          "/(authenticated)/calorie-counter/[weekStart]",
                         params: { weekStart: week.startKey },
                       })
                     }
@@ -113,7 +114,11 @@ export default function PreviousWeeksScreen() {
                         {formatProtein(week.average.proteinG)}g protein
                       </Text>
                     </View>
-                    <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
+                    <Ionicons
+                      name="chevron-forward"
+                      size={18}
+                      color="#9CA3AF"
+                    />
                   </Pressable>
                 );
               })}
