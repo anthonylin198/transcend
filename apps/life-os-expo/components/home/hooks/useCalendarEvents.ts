@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import * as Calendar from "expo-calendar";
 
 export type CalendarEventItem = {
@@ -59,11 +59,17 @@ export function useCalendarEvents({
     Record<string, CalendarEventItem[]>
   >({});
   const [loadingCalendar, setLoadingCalendar] = useState(false);
+  const [loadedRangeKey, setLoadedRangeKey] = useState<string | null>(null);
+  const requestId = useRef(0);
 
   const loadCalendarEvents = useCallback(async () => {
+    const request = ++requestId.current;
+    const rangeKey = `${getDateKey(startDate)}:${getDateKey(endDate)}`;
     setLoadingCalendar(true);
     try {
       const permission = await Calendar.getCalendarPermissionsAsync();
+      if (request !== requestId.current) return;
+
       if (!permission.granted) {
         setEventsByDay({});
         return;
@@ -72,6 +78,7 @@ export function useCalendarEvents({
       const calendars = await Calendar.getCalendarsAsync(
         Calendar.EntityTypes.EVENT,
       );
+      if (request !== requestId.current) return;
       if (calendars.length === 0) {
         setEventsByDay({});
         return;
@@ -111,9 +118,13 @@ export function useCalendarEvents({
         );
       }
 
+      if (request !== requestId.current) return;
       setEventsByDay(nextEventsByDay);
     } finally {
-      setLoadingCalendar(false);
+      if (request === requestId.current) {
+        setLoadedRangeKey(rangeKey);
+        setLoadingCalendar(false);
+      }
     }
   }, [endDate, startDate]);
 
@@ -124,6 +135,7 @@ export function useCalendarEvents({
   return {
     eventsByDay,
     loadingCalendar,
+    loadedRangeKey,
     reloadCalendarEvents: loadCalendarEvents,
   };
 }

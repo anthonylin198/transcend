@@ -29,6 +29,23 @@ const WEEK_DAYS = [
   "Saturday",
   "Sunday",
 ] as const;
+
+const DAY_ABBREVIATIONS: Record<(typeof WEEK_DAYS)[number], string> = {
+  Monday: "Mon",
+  Tuesday: "Tue",
+  Wednesday: "Wed",
+  Thursday: "Thu",
+  Friday: "Fri",
+  Saturday: "Sat",
+  Sunday: "Sun",
+};
+
+function formatTargetDays(days: string[]) {
+  if (days.length === 0) return "Select days";
+  const ordered = WEEK_DAYS.filter((day) => days.includes(day));
+  if (ordered.length === WEEK_DAYS.length) return "Every day";
+  return ordered.map((day) => DAY_ABBREVIATIONS[day]).join(", ");
+}
 type InitialHabit = {
   _id: string;
   name: string;
@@ -218,7 +235,7 @@ export default function HabitDetailScreen() {
       <KeyboardAwareFormScroll
         contentContainerStyle={{
           paddingHorizontal: 16,
-          paddingTop: 20,
+          paddingTop: 8,
           paddingBottom: Math.max(insets.bottom, 16) + 80,
           flexGrow: 1,
         }}
@@ -228,14 +245,16 @@ export default function HabitDetailScreen() {
           onChangeText={setName}
           placeholder="Habit name"
           placeholderTextColor="#6B7280"
+          multiline
+          scrollEnabled={false}
           style={{
             color: "#F9FAFB",
             borderBottomWidth: 1,
             borderBottomColor: "#374151",
             paddingVertical: 8,
-            fontSize: 40,
-            lineHeight: 48,
-            fontWeight: "600",
+            fontSize: 24,
+            lineHeight: 30,
+            fontWeight: "500",
           }}
         />
 
@@ -245,19 +264,31 @@ export default function HabitDetailScreen() {
             borderBottomWidth: 1,
             borderBottomColor: "#1F2937",
             flexDirection: "row",
-            justifyContent: "space-between",
             alignItems: "center",
-            paddingBottom: 14,
+            gap: 12,
+            paddingVertical: 14,
           }}
         >
-          <Text type="text-regular" color="#9CA3AF">
+          <Text type="text-regular" color="#9CA3AF" style={{ flexShrink: 0 }}>
             Days
           </Text>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-            <Text type="text-regular" color="#E5E7EB">
-              {currentTargetDays.length === 0
-                ? "Select days"
-                : currentTargetDays.join(", ")}
+          <View
+            style={{
+              flex: 1,
+              minWidth: 0,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              gap: 6,
+            }}
+          >
+            <Text
+              type="text-regular"
+              color="#E5E7EB"
+              numberOfLines={1}
+              style={{ flexShrink: 1, textAlign: "right" }}
+            >
+              {formatTargetDays(currentTargetDays)}
             </Text>
             <Ionicons name="chevron-forward" size={18} color="#6B7280" />
           </View>

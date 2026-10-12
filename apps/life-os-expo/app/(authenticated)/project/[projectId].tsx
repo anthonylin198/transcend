@@ -9,6 +9,7 @@ import {
   Pressable,
   ScrollView,
   View,
+  useWindowDimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Sortable from "react-native-sortables";
@@ -24,6 +25,10 @@ const STATUS_SECTIONS = [
 export default function ProjectDetailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { width: screenWidth } = useWindowDimensions();
+  // Rows need an explicit width inside Sortable.Flex. This screen's content
+  // has 16px of horizontal padding on each side.
+  const rowWidth = Math.max(screenWidth - 32, 0);
   const bootstrapRange = useMemo(() => getHomeBootstrapRange(), []);
   const params = useLocalSearchParams<{ projectId: string }>();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -229,6 +234,7 @@ export default function ProjectDetailScreen() {
           flexWrap="nowrap"
           gap={14}
           itemEntering={null}
+          width="fill"
           customHandle
           dragActivationDelay={220}
           enableActiveItemSnap={false}
@@ -318,6 +324,7 @@ export default function ProjectDetailScreen() {
                   flexDirection: "row",
                   alignItems: "center",
                   justifyContent: "space-between",
+                  width: rowWidth,
                 }}
               >
                 <Text type="text-semibold" color="#9CA3AF">
@@ -342,7 +349,7 @@ export default function ProjectDetailScreen() {
                 </Pressable>
               </View>
             ) : (
-              <Sortable.Handle key={row.key}>
+              <Sortable.Handle key={row.key} style={{ width: rowWidth }}>
                 <Pressable
                   onPress={() =>
                     router.push({
@@ -363,6 +370,7 @@ export default function ProjectDetailScreen() {
                     flexDirection: "row",
                     alignItems: "center",
                     gap: 10,
+                    width: "100%",
                   }}
                 >
                   <Ionicons
@@ -376,7 +384,11 @@ export default function ProjectDetailScreen() {
                       row.priority.status === "done" ? "#E5E7EB" : "#9CA3AF"
                     }
                   />
-                  <Text type="text-regular" color="#E5E7EB" style={{ flex: 1 }}>
+                  <Text
+                    type="text-regular"
+                    color="#E5E7EB"
+                    style={{ flex: 1, flexShrink: 1 }}
+                  >
                     {row.priority.name}
                   </Text>
                 </Pressable>
