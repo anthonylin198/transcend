@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect } from "expo-router";
 import { AppState, type AppStateStatus } from "react-native";
 import { startOfLocalDay, toLocalDateKey } from "@/utils/calorieWeek";
 

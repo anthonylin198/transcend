@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
-import * as Calendar from "expo-calendar";
+import { requestCalendarPermissions } from "expo-calendar";
 import { api } from "@transcend/convex";
 import { useMutation, useQuery } from "convex/react";
 import Text from "@/components/ui/Text";
@@ -37,7 +37,7 @@ export default function ProfileScreen() {
         return;
       }
 
-      const permission = await Calendar.requestCalendarPermissionsAsync();
+      const permission = await requestCalendarPermissions();
       const granted = permission.status === "granted";
       if (!granted) {
         const message =

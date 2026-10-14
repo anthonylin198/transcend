@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import * as Calendar from "expo-calendar";
+import {
+  EntityTypes,
+  getCalendarPermissions,
+  getCalendars,
+  listEvents,
+} from "expo-calendar";
 
 export type CalendarEventItem = {
   id: string;
@@ -67,7 +72,7 @@ export function useCalendarEvents({
     const rangeKey = `${getDateKey(startDate)}:${getDateKey(endDate)}`;
     setLoadingCalendar(true);
     try {
-      const permission = await Calendar.getCalendarPermissionsAsync();
+      const permission = await getCalendarPermissions();
       if (request !== requestId.current) return;
 
       if (!permission.granted) {
@@ -75,9 +80,7 @@ export function useCalendarEvents({
         return;
       }
 
-      const calendars = await Calendar.getCalendarsAsync(
-        Calendar.EntityTypes.EVENT,
-      );
+      const calendars = await getCalendars(EntityTypes.EVENT);
       if (request !== requestId.current) return;
       if (calendars.length === 0) {
         setEventsByDay({});
@@ -87,11 +90,7 @@ export function useCalendarEvents({
       const rangeStart = toStartOfDay(startDate);
       const rangeEnd = toEndOfDay(endDate);
 
-      const events = await Calendar.getEventsAsync(
-        calendars.map((calendar) => calendar.id),
-        rangeStart,
-        rangeEnd,
-      );
+      const events = await listEvents(calendars, rangeStart, rangeEnd);
 
       const normalizedEvents = events
         .filter((event) => event.startDate && event.endDate)
