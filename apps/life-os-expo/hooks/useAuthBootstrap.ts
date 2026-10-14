@@ -1,13 +1,18 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { api } from "@transcend/convex";
 import { useConvexAuth, useMutation, useQuery } from "convex/react";
+import { useLocalToday } from "@/hooks/useLocalToday";
 import { getHomeBootstrapRange } from "@/utils/homeBootstrapRange";
 
 type BootStatus = "unauthenticated" | "loading" | "ready";
 
 export function useAuthBootstrap() {
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
-  const { rangeStartDateKey, rangeEndDateKey } = getHomeBootstrapRange();
+  const today = useLocalToday();
+  const { rangeStartDateKey, rangeEndDateKey } = useMemo(
+    () => getHomeBootstrapRange(today),
+    [today],
+  );
   const ensureProfile = useMutation(api.profile.ensureProfile);
 
   useEffect(() => {

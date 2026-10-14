@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { ConvexAuthProvider } from "@convex-dev/auth/react";
 import {
   DMSans_400Regular,
@@ -13,6 +13,7 @@ import { Platform, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Text from "@/components/ui/Text";
 import { useAuthBootstrap } from "@/hooks/useAuthBootstrap";
+import { useCalorieWidgetSync } from "@/widgets/useCalorieWidgetSync";
 
 const convexUrl = process.env.EXPO_PUBLIC_CONVEX_URL;
 const convexClient = convexUrl ? new ConvexReactClient(convexUrl) : null;
@@ -28,20 +29,24 @@ void SplashScreen.preventAutoHideAsync().catch(() => {
 
 function AppRouter({ loadedFonts }: { loadedFonts: boolean }) {
   const { bootReady, isAuthenticated } = useAuthBootstrap();
-  const hasShownAppRef = useRef(false);
+  useCalorieWidgetSync(bootReady || isAuthenticated ? isAuthenticated : null);
+  const [hasShownApp, setHasShownApp] = useState(false);
 
   useEffect(() => {
     if (bootReady && loadedFonts) {
-      hasShownAppRef.current = true;
       void SplashScreen.hideAsync().catch(() => {
         // Ignore if splash is already hidden.
       });
     }
   }, [bootReady, loadedFonts]);
 
-  // Keep splash control for first paint only. After initial paint, never
-  // unmount the app tree back to null during auth/profile bootstrap refreshes.
-  if (!loadedFonts || (!bootReady && !hasShownAppRef.current)) {
+  // Remember the first successful paint in state. After that, auth/profile
+  // bootstrap refreshes must not unmount the app tree back to null.
+  if (loadedFonts && bootReady && !hasShownApp) {
+    setHasShownApp(true);
+  }
+
+  if (!loadedFonts || (!bootReady && !hasShownApp)) {
     return null;
   }
 

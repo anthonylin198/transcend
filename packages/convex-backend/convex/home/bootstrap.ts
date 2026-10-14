@@ -10,6 +10,7 @@ import { getAuthUserId } from "@convex-dev/auth/server";
  * - habits
  * - projects (without nested priorities)
  * - intake list items
+ * - calorie logs inside the same date window (covers the current Sunday–Saturday week)
  * - completed data scoped to a date window (`done` priorities + habit completions)
  *
  * Date range behavior:
@@ -32,6 +33,7 @@ export const bootstrap = query({
         habitCompletions: [],
         projects: [],
         intakeListItems: [],
+        calorieLogs: [],
       };
     }
 
@@ -49,6 +51,7 @@ export const bootstrap = query({
         habitCompletions: [],
         projects: [],
         intakeListItems: [],
+        calorieLogs: [],
       };
     }
 
@@ -59,6 +62,7 @@ export const bootstrap = query({
       habitCompletions,
       projects,
       intakeListItems,
+      calorieLogs,
     ] = await Promise.all([
       ctx.db
         .query("priorities")
@@ -100,6 +104,15 @@ export const bootstrap = query({
         )
         .order("asc")
         .collect(),
+      ctx.db
+        .query("calorieLogs")
+        .withIndex("by_profile_id_date", (q) =>
+          q
+            .eq("profileId", profile._id)
+            .gte("date", args.rangeStartDateKey)
+            .lt("date", args.rangeEndDateKey),
+        )
+        .collect(),
     ]);
 
     const activeNextUpPriorities = nextUpPriorities
@@ -116,6 +129,7 @@ export const bootstrap = query({
       habitCompletions,
       projects,
       intakeListItems,
+      calorieLogs,
     };
   },
 });

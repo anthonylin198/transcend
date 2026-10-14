@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "@transcend/convex";
 import { useQuery } from "convex/react";
 import PagerView from "react-native-pager-view";
@@ -11,7 +11,9 @@ import {
   getDateKey,
   useCalendarEvents,
 } from "@/components/home/hooks/useCalendarEvents";
+import SplashCover from "@/components/ui/SplashCover";
 import Text from "@/components/ui/Text";
+import { useLocalToday } from "@/hooks/useLocalToday";
 import {
   HOME_DAY_WINDOW,
   getHomeBootstrapRange,
@@ -19,21 +21,13 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import {
   Animated,
-  AppState,
   Easing,
   Pressable,
   RefreshControl,
   ScrollView,
   View,
 } from "react-native";
-import { useIsFocused } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-function toStartOfDay(value: Date) {
-  const date = new Date(value);
-  date.setHours(0, 0, 0, 0);
-  return date;
-}
 
 function addDays(value: Date, amount: number) {
   const date = new Date(value);
@@ -65,11 +59,14 @@ function getGreeting(value: Date, today: Date) {
   return new Intl.DateTimeFormat(undefined, { weekday: "long" }).format(value);
 }
 
+const DAY_CHANGE_REVEAL_TIMEOUT_MS = 12_000;
+
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const isFocused = useIsFocused();
-  const [today, setToday] = useState(() => toStartOfDay(new Date()));
+  const today = useLocalToday();
+  const todayKey = getDateKey(today);
+  const [visibleDayKey, setVisibleDayKey] = useState(todayKey);
   const bootstrapRange = useMemo(() => getHomeBootstrapRange(today), [today]);
   const days = useMemo(
     () =>
@@ -88,13 +85,18 @@ export default function HomeScreen() {
   const bootstrapHabitCompletions = homeBootstrap?.habitCompletions ?? [];
   const entranceAnimation = useRef(new Animated.Value(0)).current;
   const pagerRef = useRef<PagerView>(null);
-  const currentPageRef = useRef(initialPage);
-  const appStateRef = useRef(AppState.currentState);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const { eventsByDay, reloadCalendarEvents } = useCalendarEvents({
-    startDate: calendarRangeStart,
-    endDate: calendarRangeEnd,
-  });
+  const { eventsByDay, loadedRangeKey, reloadCalendarEvents } =
+    useCalendarEvents({
+      startDate: calendarRangeStart,
+      endDate: calendarRangeEnd,
+    });
+  const calendarRangeKey = `${getDateKey(calendarRangeStart)}:${getDateKey(calendarRangeEnd)}`;
+  const isSwitchingDay = visibleDayKey !== todayKey;
+  const dayChangeReady =
+    !isSwitchingDay ||
+    (homeBootstrap !== undefined &&
+      (!canShowCalendar || loadedRangeKey === calendarRangeKey));
   const entranceStyle = {
     opacity: entranceAnimation,
     transform: [
@@ -117,49 +119,18 @@ export default function HomeScreen() {
     }).start();
   }, [entranceAnimation]);
 
-  const syncToCurrentDay = useCallback(() => {
-    const nextToday = toStartOfDay(new Date());
-
-    if (!isSameDay(today, nextToday)) {
-      // Updating `today` remounts the PagerView (keyed by date) centered on
-      // the new day; the bootstrap query and calendar hook refetch since
-      // their args derive from `today`.
-      currentPageRef.current = initialPage;
-      setToday(nextToday);
-      return;
-    }
-
-    if (currentPageRef.current !== initialPage) {
-      pagerRef.current?.setPage(initialPage);
-    }
-  }, [initialPage, today]);
+  useEffect(() => {
+    if (!dayChangeReady || !isSwitchingDay) return;
+    setVisibleDayKey(todayKey);
+  }, [dayChangeReady, isSwitchingDay, todayKey]);
 
   useEffect(() => {
-    const subscription = AppState.addEventListener("change", (nextState) => {
-      const previousState = appStateRef.current;
-      appStateRef.current = nextState;
-      const becameActive =
-        previousState.match(/inactive|background/) !== null &&
-        nextState === "active";
-      if (becameActive && isFocused) {
-        syncToCurrentDay();
-      }
-    });
-
-    return () => {
-      subscription.remove();
-    };
-  }, [isFocused, syncToCurrentDay]);
-
-  useEffect(() => {
-    if (!isFocused) return;
-    const timer = setInterval(() => {
-      syncToCurrentDay();
-    }, 60_000);
-    return () => {
-      clearInterval(timer);
-    };
-  }, [isFocused, syncToCurrentDay]);
+    if (!isSwitchingDay) return;
+    const timeout = setTimeout(() => {
+      setVisibleDayKey(todayKey);
+    }, DAY_CHANGE_REVEAL_TIMEOUT_MS);
+    return () => clearTimeout(timeout);
+  }, [isSwitchingDay, todayKey]);
 
   const onRefresh = async () => {
     setIsRefreshing(true);
@@ -171,6 +142,10 @@ export default function HomeScreen() {
     }
   };
 
+  if (!dayChangeReady) {
+    return <SplashCover />;
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>
       <PagerView
@@ -181,9 +156,6 @@ export default function HomeScreen() {
         ref={pagerRef}
         style={{ flex: 1 }}
         initialPage={initialPage}
-        onPageSelected={(event) => {
-          currentPageRef.current = event.nativeEvent.position;
-        }}
       >
         {days.map((day) => {
           const dayGreeting = getGreeting(day, today);
