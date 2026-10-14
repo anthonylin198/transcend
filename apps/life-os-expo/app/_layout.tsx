@@ -13,6 +13,7 @@ import { Platform, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Text from "@/components/ui/Text";
 import { useAuthBootstrap } from "@/hooks/useAuthBootstrap";
+import { useCalorieWidgetSync } from "@/widgets/useCalorieWidgetSync";
 
 const convexUrl = process.env.EXPO_PUBLIC_CONVEX_URL;
 const convexClient = convexUrl ? new ConvexReactClient(convexUrl) : null;
@@ -28,6 +29,7 @@ void SplashScreen.preventAutoHideAsync().catch(() => {
 
 function AppRouter({ loadedFonts }: { loadedFonts: boolean }) {
   const { bootReady, isAuthenticated } = useAuthBootstrap();
+  useCalorieWidgetSync(bootReady || isAuthenticated ? isAuthenticated : null);
   const [hasShownApp, setHasShownApp] = useState(false);
 
   useEffect(() => {

@@ -63,7 +63,13 @@ export default function CalorieCounterScreen() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Back"
-          onPress={() => router.back()}
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace("/(authenticated)/(tabs)");
+            }
+          }}
           hitSlop={8}
           style={{
             alignSelf: "flex-start",

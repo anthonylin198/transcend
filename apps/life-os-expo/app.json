@@ -52,7 +52,23 @@
           }
         }
       ],
-      "expo-widgets"
+      [
+        "expo-widgets",
+        {
+          "bundleIdentifier": "com.anthonylin198.lifeosexpo.ExpoWidgetsTarget",
+          "groupIdentifier": "group.com.anthonylin198.lifeosexpo",
+          "widgets": [
+            {
+              "name": "CalorieWidget",
+              "displayName": "Calories",
+              "description": "Today's calories and protein",
+              "ios": {
+                "supportedFamilies": ["systemSmall", "systemMedium"]
+              }
+            }
+          ]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
