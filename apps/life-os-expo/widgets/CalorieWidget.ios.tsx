@@ -1,4 +1,11 @@
-import { Divider, HStack, Label, Spacer, Text, VStack } from "@expo/ui/swift-ui";
+import {
+  Divider,
+  HStack,
+  Label,
+  Spacer,
+  Text,
+  VStack,
+} from "@expo/ui/swift-ui";
 import {
   background,
   containerBackground,
@@ -32,7 +39,11 @@ const CalorieWidget = (
   // SwiftUI's .infinity can't cross the JS bridge; any large value fills the container.
   const fillWidth = 10000;
   const rootModifiers = [
-    frame({ maxWidth: fillWidth, maxHeight: fillWidth, alignment: "topLeading" }),
+    frame({
+      maxWidth: fillWidth,
+      maxHeight: fillWidth,
+      alignment: "topLeading",
+    }),
     widgetURL(destination),
     containerBackground("#1C1C1E", "widget"),
   ];
@@ -133,10 +144,7 @@ const CalorieWidget = (
           foregroundStyle("#000000"),
           padding({ vertical: 7 }),
           frame({ maxWidth: fillWidth }),
-          background(
-            "#FFFFFF",
-            shapes.roundedRectangle({ cornerRadius: 10 }),
-          ),
+          background("#FFFFFF", shapes.roundedRectangle({ cornerRadius: 10 })),
         ]}
       />
     </VStack>
