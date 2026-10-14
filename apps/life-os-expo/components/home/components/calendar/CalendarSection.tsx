@@ -1,6 +1,9 @@
+import { useEffect, useState } from "react";
 import type { CalendarEventItem } from "@/components/home/hooks/useCalendarEvents";
 import Text from "@/components/ui/Text";
 import { View } from "react-native";
+
+const EVENT_PAST_CHECK_INTERVAL_MS = 30_000;
 
 function formatEventTime(date: Date) {
   return new Intl.DateTimeFormat(undefined, {
@@ -14,6 +17,15 @@ export default function CalendarSection({
 }: {
   calendarEvents: CalendarEventItem[];
 }) {
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setNow(Date.now());
+    }, EVENT_PAST_CHECK_INTERVAL_MS);
+    return () => clearInterval(intervalId);
+  }, []);
+
   return (
     <View style={{ gap: 10 }}>
       <Text type="heading-4" color="#9CA3AF">
@@ -26,7 +38,7 @@ export default function CalendarSection({
       ) : (
         <View style={{ gap: 10 }}>
           {calendarEvents.map((item) => {
-            const isPast = item.endsAt.getTime() < Date.now();
+            const isPast = item.endsAt.getTime() < now;
             const timeLabel = item.allDay
               ? "All day"
               : formatEventTime(item.startsAt);

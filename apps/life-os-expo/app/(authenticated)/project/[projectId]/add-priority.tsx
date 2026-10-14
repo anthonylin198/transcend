@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { api } from "@transcend/convex";
+import type { OptimisticLocalStore } from "convex/browser";
 import { useMutation, useQuery } from "convex/react";
+import type { FunctionArgs } from "convex/server";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
@@ -45,6 +47,74 @@ function getActivatedAtMsForSelectedDay(selectedDateMs?: number) {
   return now;
 }
 
+type HomeBootstrapRange = ReturnType<typeof getHomeBootstrapRange>;
+type CreatePriorityArgs = FunctionArgs<
+  typeof api.priorities.createPriority.createPriority
+>;
+
+function applyCreatePriorityOptimisticUpdate(
+  localStore: OptimisticLocalStore,
+  args: CreatePriorityArgs,
+  bootstrapRange: HomeBootstrapRange,
+) {
+  const current = localStore.getQuery(
+    api.home.bootstrap.bootstrap,
+    bootstrapRange,
+  );
+  if (!current || !current.profile) return;
+
+  const now = Date.now();
+  const optimisticId = `optimistic-priority-${now}-${Math.random()}`;
+  const maxOrderIndex = current.priorities.reduce(
+    (max, item) => Math.max(max, item.orderIndex),
+    -1,
+  );
+  const maxActiveOrderIndex = current.priorities.reduce(
+    (max, item) =>
+      item.activeOrderIndex !== undefined
+        ? Math.max(max, item.activeOrderIndex)
+        : max,
+    -1,
+  );
+  const completedAt =
+    args.status === "done" ? (args.completedAtMs ?? now) : undefined;
+  const optimisticPriority = {
+    _id: optimisticId as never,
+    _creationTime: now,
+    profileId: current.profile._id,
+    projectId: args.projectId,
+    name: args.name,
+    description: args.description,
+    status: args.status ?? "todo",
+    isActive: args.isActive ?? false,
+    orderIndex: maxOrderIndex + 1,
+    activeOrderIndex:
+      args.isActive === true ? maxActiveOrderIndex + 1 : undefined,
+    activatedAt:
+      args.isActive === true ? (args.activatedAtMs ?? now) : undefined,
+    activeDateKey:
+      args.isActive === true
+        ? (args.activeDateKey ?? toDateKey(args.activatedAtMs ?? now))
+        : undefined,
+    completedAt,
+    completedDateKey:
+      args.status === "done"
+        ? (args.completedDateKey ?? toDateKey(completedAt ?? now))
+        : undefined,
+    createdAt: now,
+    updatedAt: now,
+  } as (typeof current.priorities)[number];
+
+  localStore.setQuery(api.home.bootstrap.bootstrap, bootstrapRange, {
+    ...current,
+    priorities: [...current.priorities, optimisticPriority],
+    categories:
+      optimisticPriority.status === "next_up" && optimisticPriority.isActive
+        ? [...current.categories, optimisticPriority]
+        : current.categories,
+  });
+}
+
 export default function AddPriorityScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -58,62 +128,7 @@ export default function AddPriorityScreen() {
   const createPriority = useMutation(
     api.priorities.createPriority.createPriority,
   ).withOptimisticUpdate((localStore, args) => {
-    const current = localStore.getQuery(
-      api.home.bootstrap.bootstrap,
-      bootstrapRange,
-    );
-    if (!current || !current.profile) return;
-
-    const now = Date.now();
-    const optimisticId = `optimistic-priority-${now}-${Math.random()}`;
-    const maxOrderIndex = current.priorities.reduce(
-      (max, item) => Math.max(max, item.orderIndex),
-      -1,
-    );
-    const maxActiveOrderIndex = current.priorities.reduce(
-      (max, item) =>
-        item.activeOrderIndex !== undefined
-          ? Math.max(max, item.activeOrderIndex)
-          : max,
-      -1,
-    );
-    const completedAt =
-      args.status === "done" ? (args.completedAtMs ?? now) : undefined;
-    const optimisticPriority = {
-      _id: optimisticId as never,
-      _creationTime: now,
-      profileId: current.profile._id,
-      projectId: args.projectId,
-      name: args.name,
-      description: args.description,
-      status: args.status ?? "todo",
-      isActive: args.isActive ?? false,
-      orderIndex: maxOrderIndex + 1,
-      activeOrderIndex:
-        args.isActive === true ? maxActiveOrderIndex + 1 : undefined,
-      activatedAt:
-        args.isActive === true ? (args.activatedAtMs ?? now) : undefined,
-      activeDateKey:
-        args.isActive === true
-          ? (args.activeDateKey ?? toDateKey(args.activatedAtMs ?? now))
-          : undefined,
-      completedAt,
-      completedDateKey:
-        args.status === "done"
-          ? (args.completedDateKey ?? toDateKey(completedAt ?? now))
-          : undefined,
-      createdAt: now,
-      updatedAt: now,
-    } as (typeof current.priorities)[number];
-
-    localStore.setQuery(api.home.bootstrap.bootstrap, bootstrapRange, {
-      ...current,
-      priorities: [...current.priorities, optimisticPriority],
-      categories:
-        optimisticPriority.status === "next_up" && optimisticPriority.isActive
-          ? [...current.categories, optimisticPriority]
-          : current.categories,
-    });
+    applyCreatePriorityOptimisticUpdate(localStore, args, bootstrapRange);
   });
   const projects = useQuery(
     api.projects.listProjectsForCurrentUser.listProjectsForCurrentUser,

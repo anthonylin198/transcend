@@ -1,8 +1,10 @@
 import { api } from "@transcend/convex";
+import type { OptimisticLocalStore } from "convex/browser";
 import { useMutation, useQuery } from "convex/react";
+import type { FunctionArgs } from "convex/server";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Alert, Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Text from "@/components/ui/Text";
@@ -35,6 +37,60 @@ function getActivationTimestampMs() {
   return Date.now();
 }
 
+type HomeBootstrapRange = ReturnType<typeof getHomeBootstrapRange>;
+type SetPriorityActiveArgs = FunctionArgs<
+  typeof api.priorities.setPriorityActive.setPriorityActive
+>;
+
+function applySetPriorityActiveOptimisticUpdate(
+  localStore: OptimisticLocalStore,
+  args: SetPriorityActiveArgs,
+  bootstrapRange: HomeBootstrapRange,
+) {
+  const bootstrap = localStore.getQuery(
+    api.home.bootstrap.bootstrap,
+    bootstrapRange,
+  );
+  if (bootstrap === undefined || !bootstrap.profile) return;
+
+  const now = Date.now();
+  const maxActiveOrderIndex = bootstrap.priorities.reduce(
+    (max, item) =>
+      item.activeOrderIndex !== undefined
+        ? Math.max(max, item.activeOrderIndex)
+        : max,
+    -1,
+  );
+  const nextPriorities = bootstrap.priorities.map((priority) => {
+    if (priority._id !== args.priorityId) {
+      return priority;
+    }
+    // Newly activated priorities append to the bottom of the active list;
+    // an already-active priority keeps its position.
+    const nextActiveOrderIndex = args.isActive
+      ? priority.isActive
+        ? priority.activeOrderIndex
+        : maxActiveOrderIndex + 1
+      : undefined;
+    return {
+      ...priority,
+      isActive: args.isActive,
+      activatedAt: args.isActive ? (args.activatedAtMs ?? now) : undefined,
+      activeDateKey: args.isActive ? args.activeDateKey : undefined,
+      activeOrderIndex: nextActiveOrderIndex,
+      updatedAt: now,
+    };
+  });
+
+  localStore.setQuery(api.home.bootstrap.bootstrap, bootstrapRange, {
+    ...bootstrap,
+    priorities: nextPriorities,
+    categories: nextPriorities.filter(
+      (priority) => priority.status === "next_up" && priority.isActive,
+    ),
+  });
+}
+
 export default function AddToActiveScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -45,57 +101,17 @@ export default function AddToActiveScreen() {
   const setPriorityActive = useMutation(
     api.priorities.setPriorityActive.setPriorityActive,
   ).withOptimisticUpdate((localStore, args) => {
-    const bootstrap = localStore.getQuery(
-      api.home.bootstrap.bootstrap,
-      bootstrapRange,
-    );
-    if (bootstrap === undefined || !bootstrap.profile) return;
-
-    const now = Date.now();
-    const maxActiveOrderIndex = bootstrap.priorities.reduce(
-      (max, item) =>
-        item.activeOrderIndex !== undefined
-          ? Math.max(max, item.activeOrderIndex)
-          : max,
-      -1,
-    );
-    const nextPriorities = bootstrap.priorities.map((priority) => {
-      if (priority._id !== args.priorityId) {
-        return priority;
-      }
-      // Newly activated priorities append to the bottom of the active list;
-      // an already-active priority keeps its position.
-      const nextActiveOrderIndex = args.isActive
-        ? priority.isActive
-          ? priority.activeOrderIndex
-          : maxActiveOrderIndex + 1
-        : undefined;
-      return {
-        ...priority,
-        isActive: args.isActive,
-        activatedAt: args.isActive ? (args.activatedAtMs ?? now) : undefined,
-        activeDateKey: args.isActive ? args.activeDateKey : undefined,
-        activeOrderIndex: nextActiveOrderIndex,
-        updatedAt: now,
-      };
-    });
-
-    localStore.setQuery(api.home.bootstrap.bootstrap, bootstrapRange, {
-      ...bootstrap,
-      priorities: nextPriorities,
-      categories: nextPriorities.filter(
-        (priority) => priority.status === "next_up" && priority.isActive,
-      ),
-    });
+    applySetPriorityActiveOptimisticUpdate(localStore, args, bootstrapRange);
   });
 
   const rawSelectedDateMs = Array.isArray(params.selectedDateMs)
     ? params.selectedDateMs[0]
     : params.selectedDateMs;
   const parsedSelectedDateMs = Number(rawSelectedDateMs);
+  const [fallbackSelectedDateMs] = useState(() => Date.now());
   const selectedDateMs = Number.isFinite(parsedSelectedDateMs)
     ? parsedSelectedDateMs
-    : Date.now();
+    : fallbackSelectedDateMs;
 
   const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, bootstrapRange);
 
