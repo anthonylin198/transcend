@@ -266,6 +266,8 @@ export default function PriorityDetailScreen() {
         style={{
           paddingTop: insets.top,
           paddingHorizontal: 16,
+          borderBottomWidth: 1,
+          borderBottomColor: "#1F2937",
           backgroundColor: "black",
         }}
       >
