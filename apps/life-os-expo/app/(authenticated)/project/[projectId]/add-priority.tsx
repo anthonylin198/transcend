@@ -17,6 +17,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Text from "@/components/ui/Text";
+import { appFonts } from "@/constants/fonts";
 import { getHomeBootstrapRange } from "@/utils/homeBootstrapRange";
 
 const STATUS_OPTIONS = [
@@ -233,8 +234,6 @@ export default function AddPriorityScreen() {
         style={{
           paddingTop: insets.top,
           paddingHorizontal: 16,
-          borderBottomWidth: 1,
-          borderBottomColor: "#1F2937",
           backgroundColor: "black",
         }}
       >
@@ -260,7 +259,7 @@ export default function AddPriorityScreen() {
         style={{ flex: 1 }}
         contentContainerStyle={{
           paddingHorizontal: 16,
-          paddingTop: 8,
+          paddingTop: 20,
           paddingBottom: 16,
           gap: 18,
         }}
@@ -277,24 +276,19 @@ export default function AddPriorityScreen() {
           scrollEnabled={false}
           style={{
             color: "#F9FAFB",
-            borderBottomWidth: 1,
-            borderBottomColor: "#374151",
-            paddingVertical: 8,
-            fontSize: 24,
-            lineHeight: 30,
-            fontWeight: "500",
+            fontFamily: appFonts.semiBold,
+            fontSize: 34,
+            lineHeight: 40,
           }}
         />
 
         <Pressable
           onPress={() => setProjectModalOpen(true)}
           style={{
-            borderBottomWidth: 1,
-            borderBottomColor: "#1F2937",
             flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "center",
-            paddingBottom: 14,
+            paddingVertical: 4,
           }}
         >
           <Text type="text-regular" color="#9CA3AF">
@@ -325,9 +319,7 @@ export default function AddPriorityScreen() {
                   style={{
                     flex: 1,
                     borderRadius: 9,
-                    borderWidth: 1,
-                    borderColor: selected ? "#9CA3AF" : "#1F2937",
-                    backgroundColor: selected ? "#374151" : "transparent",
+                    backgroundColor: selected ? "#FFFFFF" : "#18181B",
                     alignItems: "center",
                     justifyContent: "center",
                     paddingVertical: 10,
@@ -335,7 +327,7 @@ export default function AddPriorityScreen() {
                 >
                   <Text
                     type="text-detail"
-                    color={selected ? "#F3F4F6" : "#9CA3AF"}
+                    color={selected ? "#000000" : "#9CA3AF"}
                   >
                     {option.label}
                   </Text>
@@ -348,14 +340,10 @@ export default function AddPriorityScreen() {
         <Pressable
           onPress={() => setIsActive((value) => !value)}
           style={{
-            borderTopWidth: 1,
-            borderBottomWidth: 1,
-            borderTopColor: "#1F2937",
-            borderBottomColor: "#1F2937",
             flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "center",
-            paddingVertical: 14,
+            paddingVertical: 4,
           }}
         >
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
@@ -378,8 +366,9 @@ export default function AddPriorityScreen() {
           style={{
             minHeight: 120,
             color: "#E5E7EB",
+            fontFamily: appFonts.regular,
             fontSize: 16,
-            lineHeight: 22,
+            lineHeight: 24,
             paddingTop: 2,
           }}
         />
@@ -390,8 +379,6 @@ export default function AddPriorityScreen() {
           paddingHorizontal: 16,
           paddingTop: 10,
           paddingBottom: Math.max(insets.bottom, 12),
-          borderTopWidth: 1,
-          borderTopColor: "#1F2937",
         }}
       >
         <Pressable

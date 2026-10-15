@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Text from "@/components/ui/Text";
+import { appFonts } from "@/constants/fonts";
 
 const WEEK_DAYS = [
   "Monday",
@@ -70,8 +71,6 @@ export default function AddHabitScreen() {
         style={{
           paddingTop: insets.top,
           paddingHorizontal: 16,
-          borderBottomWidth: 1,
-          borderBottomColor: "#1F2937",
           backgroundColor: "black",
         }}
       >
@@ -102,24 +101,19 @@ export default function AddHabitScreen() {
           autoFocus
           style={{
             color: "#F9FAFB",
-            borderBottomWidth: 1,
-            borderBottomColor: "#374151",
-            paddingVertical: 8,
-            fontSize: 40,
-            lineHeight: 48,
-            fontWeight: "600",
+            fontFamily: appFonts.semiBold,
+            fontSize: 34,
+            lineHeight: 40,
           }}
         />
 
         <Pressable
           onPress={() => setDaysModalOpen(true)}
           style={{
-            borderBottomWidth: 1,
-            borderBottomColor: "#1F2937",
             flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "center",
-            paddingBottom: 14,
+            paddingVertical: 4,
           }}
         >
           <Text type="text-regular" color="#9CA3AF">
@@ -143,7 +137,8 @@ export default function AddHabitScreen() {
           style={{
             minHeight: 120,
             color: "#E5E7EB",
-            fontSize: 18,
+            fontFamily: appFonts.regular,
+            fontSize: 16,
             lineHeight: 24,
             paddingTop: 2,
           }}
@@ -155,8 +150,6 @@ export default function AddHabitScreen() {
           paddingHorizontal: 16,
           paddingTop: 10,
           paddingBottom: Math.max(insets.bottom, 12),
-          borderTopWidth: 1,
-          borderTopColor: "#1F2937",
         }}
       >
         <Pressable
