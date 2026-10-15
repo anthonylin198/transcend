@@ -16,7 +16,6 @@ import {
   monospacedDigit,
   padding,
   shapes,
-  textCase,
   widgetURL,
 } from "@expo/ui/swift-ui/modifiers";
 import { createWidget, type WidgetEnvironment } from "expo-widgets";
@@ -45,17 +44,16 @@ const CalorieWidget = (
       alignment: "topLeading",
     }),
     widgetURL(destination),
-    containerBackground("#1C1C1E", "widget"),
+    containerBackground("#000000", "widget"),
   ];
   const header = (
     <Text
       modifiers={[
-        font({ textStyle: "caption", weight: "semibold" }),
-        textCase("uppercase"),
-        foregroundStyle(secondary),
+        font({ textStyle: "subheadline", weight: "semibold" }),
+        foregroundStyle(primary),
       ]}
     >
-      Calories
+      Calorie Counter
     </Text>
   );
   const value = (text: string) => (
