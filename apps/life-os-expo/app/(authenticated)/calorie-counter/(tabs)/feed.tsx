@@ -7,7 +7,7 @@ import { useRouter } from "expo-router";
 import { Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CalorieAppHeader from "@/components/calories/CalorieAppHeader";
-import Eyebrow from "@/components/feed/Eyebrow";
+import Eyebrow from "@/components/ui/Eyebrow";
 import ShareDayModal, { type ShareDay } from "@/components/feed/ShareDayModal";
 import Text from "@/components/ui/Text";
 import { useLocalToday } from "@/hooks/useLocalToday";

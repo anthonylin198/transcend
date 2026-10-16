@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Modal, Pressable, View, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Eyebrow from "@/components/feed/Eyebrow";
+import Eyebrow from "@/components/ui/Eyebrow";
+import Rings from "@/components/ui/Rings";
 import Text from "@/components/ui/Text";
 import { appFonts } from "@/constants/fonts";
 import {
@@ -24,31 +25,6 @@ type ShareDayModalProps = {
 
 const muted = "#737373";
 const faint = "#262626";
-
-function Rings() {
-  return (
-    <View
-      pointerEvents="none"
-      style={{ position: "absolute", top: -120, right: -120 }}
-    >
-      {[300, 230, 160].map((size) => (
-        <View
-          key={size}
-          style={{
-            position: "absolute",
-            top: (300 - size) / 2,
-            left: (300 - size) / 2,
-            width: size,
-            height: size,
-            borderRadius: size / 2,
-            borderWidth: 1,
-            borderColor: "#1C1C1C",
-          }}
-        />
-      ))}
-    </View>
-  );
-}
 
 function ShareCard({ day, width }: { day: ShareDay; width: number }) {
   const date = parseLocalDateKey(day.dateKey);

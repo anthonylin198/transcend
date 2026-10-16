@@ -1,8 +1,4 @@
-import { useState } from "react";
-import { Link } from "expo-router";
-import { useAuthActions } from "@convex-dev/auth/react";
-import Text from "@/components/ui/Text";
-import { ActivityIndicator, Pressable, TextInput, View } from "react-native";
+import AuthForm from "@/components/auth/AuthForm";
 
 function getSignInErrorMessage(error: unknown) {
   const message =
@@ -27,116 +23,16 @@ function getSignInErrorMessage(error: unknown) {
 }
 
 export default function SignInScreen() {
-  const { signIn } = useAuthActions();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const onSubmit = async () => {
-    if (!email || !password || submitting) return;
-
-    setSubmitting(true);
-    setError(null);
-    try {
-      const formData = new FormData();
-      formData.append("email", email.trim());
-      formData.append("password", password);
-      formData.append("flow", "signIn");
-      await signIn("password", formData);
-    } catch (error) {
-      setError(getSignInErrorMessage(error));
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: "black",
-        justifyContent: "center",
-        padding: 24,
-        gap: 12,
-      }}
-    >
-      <Text type="heading-3">Sign in</Text>
-      <Text type="text-regular" color="#9CA3AF" style={{ marginBottom: 12 }}>
-        Enter your email and password to continue.
-      </Text>
-
-      <TextInput
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        autoCorrect={false}
-        keyboardType="email-address"
-        placeholder="Email"
-        placeholderTextColor="#6B7280"
-        editable={!submitting}
-        style={{
-          backgroundColor: "#111827",
-          color: "white",
-          borderRadius: 10,
-          paddingHorizontal: 14,
-          paddingVertical: 12,
-        }}
-      />
-
-      <TextInput
-        value={password}
-        onChangeText={setPassword}
-        autoCapitalize="none"
-        autoCorrect={false}
-        secureTextEntry
-        placeholder="Password"
-        placeholderTextColor="#6B7280"
-        editable={!submitting}
-        style={{
-          backgroundColor: "#111827",
-          color: "white",
-          borderRadius: 10,
-          paddingHorizontal: 14,
-          paddingVertical: 12,
-        }}
-      />
-
-      {error ? (
-        <Text type="text-regular" color="#FCA5A5">
-          {error}
-        </Text>
-      ) : null}
-
-      <Pressable
-        onPress={() => void onSubmit()}
-        disabled={submitting || !email || !password}
-        style={{
-          backgroundColor:
-            submitting || !email || !password ? "#374151" : "#fff",
-          borderRadius: 10,
-          paddingVertical: 12,
-          alignItems: "center",
-          marginTop: 8,
-        }}
-      >
-        {submitting ? (
-          <ActivityIndicator color="black" />
-        ) : (
-          <Text type="text-semibold" color="black">
-            Sign in
-          </Text>
-        )}
-      </Pressable>
-
-      <View style={{ flexDirection: "row", marginTop: 8 }}>
-        <Text type="text-regular" color="#9CA3AF">
-          Need an account?{" "}
-        </Text>
-        <Link href="/(public)/sign-up">
-          <Text type="text-medium">Sign up</Text>
-        </Link>
-      </View>
-    </View>
+    <AuthForm
+      flow="signIn"
+      title={"Your life,\nin one place."}
+      subtitle="Habits, priorities, and fitness, all in one system."
+      submitLabel="Sign in"
+      getErrorMessage={getSignInErrorMessage}
+      footerPrompt="New here?"
+      footerLinkLabel="Create an account"
+      footerHref="/(public)/sign-up"
+    />
   );
 }

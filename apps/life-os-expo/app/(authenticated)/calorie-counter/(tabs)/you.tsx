@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { api } from "@transcend/convex";
+import { useAuthActions } from "@convex-dev/auth/react";
 import { useMutation, useQuery } from "convex/react";
 import type { FunctionReturnType } from "convex/server";
 import { Ionicons } from "@expo/vector-icons";
@@ -272,6 +273,30 @@ export default function YouScreen() {
   const rowWidth = Math.max(Math.min(screenWidth, 640) - 40, 0);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState(false);
+  const { signOut } = useAuthActions();
+  const [signingOut, setSigningOut] = useState(false);
+
+  const confirmSignOut = () => {
+    if (signingOut) return;
+    Alert.alert("Log out?", "You can sign back in any time.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Log out",
+        style: "destructive",
+        onPress: () => {
+          setSigningOut(true);
+          void signOut()
+            .catch((error: unknown) =>
+              Alert.alert(
+                "Could not log out",
+                errorMessage(error, "Could not log out"),
+              ),
+            )
+            .finally(() => setSigningOut(false));
+        },
+      },
+    ]);
+  };
 
   const run = (
     id: string,
@@ -496,6 +521,32 @@ export default function YouScreen() {
             ) : null}
           </>
         )}
+
+        {data !== null ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Log out"
+            onPress={confirmSignOut}
+            disabled={signingOut}
+            style={({ pressed }) => ({
+              marginTop: 48,
+              minHeight: 52,
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: "#262626",
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              opacity: signingOut ? 0.5 : pressed ? 0.7 : 1,
+            })}
+          >
+            <Ionicons name="log-out-outline" size={18} color="#F87171" />
+            <Text type="text-semibold" color="#F87171">
+              {signingOut ? "Logging out..." : "Log out"}
+            </Text>
+          </Pressable>
+        ) : null}
       </ScrollView>
     </View>
   );
