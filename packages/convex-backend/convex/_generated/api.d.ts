@@ -17,6 +17,12 @@ import type * as auth from "../auth.js";
 import type * as calorieLogs_createCalorieLog from "../calorieLogs/createCalorieLog.js";
 import type * as calorieLogs_deleteCalorieLog from "../calorieLogs/deleteCalorieLog.js";
 import type * as calorieLogs_listCalorieLogs from "../calorieLogs/listCalorieLogs.js";
+import type * as feed_weeklyFeed from "../feed/weeklyFeed.js";
+import type * as friends_listFriends from "../friends/listFriends.js";
+import type * as friends_removeFriend from "../friends/removeFriend.js";
+import type * as friends_reorderFriends from "../friends/reorderFriends.js";
+import type * as friends_respondToFriendRequest from "../friends/respondToFriendRequest.js";
+import type * as friends_sendFriendRequest from "../friends/sendFriendRequest.js";
 import type * as habits_createHabit from "../habits/createHabit.js";
 import type * as habits_deleteHabit from "../habits/deleteHabit.js";
 import type * as habits_listHabitsForCurrentUser from "../habits/listHabitsForCurrentUser.js";
@@ -33,6 +39,7 @@ import type * as intake_updateIntakeListItem from "../intake/updateIntakeListIte
 import type * as lib_activeOrderIndex from "../lib/activeOrderIndex.js";
 import type * as lib_currentProfile from "../lib/currentProfile.js";
 import type * as lib_dateKey from "../lib/dateKey.js";
+import type * as lib_friendships from "../lib/friendships.js";
 import type * as priorities_assignPriorityToProject from "../priorities/assignPriorityToProject.js";
 import type * as priorities_createPriority from "../priorities/createPriority.js";
 import type * as priorities_deletePriority from "../priorities/deletePriority.js";
@@ -52,6 +59,9 @@ import type * as projects_listProjectsForCurrentUser from "../projects/listProje
 import type * as projects_reorderProjects from "../projects/reorderProjects.js";
 import type * as projects_updateProject from "../projects/updateProject.js";
 import type * as tasks from "../tasks.js";
+import type * as workoutLogs_createWorkoutLog from "../workoutLogs/createWorkoutLog.js";
+import type * as workoutLogs_deleteWorkoutLog from "../workoutLogs/deleteWorkoutLog.js";
+import type * as workoutLogs_listWorkoutLogs from "../workoutLogs/listWorkoutLogs.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -66,6 +76,12 @@ declare const fullApi: ApiFromModules<{
   "calorieLogs/createCalorieLog": typeof calorieLogs_createCalorieLog;
   "calorieLogs/deleteCalorieLog": typeof calorieLogs_deleteCalorieLog;
   "calorieLogs/listCalorieLogs": typeof calorieLogs_listCalorieLogs;
+  "feed/weeklyFeed": typeof feed_weeklyFeed;
+  "friends/listFriends": typeof friends_listFriends;
+  "friends/removeFriend": typeof friends_removeFriend;
+  "friends/reorderFriends": typeof friends_reorderFriends;
+  "friends/respondToFriendRequest": typeof friends_respondToFriendRequest;
+  "friends/sendFriendRequest": typeof friends_sendFriendRequest;
   "habits/createHabit": typeof habits_createHabit;
   "habits/deleteHabit": typeof habits_deleteHabit;
   "habits/listHabitsForCurrentUser": typeof habits_listHabitsForCurrentUser;
@@ -82,6 +98,7 @@ declare const fullApi: ApiFromModules<{
   "lib/activeOrderIndex": typeof lib_activeOrderIndex;
   "lib/currentProfile": typeof lib_currentProfile;
   "lib/dateKey": typeof lib_dateKey;
+  "lib/friendships": typeof lib_friendships;
   "priorities/assignPriorityToProject": typeof priorities_assignPriorityToProject;
   "priorities/createPriority": typeof priorities_createPriority;
   "priorities/deletePriority": typeof priorities_deletePriority;
@@ -101,6 +118,9 @@ declare const fullApi: ApiFromModules<{
   "projects/reorderProjects": typeof projects_reorderProjects;
   "projects/updateProject": typeof projects_updateProject;
   tasks: typeof tasks;
+  "workoutLogs/createWorkoutLog": typeof workoutLogs_createWorkoutLog;
+  "workoutLogs/deleteWorkoutLog": typeof workoutLogs_deleteWorkoutLog;
+  "workoutLogs/listWorkoutLogs": typeof workoutLogs_listWorkoutLogs;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

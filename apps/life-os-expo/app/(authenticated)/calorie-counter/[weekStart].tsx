@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CalorieLogList from "@/components/calories/CalorieLogList";
 import WeekAverageValue from "@/components/calories/WeekAverageValue";
 import Text from "@/components/ui/Text";
+import WorkoutLogList from "@/components/workouts/WorkoutLogList";
 import { useLocalToday } from "@/hooks/useLocalToday";
 import {
   addDays,
@@ -48,6 +49,10 @@ export default function CalorieWeekScreen() {
   }, [weekStartKey]);
   const logs = useQuery(
     api.calorieLogs.listCalorieLogs.listCalorieLogs,
+    queryRange ?? "skip",
+  );
+  const workouts = useQuery(
+    api.workoutLogs.listWorkoutLogs.listWorkoutLogs,
     queryRange ?? "skip",
   );
 
@@ -169,6 +174,17 @@ export default function CalorieWeekScreen() {
               <View style={{ gap: 8 }}>
                 <Text type="text-semibold">Logs</Text>
                 <CalorieLogList logs={logs} todayKey={todayKey} />
+              </View>
+
+              <View style={{ gap: 8 }}>
+                <Text type="text-semibold">Workouts</Text>
+                {workouts === undefined ? (
+                  <Text type="text-detail" color="#9CA3AF">
+                    Loading...
+                  </Text>
+                ) : (
+                  <WorkoutLogList logs={workouts} todayKey={todayKey} />
+                )}
               </View>
             </View>
           )}

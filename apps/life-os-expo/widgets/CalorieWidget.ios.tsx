@@ -87,14 +87,18 @@ const CalorieWidget = (
         {value(calories)}
         {caption("calories")}
         <Spacer />
-        <Text
-          modifiers={[
-            font({ textStyle: "caption" }),
-            foregroundStyle(secondary),
-          ]}
-        >
-          Today
-        </Text>
+        <HStack spacing={4}>
+          <Text
+            modifiers={[
+              font({ textStyle: "subheadline", weight: "semibold" }),
+              monospacedDigit(),
+              foregroundStyle(primary),
+            ]}
+          >
+            {protein}
+          </Text>
+          {caption("protein")}
+        </HStack>
       </VStack>
     );
   }

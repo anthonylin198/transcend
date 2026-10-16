@@ -7,6 +7,10 @@ export default defineSchema({
   profiles: defineTable({
     userId: v.string(),
     calendarSyncEnabled: v.boolean(),
+    displayName: v.optional(v.string()),
+    // Viewer-specific friend order for the Friends tab and feed. May contain
+    // removed friends; friends missing from it sort after it by friend date.
+    friendOrder: v.optional(v.array(v.id("profiles"))),
   }).index("by_user_id", ["userId"]),
   projects: defineTable({
     profileId: v.id("profiles"),
@@ -98,6 +102,23 @@ export default defineSchema({
     proteinG: v.number(),
     createdAt: v.number(),
   }).index("by_profile_id_date", ["profileId", "date"]),
+  workoutLogs: defineTable({
+    profileId: v.id("profiles"),
+    // Local calendar day (YYYY-MM-DD) supplied by the client. Not derived from createdAt.
+    date: v.string(),
+    description: v.string(),
+    createdAt: v.number(),
+  }).index("by_profile_id_date", ["profileId", "date"]),
+  friendships: defineTable({
+    requesterProfileId: v.id("profiles"),
+    addresseeProfileId: v.id("profiles"),
+    status: v.union(v.literal("pending"), v.literal("accepted")),
+    createdAt: v.number(),
+    respondedAt: v.optional(v.number()),
+  })
+    .index("by_requester_status", ["requesterProfileId", "status"])
+    .index("by_addressee_status", ["addresseeProfileId", "status"])
+    .index("by_pair", ["requesterProfileId", "addresseeProfileId"]),
   tasks: defineTable({
     text: v.string(),
     isCompleted: v.boolean(),
