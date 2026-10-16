@@ -127,7 +127,7 @@ function ShareCard({ day, width }: { day: ShareDay; width: number }) {
         <View style={{ marginTop: 32, gap: 14 }}>
           <View style={{ height: 1, backgroundColor: faint }} />
           <Eyebrow>MOVEMENT</Eyebrow>
-          {day.workouts.map((workout, index) => (
+          {day.workouts.map((workout) => (
             <View
               key={workout._id}
               style={{
@@ -136,13 +136,12 @@ function ShareCard({ day, width }: { day: ShareDay; width: number }) {
                 alignItems: "flex-start",
               }}
             >
-              <Text
-                type="text-detail"
+              <Ionicons
+                name="barbell-outline"
+                size={18}
                 color={muted}
-                style={{ marginTop: 5, fontVariant: ["tabular-nums"] }}
-              >
-                {String(index + 1).padStart(2, "0")}
-              </Text>
+                style={{ marginTop: 3 }}
+              />
               <Text type="heading-5" style={{ flex: 1 }}>
                 {workout.description}
               </Text>

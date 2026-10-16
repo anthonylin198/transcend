@@ -3,6 +3,7 @@ import { api } from "@transcend/convex";
 import { useMutation } from "convex/react";
 import type { FunctionReturnType } from "convex/server";
 import { Ionicons } from "@expo/vector-icons";
+import LogCaloriesModal from "@/components/calories/LogCaloriesModal";
 import Text from "@/components/ui/Text";
 import {
   formatCalories,
@@ -19,13 +20,18 @@ type CalorieLog = FunctionReturnType<
 type CalorieLogListProps = {
   logs: CalorieLog[];
   todayKey: string;
+  showDateHeadings?: boolean;
+  emptyText?: string;
 };
 
 export default function CalorieLogList({
   logs,
   todayKey,
+  showDateHeadings = true,
+  emptyText = "No logs yet",
 }: CalorieLogListProps) {
   const [deletingId, setDeletingId] = useState<CalorieLog["_id"] | null>(null);
+  const [editingLog, setEditingLog] = useState<CalorieLog | null>(null);
   const deleteCalorieLog = useMutation(
     api.calorieLogs.deleteCalorieLog.deleteCalorieLog,
   ).withOptimisticUpdate((localStore, args) => {
@@ -90,7 +96,7 @@ export default function CalorieLogList({
   if (groups.length === 0) {
     return (
       <Text type="text-detail" color="#6B7280">
-        No logs yet
+        {emptyText}
       </Text>
     );
   }
@@ -99,9 +105,11 @@ export default function CalorieLogList({
     <View style={{ gap: 16 }}>
       {groups.map((group) => (
         <View key={group.date} style={{ gap: 4 }}>
-          <Text type="text-detail" color="#9CA3AF">
-            {formatLogDateHeading(group.date, todayKey)}
-          </Text>
+          {showDateHeadings ? (
+            <Text type="text-detail" color="#9CA3AF">
+              {formatLogDateHeading(group.date, todayKey)}
+            </Text>
+          ) : null}
           {group.entries.map((log) => {
             const deleting = deletingId === log._id;
             return (
@@ -127,6 +135,16 @@ export default function CalorieLogList({
                 <View style={{ flex: 1 }} />
                 <Pressable
                   accessibilityRole="button"
+                  accessibilityLabel={`Edit ${formatCalories(log.calories)} calorie entry`}
+                  disabled={deletingId !== null}
+                  hitSlop={8}
+                  onPress={() => setEditingLog(log)}
+                  style={{ padding: 6, marginRight: 6 }}
+                >
+                  <Ionicons name="pencil-outline" size={17} color="#9CA3AF" />
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
                   accessibilityLabel={`Delete ${formatCalories(log.calories)} calorie entry`}
                   disabled={deletingId !== null}
                   hitSlop={8}
@@ -140,6 +158,11 @@ export default function CalorieLogList({
           })}
         </View>
       ))}
+      <LogCaloriesModal
+        visible={editingLog !== null}
+        log={editingLog ?? undefined}
+        onClose={() => setEditingLog(null)}
+      />
     </View>
   );
 }

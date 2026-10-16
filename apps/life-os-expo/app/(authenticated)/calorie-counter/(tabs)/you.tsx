@@ -310,6 +310,7 @@ export default function YouScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>
       <ScrollView
+        showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
           width: "100%",

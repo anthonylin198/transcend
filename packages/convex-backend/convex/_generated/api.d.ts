@@ -17,6 +17,7 @@ import type * as auth from "../auth.js";
 import type * as calorieLogs_createCalorieLog from "../calorieLogs/createCalorieLog.js";
 import type * as calorieLogs_deleteCalorieLog from "../calorieLogs/deleteCalorieLog.js";
 import type * as calorieLogs_listCalorieLogs from "../calorieLogs/listCalorieLogs.js";
+import type * as calorieLogs_updateCalorieLog from "../calorieLogs/updateCalorieLog.js";
 import type * as feed_weeklyFeed from "../feed/weeklyFeed.js";
 import type * as friends_listFriends from "../friends/listFriends.js";
 import type * as friends_removeFriend from "../friends/removeFriend.js";
@@ -62,6 +63,7 @@ import type * as tasks from "../tasks.js";
 import type * as workoutLogs_createWorkoutLog from "../workoutLogs/createWorkoutLog.js";
 import type * as workoutLogs_deleteWorkoutLog from "../workoutLogs/deleteWorkoutLog.js";
 import type * as workoutLogs_listWorkoutLogs from "../workoutLogs/listWorkoutLogs.js";
+import type * as workoutLogs_updateWorkoutLog from "../workoutLogs/updateWorkoutLog.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -76,6 +78,7 @@ declare const fullApi: ApiFromModules<{
   "calorieLogs/createCalorieLog": typeof calorieLogs_createCalorieLog;
   "calorieLogs/deleteCalorieLog": typeof calorieLogs_deleteCalorieLog;
   "calorieLogs/listCalorieLogs": typeof calorieLogs_listCalorieLogs;
+  "calorieLogs/updateCalorieLog": typeof calorieLogs_updateCalorieLog;
   "feed/weeklyFeed": typeof feed_weeklyFeed;
   "friends/listFriends": typeof friends_listFriends;
   "friends/removeFriend": typeof friends_removeFriend;
@@ -121,6 +124,7 @@ declare const fullApi: ApiFromModules<{
   "workoutLogs/createWorkoutLog": typeof workoutLogs_createWorkoutLog;
   "workoutLogs/deleteWorkoutLog": typeof workoutLogs_deleteWorkoutLog;
   "workoutLogs/listWorkoutLogs": typeof workoutLogs_listWorkoutLogs;
+  "workoutLogs/updateWorkoutLog": typeof workoutLogs_updateWorkoutLog;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

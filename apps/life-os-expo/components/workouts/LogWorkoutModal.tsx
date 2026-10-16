@@ -17,10 +17,55 @@ import {
 
 const MAX_DESCRIPTION_LENGTH = 500;
 
+type EditableWorkoutLog = {
+  _id: UpdateWorkoutLogArgs["workoutLogId"];
+  description: string;
+};
+
 type LogWorkoutModalProps = {
   visible: boolean;
   onClose: () => void;
+  /** When set, the modal edits this workout instead of creating one. */
+  log?: EditableWorkoutLog;
 };
+
+type UpdateWorkoutLogArgs = FunctionArgs<
+  typeof api.workoutLogs.updateWorkoutLog.updateWorkoutLog
+>;
+
+function applyUpdateWorkoutLogOptimisticUpdate(
+  localStore: OptimisticLocalStore,
+  args: UpdateWorkoutLogArgs,
+) {
+  const description = args.description.trim();
+  for (const { args: queryArgs, value } of localStore.getAllQueries(
+    api.home.bootstrap.bootstrap,
+  )) {
+    if (!value || value.profile === null) continue;
+    if (!value.workoutLogs.some((log) => log._id === args.workoutLogId)) {
+      continue;
+    }
+    localStore.setQuery(api.home.bootstrap.bootstrap, queryArgs, {
+      ...value,
+      workoutLogs: value.workoutLogs.map((log) =>
+        log._id === args.workoutLogId ? { ...log, description } : log,
+      ),
+    });
+  }
+
+  for (const { args: queryArgs, value } of localStore.getAllQueries(
+    api.workoutLogs.listWorkoutLogs.listWorkoutLogs,
+  )) {
+    if (!value?.some((log) => log._id === args.workoutLogId)) continue;
+    localStore.setQuery(
+      api.workoutLogs.listWorkoutLogs.listWorkoutLogs,
+      queryArgs,
+      value.map((log) =>
+        log._id === args.workoutLogId ? { ...log, description } : log,
+      ),
+    );
+  }
+}
 
 type CreateWorkoutLogArgs = FunctionArgs<
   typeof api.workoutLogs.createWorkoutLog.createWorkoutLog
@@ -60,14 +105,25 @@ function applyCreateWorkoutLogOptimisticUpdate(
   }
 }
 
-function LogWorkoutForm({ onClose }: { onClose: () => void }) {
+function LogWorkoutForm({
+  onClose,
+  log,
+}: {
+  onClose: () => void;
+  log?: EditableWorkoutLog;
+}) {
   const createWorkoutLog = useMutation(
     api.workoutLogs.createWorkoutLog.createWorkoutLog,
   ).withOptimisticUpdate((localStore, args) => {
     applyCreateWorkoutLogOptimisticUpdate(localStore, args);
   });
+  const updateWorkoutLog = useMutation(
+    api.workoutLogs.updateWorkoutLog.updateWorkoutLog,
+  ).withOptimisticUpdate((localStore, args) => {
+    applyUpdateWorkoutLogOptimisticUpdate(localStore, args);
+  });
   const savingRef = useRef(false);
-  const [description, setDescription] = useState("");
+  const [description, setDescription] = useState(log?.description ?? "");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -88,10 +144,14 @@ function LogWorkoutForm({ onClose }: { onClose: () => void }) {
     setSaving(true);
     setError(null);
     try {
-      await createWorkoutLog({
-        date: toLocalDateKey(new Date()),
-        description,
-      });
+      if (log) {
+        await updateWorkoutLog({ workoutLogId: log._id, description });
+      } else {
+        await createWorkoutLog({
+          date: toLocalDateKey(new Date()),
+          description,
+        });
+      }
       onClose();
     } catch (saveError) {
       const message =
@@ -151,7 +211,7 @@ function LogWorkoutForm({ onClose }: { onClose: () => void }) {
             }}
           >
             <Text type="heading-4" accessibilityRole="header">
-              Log Workout
+              {log ? "Edit Workout" : "Log Workout"}
             </Text>
 
             <View style={{ gap: 6 }}>
@@ -238,7 +298,8 @@ function LogWorkoutForm({ onClose }: { onClose: () => void }) {
 export default function LogWorkoutModal({
   visible,
   onClose,
+  log,
 }: LogWorkoutModalProps) {
   if (!visible) return null;
-  return <LogWorkoutForm onClose={onClose} />;
+  return <LogWorkoutForm onClose={onClose} log={log} />;
 }

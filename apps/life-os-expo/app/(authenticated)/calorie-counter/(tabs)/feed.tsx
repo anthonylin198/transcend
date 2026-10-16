@@ -120,7 +120,7 @@ function EntryCard({
       {entry.workouts.length > 0 ? (
         <View style={{ gap: 10 }}>
           <View style={{ height: 1, backgroundColor: "#1C1C1C" }} />
-          {entry.workouts.map((workout, index) => (
+          {entry.workouts.map((workout) => (
             <View
               key={workout._id}
               style={{
@@ -129,13 +129,12 @@ function EntryCard({
                 gap: 12,
               }}
             >
-              <Text
-                type="text-detail"
+              <Ionicons
+                name="barbell-outline"
+                size={16}
                 color="#737373"
-                style={{ marginTop: 4, fontVariant: ["tabular-nums"] }}
-              >
-                {String(index + 1).padStart(2, "0")}
-              </Text>
+                style={{ marginTop: 4 }}
+              />
               <Text type="text-medium" style={{ flex: 1 }}>
                 {workout.description}
               </Text>
@@ -190,6 +189,7 @@ export default function FeedScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>
       <ScrollView
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           width: "100%",
           maxWidth: 640,

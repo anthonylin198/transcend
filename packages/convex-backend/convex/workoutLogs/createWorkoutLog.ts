@@ -3,7 +3,7 @@ import { v } from "convex/values";
 import { getCurrentProfileOrThrow } from "../lib/currentProfile";
 import { assertLocalDateKey } from "../lib/dateKey";
 
-const MAX_DESCRIPTION_LENGTH = 500;
+export const MAX_WORKOUT_DESCRIPTION_LENGTH = 500;
 
 export const createWorkoutLog = mutation({
   args: {
@@ -17,9 +17,9 @@ export const createWorkoutLog = mutation({
     if (!description) {
       throw new Error("Describe your workout");
     }
-    if (description.length > MAX_DESCRIPTION_LENGTH) {
+    if (description.length > MAX_WORKOUT_DESCRIPTION_LENGTH) {
       throw new Error(
-        `Workout description must be ${MAX_DESCRIPTION_LENGTH} characters or fewer`,
+        `Workout description must be ${MAX_WORKOUT_DESCRIPTION_LENGTH} characters or fewer`,
       );
     }
 
