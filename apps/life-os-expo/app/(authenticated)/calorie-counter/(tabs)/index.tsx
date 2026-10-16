@@ -72,7 +72,7 @@ export default function CalorieCounterScreen() {
         }}
       >
         <CalorieAppHeader
-          title="Calorie Counter"
+          title="Fitness Tracker"
           right={
             <Text type="text-detail" color="#9CA3AF" style={{ marginTop: 4 }}>
               {formatLongDate(today)}

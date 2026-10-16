@@ -7,6 +7,8 @@ import { useRouter } from "expo-router";
 import { Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CalorieAppHeader from "@/components/calories/CalorieAppHeader";
+import Eyebrow from "@/components/feed/Eyebrow";
+import ShareDayModal, { type ShareDay } from "@/components/feed/ShareDayModal";
 import Text from "@/components/ui/Text";
 import { useLocalToday } from "@/hooks/useLocalToday";
 import {
@@ -48,64 +50,106 @@ function hasLogs(entry: DayEntry) {
   return entry.totals !== null || entry.workouts.length > 0;
 }
 
-function EntryCard({ entry }: { entry: DayEntry }) {
-  return (
-    <View
-      style={{
-        borderRadius: 14,
-        borderWidth: 1,
-        borderColor: "#1F2937",
-        backgroundColor: "#0B0B0B",
-        padding: 16,
-        gap: 10,
-      }}
-    >
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "flex-start",
-          justifyContent: "space-between",
-          gap: 12,
-        }}
-      >
-        <Text type="text-semibold" style={{ flex: 1 }}>
-          {entry.name}
-        </Text>
-        {entry.totals ? (
-          <View style={{ alignItems: "flex-end" }}>
-            <Text type="text-semibold">
-              {formatCalories(entry.totals.calories)} cal
-            </Text>
-            <Text type="text-detail" color="#9CA3AF">
-              {formatProtein(entry.totals.proteinG)}g protein
-            </Text>
-          </View>
-        ) : null}
-      </View>
+function EntryCard({
+  entry,
+  onPress,
+}: {
+  entry: DayEntry;
+  onPress: () => void;
+}) {
+  const initial = entry.name.trim().charAt(0).toUpperCase() || "?";
 
-      {entry.workouts.map((workout) => (
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityHint="Opens a shareable view of this day"
+      onPress={onPress}
+      style={({ pressed }) => ({
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: "#262626",
+        backgroundColor: "#0A0A0A",
+        padding: 18,
+        gap: 16,
+        transform: [{ scale: pressed ? 0.98 : 1 }],
+      })}
+    >
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
         <View
-          key={workout._id}
-          style={{ flexDirection: "row", alignItems: "flex-start", gap: 8 }}
+          style={{
+            width: 34,
+            height: 34,
+            borderRadius: 17,
+            borderWidth: 1,
+            borderColor: "#262626",
+            backgroundColor: "#141414",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
         >
-          <Ionicons
-            name="barbell-outline"
-            size={16}
-            color="#9CA3AF"
-            style={{ marginTop: 3 }}
-          />
-          <Text type="text-regular" style={{ flex: 1 }}>
-            {workout.description}
+          <Text type="text-semibold" color="#D4D4D4">
+            {initial}
           </Text>
         </View>
-      ))}
+        <Text type="heading-4" numberOfLines={1} style={{ flex: 1 }}>
+          {entry.name}
+        </Text>
+        <Ionicons name="expand-outline" size={16} color="#525252" />
+      </View>
+
+      {entry.totals ? (
+        <View style={{ flexDirection: "row", alignItems: "stretch" }}>
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text type="heading-2" style={{ letterSpacing: -1 }}>
+              {formatCalories(entry.totals.calories)}
+            </Text>
+            <Eyebrow>CALORIES</Eyebrow>
+          </View>
+          <View
+            style={{ width: 1, backgroundColor: "#262626", marginRight: 18 }}
+          />
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text type="heading-2" style={{ letterSpacing: -1 }}>
+              {`${formatProtein(entry.totals.proteinG)}g`}
+            </Text>
+            <Eyebrow>PROTEIN</Eyebrow>
+          </View>
+        </View>
+      ) : null}
+
+      {entry.workouts.length > 0 ? (
+        <View style={{ gap: 10 }}>
+          <View style={{ height: 1, backgroundColor: "#1C1C1C" }} />
+          {entry.workouts.map((workout, index) => (
+            <View
+              key={workout._id}
+              style={{
+                flexDirection: "row",
+                alignItems: "flex-start",
+                gap: 12,
+              }}
+            >
+              <Text
+                type="text-detail"
+                color="#737373"
+                style={{ marginTop: 4, fontVariant: ["tabular-nums"] }}
+              >
+                {String(index + 1).padStart(2, "0")}
+              </Text>
+              <Text type="text-medium" style={{ flex: 1 }}>
+                {workout.description}
+              </Text>
+            </View>
+          ))}
+        </View>
+      ) : null}
 
       {!hasLogs(entry) ? (
-        <Text type="text-detail" color="#6B7280">
-          Nothing logged yet
+        <Text type="text-medium" color="#737373">
+          A quiet day so far.
         </Text>
       ) : null}
-    </View>
+    </Pressable>
   );
 }
 
@@ -122,6 +166,7 @@ export default function FeedScreen() {
     [week.endKey, week.startKey],
   );
   const feed = useQuery(api.feed.weeklyFeed.weeklyFeed, queryRange);
+  const [shareDay, setShareDay] = useState<ShareDay | null>(null);
 
   const days = useMemo(() => {
     if (!feed) return [];
@@ -218,12 +263,26 @@ export default function FeedScreen() {
               </Text>
             ) : (
               days.map((day) => (
-                <View key={day.dateKey} style={{ marginTop: 20, gap: 10 }}>
-                  <Text type="text-detail" color="#9CA3AF">
-                    {formatLogDateHeading(day.dateKey, todayKey)}
-                  </Text>
+                <View key={day.dateKey} style={{ marginTop: 28, gap: 12 }}>
+                  <Eyebrow color="#A3A3A3">
+                    {formatLogDateHeading(day.dateKey, todayKey).toUpperCase()}
+                  </Eyebrow>
                   {day.entries.map((entry) => (
-                    <EntryCard key={entry.profileId} entry={entry} />
+                    <EntryCard
+                      key={entry.profileId}
+                      entry={entry}
+                      onPress={() =>
+                        setShareDay({
+                          name:
+                            entry.profileId === feed.me.profileId
+                              ? (feed.me.displayName ?? "You")
+                              : entry.name,
+                          dateKey: day.dateKey,
+                          totals: entry.totals,
+                          workouts: entry.workouts,
+                        })
+                      }
+                    />
                   ))}
                 </View>
               ))
@@ -233,7 +292,7 @@ export default function FeedScreen() {
               <Pressable
                 accessibilityRole="button"
                 onPress={() =>
-                  router.navigate("/(authenticated)/calorie-counter/friends")
+                  router.navigate("/(authenticated)/calorie-counter/you")
                 }
                 style={({ pressed }) => ({
                   marginTop: 28,
@@ -255,6 +314,8 @@ export default function FeedScreen() {
           </View>
         )}
       </ScrollView>
+
+      <ShareDayModal day={shareDay} onClose={() => setShareDay(null)} />
     </View>
   );
 }

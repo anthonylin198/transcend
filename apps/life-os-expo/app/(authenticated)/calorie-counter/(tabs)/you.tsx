@@ -237,7 +237,7 @@ function PersonRow({
   );
 }
 
-export default function FriendsScreen() {
+export default function YouScreen() {
   const insets = useSafeAreaInsets();
   const data = useQuery(api.friends.listFriends.listFriends);
   const respond = useMutation(
@@ -320,7 +320,7 @@ export default function FriendsScreen() {
           paddingBottom: 36,
         }}
       >
-        <CalorieAppHeader title="Friends" />
+        <CalorieAppHeader title="You" />
 
         {data === undefined ? (
           <Text type="text-detail" color="#9CA3AF" style={{ marginTop: 24 }}>
@@ -342,7 +342,7 @@ export default function FriendsScreen() {
           <>
             <View style={{ marginTop: 24, gap: 8 }}>
               <Text type="text-detail" color="#9CA3AF">
-                You appear as
+                Display name
               </Text>
               {editingName ? (
                 <DisplayNameEditor

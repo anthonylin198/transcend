@@ -20,7 +20,7 @@ export default function CalorieCounterTabLayout() {
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>
       <Tabs
-        // "none" lets back gestures leave the calorie counter instead of
+        // "none" lets back gestures leave the fitness tracker instead of
         // hopping between its tabs.
         backBehavior="none"
         screenOptions={{
@@ -29,9 +29,11 @@ export default function CalorieCounterTabLayout() {
           tabBarLabelStyle: { fontFamily: appFonts.regular },
           headerShown: false,
           tabBarStyle: {
-            borderTopWidth: 0,
+            borderTopWidth: 1,
+            borderTopColor: "#1F2937",
             backgroundColor: "black",
-            height: 72,
+            height: 84,
+            paddingTop: 10,
           },
         }}
       >
@@ -54,11 +56,11 @@ export default function CalorieCounterTabLayout() {
           }}
         />
         <Tabs.Screen
-          name="friends"
+          name="you"
           options={{
-            title: "Friends",
+            title: "You",
             tabBarIcon: ({ color }) => (
-              <Ionicons size={24} name="people" color={color} />
+              <Ionicons size={24} name="person" color={color} />
             ),
           }}
         />
