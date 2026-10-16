@@ -247,7 +247,10 @@ export default function FriendsScreen() {
   const reorderFriends = useMutation(
     api.friends.reorderFriends.reorderFriends,
   ).withOptimisticUpdate((localStore, args) => {
-    const current = localStore.getQuery(api.friends.listFriends.listFriends, {});
+    const current = localStore.getQuery(
+      api.friends.listFriends.listFriends,
+      {},
+    );
     if (!current) return;
     const rank = new Map(args.profileIds.map((id, index) => [id, index]));
     localStore.setQuery(
@@ -270,7 +273,11 @@ export default function FriendsScreen() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState(false);
 
-  const run = (id: string, action: () => Promise<unknown>, fallback: string) => {
+  const run = (
+    id: string,
+    action: () => Promise<unknown>,
+    fallback: string,
+  ) => {
     if (busyId) return;
     setBusyId(id);
     void action()

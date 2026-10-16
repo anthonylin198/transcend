@@ -25,18 +25,27 @@ const loadPerson = async (
     ctx.db
       .query("calorieLogs")
       .withIndex("by_profile_id_date", (q) =>
-        q.eq("profileId", profileId).gte("date", startDate).lte("date", endDate),
+        q
+          .eq("profileId", profileId)
+          .gte("date", startDate)
+          .lte("date", endDate),
       )
       .collect(),
     ctx.db
       .query("workoutLogs")
       .withIndex("by_profile_id_date", (q) =>
-        q.eq("profileId", profileId).gte("date", startDate).lte("date", endDate),
+        q
+          .eq("profileId", profileId)
+          .gte("date", startDate)
+          .lte("date", endDate),
       )
       .collect(),
   ]);
 
-  const totalsByDate = new Map<string, { calories: number; proteinG: number }>();
+  const totalsByDate = new Map<
+    string,
+    { calories: number; proteinG: number }
+  >();
   for (const log of calorieLogs) {
     const current = totalsByDate.get(log.date) ?? { calories: 0, proteinG: 0 };
     current.calories += log.calories;
