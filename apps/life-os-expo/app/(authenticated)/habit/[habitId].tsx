@@ -18,6 +18,7 @@ import {
   KeyboardAwareFormScroll,
 } from "@/components/ui/KeyboardAwareFormScroll";
 import Text from "@/components/ui/Text";
+import { appFonts } from "@/constants/fonts";
 import { getHomeBootstrapRange } from "@/utils/homeBootstrapRange";
 
 const WEEK_DAYS = [
@@ -235,7 +236,7 @@ export default function HabitDetailScreen() {
       <KeyboardAwareFormScroll
         contentContainerStyle={{
           paddingHorizontal: 16,
-          paddingTop: 8,
+          paddingTop: 20,
           paddingBottom: Math.max(insets.bottom, 16) + 80,
           flexGrow: 1,
         }}
@@ -249,24 +250,19 @@ export default function HabitDetailScreen() {
           scrollEnabled={false}
           style={{
             color: "#F9FAFB",
-            borderBottomWidth: 1,
-            borderBottomColor: "#374151",
-            paddingVertical: 8,
-            fontSize: 24,
-            lineHeight: 30,
-            fontWeight: "500",
+            fontFamily: appFonts.semiBold,
+            fontSize: 34,
+            lineHeight: 40,
           }}
         />
 
         <Pressable
           onPress={() => setDaysModalOpen(true)}
           style={{
-            borderBottomWidth: 1,
-            borderBottomColor: "#1F2937",
             flexDirection: "row",
             alignItems: "center",
             gap: 12,
-            paddingVertical: 14,
+            paddingVertical: 4,
           }}
         >
           <Text type="text-regular" color="#9CA3AF" style={{ flexShrink: 0 }}>
@@ -301,7 +297,8 @@ export default function HabitDetailScreen() {
           placeholderTextColor="#6B7280"
           style={{
             color: "#E5E7EB",
-            fontSize: 18,
+            fontFamily: appFonts.regular,
+            fontSize: 16,
             lineHeight: 24,
           }}
         />

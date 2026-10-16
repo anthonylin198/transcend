@@ -135,14 +135,17 @@ export default function CalorieCounterScreen() {
             marginTop: 24,
             minHeight: 52,
             borderRadius: 10,
-            backgroundColor: "#18181B",
+            backgroundColor: "#FFFFFF",
+            flexDirection: "row",
             alignItems: "center",
             justifyContent: "center",
+            gap: 6,
             opacity: pressed ? 0.72 : 1,
           })}
         >
-          <Text type="text-semibold" color="#F3F4F6">
-            + Log calories
+          <Ionicons name="add" size={20} color="#000000" />
+          <Text type="text-semibold" color="#000000">
+            Log calories
           </Text>
         </Pressable>
 

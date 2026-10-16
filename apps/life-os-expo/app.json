@@ -65,6 +65,14 @@
               "ios": {
                 "supportedFamilies": ["systemSmall", "systemMedium"]
               }
+            },
+            {
+              "name": "TodayWidget",
+              "displayName": "Today",
+              "description": "Today's priorities and habits",
+              "ios": {
+                "supportedFamilies": ["systemSmall", "systemMedium"]
+              }
             }
           ]
         }
