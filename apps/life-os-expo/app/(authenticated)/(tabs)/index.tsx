@@ -11,8 +11,11 @@ import {
   getDateKey,
   useCalendarEvents,
 } from "@/components/home/hooks/useCalendarEvents";
+import Eyebrow from "@/components/ui/Eyebrow";
+import Rings from "@/components/ui/Rings";
 import SplashCover from "@/components/ui/SplashCover";
 import Text from "@/components/ui/Text";
+import { appFonts } from "@/constants/fonts";
 import { useLocalToday } from "@/hooks/useLocalToday";
 import {
   HOME_DAY_WINDOW,
@@ -159,11 +162,15 @@ export default function HomeScreen() {
       >
         {days.map((day) => {
           const dayGreeting = getGreeting(day, today);
-          const dayDateLabel = new Intl.DateTimeFormat(undefined, {
-            weekday: "short",
-            month: "long",
-            day: "numeric",
-          }).format(day);
+          const dayDateLabel = [
+            new Intl.DateTimeFormat(undefined, { weekday: "long" }).format(day),
+            new Intl.DateTimeFormat(undefined, {
+              month: "short",
+              day: "numeric",
+            }).format(day),
+          ]
+            .join(" · ")
+            .toUpperCase();
           const dayEvents = eventsByDay[getDateKey(day)] ?? [];
 
           return (
@@ -175,10 +182,9 @@ export default function HomeScreen() {
               }}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{
-                padding: 20,
-                paddingTop: insets.top + 16,
+                padding: 24,
+                paddingTop: insets.top + 28,
                 paddingBottom: 150,
-                gap: 24,
               }}
               refreshControl={
                 <RefreshControl
@@ -189,17 +195,24 @@ export default function HomeScreen() {
                 />
               }
             >
+              <Rings size={420} overhang={150} color="#141414" />
               <Animated.View style={entranceStyle}>
-                <View style={{ alignItems: "center", gap: 4 }}>
-                  <Text type="heading-4" color="#E5E7EB">
+                <View style={{ gap: 10 }}>
+                  <Eyebrow color="#737373">{dayDateLabel}</Eyebrow>
+                  <Text
+                    accessibilityRole="header"
+                    style={{
+                      fontFamily: appFonts.semiBold,
+                      fontSize: 36,
+                      lineHeight: 42,
+                      letterSpacing: -1.2,
+                    }}
+                  >
                     {dayGreeting}
-                  </Text>
-                  <Text type="text-medium" color="#9CA3AF">
-                    {dayDateLabel}
                   </Text>
                 </View>
 
-                <View style={{ marginTop: 24, gap: 24 }}>
+                <View style={{ marginTop: 40, gap: 36 }}>
                   {canShowCalendar ? (
                     <CalendarSection calendarEvents={dayEvents} />
                   ) : null}
@@ -236,8 +249,8 @@ export default function HomeScreen() {
           onPress={() => router.push("/(authenticated)/intake")}
           style={{
             borderTopWidth: 1,
-            borderTopColor: "#1F2937",
-            paddingHorizontal: 20,
+            borderTopColor: "#1A1A1A",
+            paddingHorizontal: 24,
             paddingTop: 16,
             paddingBottom: 22,
             flexDirection: "row",
@@ -245,10 +258,10 @@ export default function HomeScreen() {
             alignItems: "center",
           }}
         >
-          <Text type="text-medium" color="#9CA3AF">
+          <Text type="text-medium" color="#737373">
             View Intake List
           </Text>
-          <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
+          <Ionicons name="chevron-forward" size={18} color="#525252" />
         </Pressable>
       </View>
     </View>

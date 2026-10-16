@@ -7,6 +7,8 @@ import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { Modal, Pressable, View, useWindowDimensions } from "react-native";
 import Sortable from "react-native-sortables";
+import { CHECK_HIT_SLOP } from "@/components/home/components/checkHitSlop";
+import SectionHeader from "@/components/home/components/SectionHeader";
 import Text from "@/components/ui/Text";
 
 type PriorityId = FunctionArgs<
@@ -69,8 +71,8 @@ export default function PrioritiesSection({
   const router = useRouter();
   const { width: screenWidth } = useWindowDimensions();
   // Rows need an explicit width inside Sortable.Flex; the home screen content
-  // has 20px horizontal padding on each side.
-  const rowWidth = Math.max(screenWidth - 40, 0);
+  // has 24px horizontal padding on each side.
+  const rowWidth = Math.max(screenWidth - 48, 0);
   const setPriorityStatus = useMutation(
     api.priorities.setPriorityStatus.setPriorityStatus,
   ).withOptimisticUpdate((localStore, args) => {
@@ -262,11 +264,16 @@ export default function PrioritiesSection({
 
   return (
     <View style={{ gap: 14 }}>
-      <Text type="heading-4" color="#9CA3AF">
-        Priorities
-      </Text>
+      <SectionHeader
+        title="PRIORITIES"
+        meta={
+          visiblePriorities.length > 0
+            ? `${visiblePriorities.filter((priority) => priority.status === "done").length}/${visiblePriorities.length}`
+            : undefined
+        }
+      />
       {visiblePriorities.length === 0 ? (
-        <Text type="text-regular" color="#9CA3AF">
+        <Text type="text-regular" color="#525252">
           No priorities
         </Text>
       ) : (
@@ -307,8 +314,12 @@ export default function PrioritiesSection({
                 }}
               >
                 <Pressable
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: priority.status === "done" }}
+                  accessibilityLabel={priority.name}
                   onPress={() => void onCompletePriority(priority)}
                   disabled={updatingIds.has(priority._id)}
+                  hitSlop={CHECK_HIT_SLOP}
                 >
                   <Ionicons
                     name={
@@ -317,7 +328,7 @@ export default function PrioritiesSection({
                         : "ellipse-outline"
                     }
                     size={22}
-                    color={priority.status === "done" ? "#E5E7EB" : "#9CA3AF"}
+                    color={priority.status === "done" ? "#FAFAFA" : "#525252"}
                   />
                 </Pressable>
                 <Pressable
@@ -335,7 +346,7 @@ export default function PrioritiesSection({
                 >
                   <Text
                     type="text-regular"
-                    color="#E5E7EB"
+                    color={priority.status === "done" ? "#737373" : "#FAFAFA"}
                     style={
                       priority.status === "done"
                         ? { flex: 1, textDecorationLine: "line-through" }
@@ -354,8 +365,8 @@ export default function PrioritiesSection({
         onPress={() => setQuickAddModalOpen(true)}
         style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
       >
-        <Ionicons name="add" size={20} color="#9CA3AF" />
-        <Text type="text-medium" color="#9CA3AF">
+        <Ionicons name="add" size={20} color="#525252" />
+        <Text type="text-medium" color="#737373">
           Quick add
         </Text>
       </Pressable>

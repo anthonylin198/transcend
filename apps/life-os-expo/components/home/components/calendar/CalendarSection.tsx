@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { CalendarEventItem } from "@/components/home/hooks/useCalendarEvents";
+import SectionHeader from "@/components/home/components/SectionHeader";
 import Text from "@/components/ui/Text";
 import { View } from "react-native";
 
@@ -27,16 +28,19 @@ export default function CalendarSection({
   }, []);
 
   return (
-    <View style={{ gap: 10 }}>
-      <Text type="heading-4" color="#9CA3AF">
-        Calendar
-      </Text>
+    <View style={{ gap: 14 }}>
+      <SectionHeader
+        title="CALENDAR"
+        meta={
+          calendarEvents.length > 0 ? String(calendarEvents.length) : undefined
+        }
+      />
       {calendarEvents.length === 0 ? (
-        <Text type="text-regular" color="#9CA3AF">
+        <Text type="text-regular" color="#525252">
           No events
         </Text>
       ) : (
-        <View style={{ gap: 10 }}>
+        <View style={{ gap: 12 }}>
           {calendarEvents.map((item) => {
             const isPast = item.endsAt.getTime() < now;
             const timeLabel = item.allDay
@@ -44,16 +48,32 @@ export default function CalendarSection({
               : formatEventTime(item.startsAt);
 
             return (
-              <Text
+              <View
                 key={item.id}
-                type="text-regular"
-                color={isPast ? "#6B7280" : "#D1D5DB"}
-                style={
-                  isPast ? { textDecorationLine: "line-through" } : undefined
-                }
+                style={{
+                  flexDirection: "row",
+                  alignItems: "baseline",
+                  gap: 14,
+                }}
               >
-                {timeLabel} - {item.title}
-              </Text>
+                <Text
+                  type="text-detail"
+                  color={isPast ? "#404040" : "#737373"}
+                  style={{ width: 64, fontVariant: ["tabular-nums"] }}
+                >
+                  {timeLabel}
+                </Text>
+                <Text
+                  type="text-regular"
+                  color={isPast ? "#525252" : "#FAFAFA"}
+                  style={[
+                    { flex: 1 },
+                    isPast ? { textDecorationLine: "line-through" } : null,
+                  ]}
+                >
+                  {item.title}
+                </Text>
+              </View>
             );
           })}
         </View>
