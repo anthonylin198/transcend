@@ -39,6 +39,7 @@ export default function PreviousWeeksScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>
       <ScrollView
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           paddingTop: insets.top + 8,
           paddingHorizontal: 20,

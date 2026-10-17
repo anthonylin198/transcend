@@ -59,7 +59,7 @@ export default function ToolsScreen() {
         </Text>
         <View style={{ flexDirection: "row", gap: 12, marginTop: 20 }}>
           <ToolTile
-            label="Calorie Counter"
+            label="Fitness Tracker"
             icon="flame-outline"
             onPress={() => router.push("/(authenticated)/calorie-counter")}
           />

@@ -1,6 +1,7 @@
 import { mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { getCurrentProfileOrThrow } from "./lib/currentProfile";
 
 export const ensureProfile = mutation({
   args: {},
@@ -23,6 +24,28 @@ export const ensureProfile = mutation({
       userId,
       calendarSyncEnabled: false,
     });
+  },
+});
+
+const MAX_DISPLAY_NAME_LENGTH = 40;
+
+export const setDisplayName = mutation({
+  args: {
+    displayName: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const profile = await getCurrentProfileOrThrow(ctx);
+    const displayName = args.displayName.trim();
+    if (!displayName) {
+      throw new Error("Enter a display name");
+    }
+    if (displayName.length > MAX_DISPLAY_NAME_LENGTH) {
+      throw new Error(
+        `Display name must be ${MAX_DISPLAY_NAME_LENGTH} characters or fewer`,
+      );
+    }
+
+    await ctx.db.patch(profile._id, { displayName });
   },
 });
 

@@ -5,10 +5,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import CalorieAppHeader from "@/components/calories/CalorieAppHeader";
 import CalorieLogList from "@/components/calories/CalorieLogList";
 import LogCaloriesModal from "@/components/calories/LogCaloriesModal";
 import WeekAverageValue from "@/components/calories/WeekAverageValue";
 import Text from "@/components/ui/Text";
+import LogWorkoutModal from "@/components/workouts/LogWorkoutModal";
+import WorkoutLogList from "@/components/workouts/WorkoutLogList";
 import { useLocalToday } from "@/hooks/useLocalToday";
 import { getHomeBootstrapRange } from "@/utils/homeBootstrapRange";
 import {
@@ -26,6 +29,7 @@ export default function CalorieCounterScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [logOpen, setLogOpen] = useState(false);
+  const [workoutOpen, setWorkoutOpen] = useState(false);
   const today = useLocalToday();
   const todayKey = toLocalDateKey(today);
   const week = getSundayWeek(today);
@@ -39,6 +43,11 @@ export default function CalorieCounterScreen() {
       ),
     [homeBootstrap?.calorieLogs, week.endKey, week.startKey],
   );
+  const todayWorkouts = useMemo(
+    () =>
+      (homeBootstrap?.workoutLogs ?? []).filter((log) => log.date === todayKey),
+    [homeBootstrap?.workoutLogs, todayKey],
+  );
   const todayLogs = weekLogs.filter((log) => log.date === todayKey);
   const todayCalories = todayLogs.reduce((sum, log) => sum + log.calories, 0);
   const todayProtein = todayLogs.reduce((sum, log) => sum + log.proteinG, 0);
@@ -50,6 +59,7 @@ export default function CalorieCounterScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>
       <ScrollView
+        showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
           width: "100%",
@@ -57,49 +67,17 @@ export default function CalorieCounterScreen() {
           alignSelf: "center",
           paddingTop: insets.top + 8,
           paddingHorizontal: 20,
-          paddingBottom: insets.bottom + 36,
+          paddingBottom: 36,
         }}
       >
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Back"
-          onPress={() => {
-            if (router.canGoBack()) {
-              router.back();
-            } else {
-              router.replace("/(authenticated)/(tabs)");
-            }
-          }}
-          hitSlop={8}
-          style={{
-            alignSelf: "flex-start",
-            padding: 6,
-            marginLeft: -6,
-          }}
-        >
-          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
-        </Pressable>
-
-        <View
-          style={{
-            marginTop: 8,
-            flexDirection: "row",
-            alignItems: "flex-start",
-            justifyContent: "space-between",
-            gap: 12,
-          }}
-        >
-          <Text
-            type="heading-4"
-            accessibilityRole="header"
-            style={{ flexShrink: 1 }}
-          >
-            Calorie Counter
-          </Text>
-          <Text type="text-detail" color="#9CA3AF" style={{ marginTop: 4 }}>
-            {formatLongDate(today)}
-          </Text>
-        </View>
+        <CalorieAppHeader
+          title="Fitness Tracker"
+          right={
+            <Text type="text-detail" color="#9CA3AF" style={{ marginTop: 4 }}>
+              {formatLongDate(today)}
+            </Text>
+          }
+        />
 
         <Text
           type="text-detail"
@@ -149,15 +127,45 @@ export default function CalorieCounterScreen() {
           </Text>
         </Pressable>
 
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Log workout"
+          onPress={() => setWorkoutOpen(true)}
+          style={({ pressed }) => ({
+            marginTop: 10,
+            minHeight: 52,
+            borderRadius: 10,
+            borderWidth: 1,
+            borderColor: "#374151",
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 6,
+            opacity: pressed ? 0.72 : 1,
+          })}
+        >
+          <Ionicons name="barbell-outline" size={20} color="#FFFFFF" />
+          <Text type="text-semibold">Log workout</Text>
+        </Pressable>
+
         {weekAverage ? (
-          <View
-            style={{
+          <Pressable
+            accessibilityRole="button"
+            accessibilityHint="Opens this week's logs"
+            onPress={() =>
+              router.push({
+                pathname: "/(authenticated)/calorie-counter/[weekStart]",
+                params: { weekStart: week.startKey },
+              })
+            }
+            style={({ pressed }) => ({
               marginTop: 32,
               flexDirection: "row",
-              alignItems: "flex-start",
+              alignItems: "center",
               justifyContent: "space-between",
               gap: 12,
-            }}
+              opacity: pressed ? 0.7 : 1,
+            })}
           >
             <View style={{ flex: 1 }}>
               <Text type="text-semibold">This week&apos;s average</Text>
@@ -170,29 +178,52 @@ export default function CalorieCounterScreen() {
               proteinG={weekAverage.proteinG}
               pending={weekAverage.pending}
             />
-          </View>
+            <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
+          </Pressable>
         ) : null}
 
-        <View
-          style={{
-            marginTop: 32,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: 8,
-          }}
+        <Text type="text-semibold" style={{ marginTop: 32 }}>
+          Today&apos;s logs
+        </Text>
+
+        <Text
+          type="text-detail"
+          color="#9CA3AF"
+          style={{ marginTop: 16, marginBottom: 4 }}
         >
-          <Text type="text-semibold">Recent logs</Text>
-          <Text type="text-detail" color="#9CA3AF">
-            This week
-          </Text>
-        </View>
+          Calories
+        </Text>
         {loading ? (
           <Text type="text-detail" color="#9CA3AF">
             Loading...
           </Text>
         ) : (
-          <CalorieLogList logs={weekLogs} todayKey={todayKey} />
+          <CalorieLogList
+            logs={todayLogs}
+            todayKey={todayKey}
+            showDateHeadings={false}
+            emptyText="Nothing logged yet"
+          />
+        )}
+
+        <Text
+          type="text-detail"
+          color="#9CA3AF"
+          style={{ marginTop: 20, marginBottom: 4 }}
+        >
+          Workouts
+        </Text>
+        {loading ? (
+          <Text type="text-detail" color="#9CA3AF">
+            Loading...
+          </Text>
+        ) : (
+          <WorkoutLogList
+            logs={todayWorkouts}
+            todayKey={todayKey}
+            showDateHeadings={false}
+            emptyText="Nothing logged yet"
+          />
         )}
 
         <Pressable
@@ -220,6 +251,10 @@ export default function CalorieCounterScreen() {
       </ScrollView>
 
       <LogCaloriesModal visible={logOpen} onClose={() => setLogOpen(false)} />
+      <LogWorkoutModal
+        visible={workoutOpen}
+        onClose={() => setWorkoutOpen(false)}
+      />
     </View>
   );
 }

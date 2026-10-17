@@ -5,6 +5,8 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { Pressable, View } from "react-native";
+import { CHECK_HIT_SLOP } from "@/components/home/components/checkHitSlop";
+import SectionHeader from "@/components/home/components/SectionHeader";
 import Text from "@/components/ui/Text";
 import { getHabitWeekdayName, toHabitDateKey } from "@/utils/habitDate";
 
@@ -128,6 +130,11 @@ export default function HabitsSection({
       .sort((a, b) => a.orderIndex - b.orderIndex);
   }, [habits, weekdayName]);
 
+  const completedCount = visibleHabits.filter(
+    (habit) =>
+      pendingCompletionByHabitId.get(habit._id) ?? completionSet.has(habit._id),
+  ).length;
+
   const onToggleHabit = async (habitId: string) => {
     if (updatingIds.has(habitId)) return;
     const currentlyCompleted =
@@ -163,11 +170,16 @@ export default function HabitsSection({
 
   return (
     <View style={{ gap: 14 }}>
-      <Text type="heading-4" color="#9CA3AF">
-        Habits
-      </Text>
+      <SectionHeader
+        title="HABITS"
+        meta={
+          visibleHabits.length > 0
+            ? `${completedCount}/${visibleHabits.length}`
+            : undefined
+        }
+      />
       {visibleHabits.length === 0 ? (
-        <Text type="text-regular" color="#9CA3AF">
+        <Text type="text-regular" color="#525252">
           No habits for this day
         </Text>
       ) : (
@@ -183,13 +195,17 @@ export default function HabitsSection({
                 style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
               >
                 <Pressable
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: isCompleted }}
+                  accessibilityLabel={habit.name}
                   onPress={() => void onToggleHabit(habit._id)}
                   disabled={isUpdating}
+                  hitSlop={CHECK_HIT_SLOP}
                 >
                   <Ionicons
                     name={isCompleted ? "checkmark-circle" : "ellipse-outline"}
                     size={22}
-                    color={isCompleted ? "#E5E7EB" : "#9CA3AF"}
+                    color={isCompleted ? "#FAFAFA" : "#525252"}
                   />
                 </Pressable>
                 <Pressable
@@ -206,7 +222,7 @@ export default function HabitsSection({
                 >
                   <Text
                     type="text-regular"
-                    color="#E5E7EB"
+                    color={isCompleted ? "#737373" : "#FAFAFA"}
                     style={
                       isCompleted
                         ? { flex: 1, textDecorationLine: "line-through" }
