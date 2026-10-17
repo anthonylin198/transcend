@@ -150,7 +150,8 @@ export default function HomeScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: "black" }}>
+    <View style={{ flex: 1, backgroundColor: "black", overflow: "hidden" }}>
+      <Rings size={420} overhang={150} color="#141414" />
       <PagerView
         // PagerView can't handle its children all changing (every page key
         // shifts when the day rolls over), which leaves blank pages. Keying
@@ -176,10 +177,7 @@ export default function HomeScreen() {
           return (
             <ScrollView
               key={day.toISOString()}
-              style={{
-                flex: 1,
-                backgroundColor: "black",
-              }}
+              style={{ flex: 1, backgroundColor: "transparent" }}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{
                 padding: 24,
@@ -195,7 +193,6 @@ export default function HomeScreen() {
                 />
               }
             >
-              <Rings size={420} overhang={150} color="#141414" />
               <Animated.View style={entranceStyle}>
                 <View style={{ gap: 10 }}>
                   <Eyebrow color="#737373">{dayDateLabel}</Eyebrow>

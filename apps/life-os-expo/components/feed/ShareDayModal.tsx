@@ -132,20 +132,6 @@ function ShareCard({ day, width }: { day: ShareDay; width: number }) {
         </Text>
       ) : null}
 
-      <View style={{ flex: 1, minHeight: 32 }} />
-
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <Text type="text-semibold" style={{ letterSpacing: -0.2 }}>
-          lifeOS
-        </Text>
-        <Eyebrow>FITNESS TRACKER</Eyebrow>
-      </View>
     </View>
   );
 }
