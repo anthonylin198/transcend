@@ -190,10 +190,6 @@ export default function ShareDayModal({ day, onClose }: ShareDayModalProps) {
         </Pressable>
 
         {day ? <ShareCard day={day} width={cardWidth} /> : null}
-
-        <Text type="text-detail" color="#404040" style={{ marginTop: 20 }}>
-          Screenshot to share
-        </Text>
       </Pressable>
     </Modal>
   );

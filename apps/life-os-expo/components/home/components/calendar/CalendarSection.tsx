@@ -40,39 +40,44 @@ export default function CalendarSection({
           No events
         </Text>
       ) : (
-        <View style={{ gap: 12 }}>
+        <View style={{ gap: 14 }}>
           {calendarEvents.map((item) => {
             const isPast = item.endsAt.getTime() < now;
             const timeLabel = item.allDay
               ? "All day"
-              : formatEventTime(item.startsAt);
+              : `${formatEventTime(item.startsAt)} – ${formatEventTime(item.endsAt)}`;
 
             return (
               <View
                 key={item.id}
-                style={{
-                  flexDirection: "row",
-                  alignItems: "baseline",
-                  gap: 14,
-                }}
+                style={{ flexDirection: "row", alignItems: "stretch", gap: 10 }}
               >
-                <Text
-                  type="text-detail"
-                  color={isPast ? "#404040" : "#737373"}
-                  style={{ width: 64, fontVariant: ["tabular-nums"] }}
-                >
-                  {timeLabel}
-                </Text>
-                <Text
-                  type="text-regular"
-                  color={isPast ? "#525252" : "#FAFAFA"}
-                  style={[
-                    { flex: 1 },
-                    isPast ? { textDecorationLine: "line-through" } : null,
-                  ]}
-                >
-                  {item.title}
-                </Text>
+                <View style={{ width: 22, alignItems: "center" }}>
+                  <View
+                    style={{
+                      flex: 1,
+                      width: 3,
+                      marginVertical: 3,
+                      borderRadius: 2,
+                      backgroundColor: isPast ? "#1F1F1F" : "#404040",
+                    }}
+                  />
+                </View>
+                <View style={{ flex: 1, gap: 2 }}>
+                  <Text
+                    type="text-regular"
+                    color={isPast ? "#525252" : "#FAFAFA"}
+                  >
+                    {item.title}
+                  </Text>
+                  <Text
+                    type="text-detail"
+                    color={isPast ? "#404040" : "#737373"}
+                    style={{ fontVariant: ["tabular-nums"] }}
+                  >
+                    {timeLabel}
+                  </Text>
+                </View>
               </View>
             );
           })}
