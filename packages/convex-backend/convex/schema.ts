@@ -100,6 +100,7 @@ export default defineSchema({
     date: v.string(),
     calories: v.number(),
     proteinG: v.number(),
+    description: v.optional(v.string()),
     createdAt: v.number(),
   }).index("by_profile_id_date", ["profileId", "date"]),
   workoutLogs: defineTable({

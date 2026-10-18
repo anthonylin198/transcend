@@ -22,10 +22,13 @@ import {
   View,
 } from "react-native";
 
+const MAX_DESCRIPTION_LENGTH = 200;
+
 type EditableCalorieLog = {
   _id: UpdateCalorieLogArgs["calorieLogId"];
   calories: number;
   proteinG: number;
+  description?: string;
 };
 
 type LogCaloriesModalProps = {
@@ -76,6 +79,7 @@ function applyCreateCalorieLogOptimisticUpdate(
 
     const optimisticId =
       `optimistic-calorie-${now}` as (typeof value.calorieLogs)[number]["_id"];
+    const description = args.description?.trim() || undefined;
     localStore.setQuery(api.home.bootstrap.bootstrap, queryArgs, {
       ...value,
       calorieLogs: [
@@ -87,6 +91,7 @@ function applyCreateCalorieLogOptimisticUpdate(
           date: args.date,
           calories: args.calories,
           proteinG,
+          ...(description ? { description } : {}),
           createdAt: now,
         },
       ],
@@ -105,6 +110,7 @@ function applyUpdateCalorieLogOptimisticUpdate(
   const patch = {
     calories: args.calories,
     proteinG: Math.round(args.proteinG * 10) / 10,
+    description: args.description?.trim() || undefined,
   };
   for (const { args: queryArgs, value } of localStore.getAllQueries(
     api.home.bootstrap.bootstrap,
@@ -159,6 +165,7 @@ function LogCaloriesForm({
   const [protein, setProtein] = useState(
     log ? formatProtein(log.proteinG) : "",
   );
+  const [description, setDescription] = useState(log?.description ?? "");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -185,17 +192,20 @@ function LogCaloriesForm({
     setSaving(true);
     setError(null);
     try {
+      const trimmedDescription = description.trim();
       if (log) {
         await updateCalorieLog({
           calorieLogId: log._id,
           calories: parsedCalories,
           proteinG: parsedProtein,
+          description: trimmedDescription,
         });
       } else {
         await createCalorieLog({
           date: date ?? toLocalDateKey(new Date()),
           calories: parsedCalories,
           proteinG: parsedProtein,
+          ...(trimmedDescription ? { description: trimmedDescription } : {}),
         });
       }
       onClose();
@@ -313,6 +323,30 @@ function LogCaloriesForm({
                   fontFamily: appFonts.semiBold,
                   fontSize: 28,
                   lineHeight: 36,
+                  paddingVertical: 8,
+                }}
+              />
+            </View>
+
+            <View style={{ gap: 6 }}>
+              <Text type="text-detail" color="#9CA3AF">
+                Description (optional)
+              </Text>
+              <TextInput
+                value={description}
+                onChangeText={setDescription}
+                maxLength={MAX_DESCRIPTION_LENGTH}
+                placeholder="What was it?"
+                placeholderTextColor="#6B7280"
+                accessibilityLabel="Description"
+                editable={!saving}
+                style={{
+                  color: "#F9FAFB",
+                  borderBottomWidth: 1,
+                  borderBottomColor: "#374151",
+                  fontFamily: appFonts.regular,
+                  fontSize: 18,
+                  lineHeight: 24,
                   paddingVertical: 8,
                 }}
               />

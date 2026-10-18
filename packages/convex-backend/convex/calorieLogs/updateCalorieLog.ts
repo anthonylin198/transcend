@@ -1,12 +1,14 @@
 import { mutation } from "../_generated/server";
 import { v } from "convex/values";
 import { getCurrentProfileOrThrow } from "../lib/currentProfile";
+import { normalizeCalorieDescription } from "./createCalorieLog";
 
 export const updateCalorieLog = mutation({
   args: {
     calorieLogId: v.id("calorieLogs"),
     calories: v.number(),
     proteinG: v.number(),
+    description: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     if (!Number.isInteger(args.calories) || args.calories < 0) {
@@ -26,6 +28,7 @@ export const updateCalorieLog = mutation({
     await ctx.db.patch(calorieLog._id, {
       calories: args.calories,
       proteinG: Math.round(args.proteinG * 10) / 10,
+      description: normalizeCalorieDescription(args.description),
     });
   },
 });

@@ -59,6 +59,22 @@ const loadPerson = async (
     dailyTotals: [...totalsByDate.entries()]
       .map(([date, totals]) => ({ date, ...totals }))
       .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0)),
+    calorieLogs: calorieLogs
+      .map((log) => ({
+        _id: log._id,
+        date: log.date,
+        calories: log.calories,
+        proteinG: log.proteinG,
+        description: log.description,
+        createdAt: log.createdAt,
+      }))
+      .sort((a, b) =>
+        a.date === b.date
+          ? a.createdAt - b.createdAt
+          : a.date < b.date
+            ? -1
+            : 1,
+      ),
     workouts: workoutLogs
       .map((log) => ({
         _id: log._id,
@@ -78,8 +94,8 @@ const loadPerson = async (
 
 /**
  * The current user plus accepted friends (in the viewer's chosen order), each
- * with per-day calorie/protein totals and workouts for the range. Individual
- * calorie entries are not shared.
+ * with per-day calorie/protein totals, the calorie entries behind those
+ * totals, and workouts for the range.
  */
 export const weeklyFeed = query({
   args: {

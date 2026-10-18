@@ -119,20 +119,31 @@ export default function CalorieLogList({
                   minHeight: 40,
                   flexDirection: "row",
                   alignItems: "center",
+                  gap: 8,
                   opacity: deleting ? 0.45 : 1,
                 }}
               >
-                <Text type="text-semibold">
-                  {formatCalories(log.calories)} cal
-                </Text>
-                <Text
-                  type="text-regular"
-                  color="#9CA3AF"
-                  style={{ marginLeft: 12 }}
-                >
-                  {formatProtein(log.proteinG)}g protein
-                </Text>
-                <View style={{ flex: 1 }} />
+                <View style={{ flex: 1, paddingVertical: 6 }}>
+                  <View
+                    style={{ flexDirection: "row", alignItems: "center" }}
+                  >
+                    <Text type="text-semibold">
+                      {formatCalories(log.calories)} cal
+                    </Text>
+                    <Text
+                      type="text-regular"
+                      color="#9CA3AF"
+                      style={{ marginLeft: 12 }}
+                    >
+                      {formatProtein(log.proteinG)}g protein
+                    </Text>
+                  </View>
+                  {log.description ? (
+                    <Text type="text-regular" color="#D4D4D4">
+                      {log.description}
+                    </Text>
+                  ) : null}
+                </View>
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel={`Edit ${formatCalories(log.calories)} calorie entry`}

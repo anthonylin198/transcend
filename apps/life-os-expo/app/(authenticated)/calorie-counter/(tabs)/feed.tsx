@@ -30,6 +30,7 @@ type DayEntry = {
   profileId: FeedPerson["profileId"];
   name: string;
   totals: { calories: number; proteinG: number } | null;
+  calorieLogs: FeedPerson["calorieLogs"];
   workouts: FeedPerson["workouts"];
 };
 
@@ -42,6 +43,7 @@ function entryForDay(
     profileId: person.profileId,
     name,
     totals: person.dailyTotals.find((day) => day.date === dateKey) ?? null,
+    calorieLogs: person.calorieLogs.filter((log) => log.date === dateKey),
     workouts: person.workouts.filter((workout) => workout.date === dateKey),
   };
 }
@@ -52,27 +54,25 @@ function hasLogs(entry: DayEntry) {
 
 function EntryCard({
   entry,
-  onPress,
+  onExpand,
 }: {
   entry: DayEntry;
-  onPress: () => void;
+  onExpand: () => void;
 }) {
+  const [entriesOpen, setEntriesOpen] = useState(false);
   const initial = entry.name.trim().charAt(0).toUpperCase() || "?";
+  const canShowEntries = entry.calorieLogs.length > 0;
 
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityHint="Opens a shareable view of this day"
-      onPress={onPress}
-      style={({ pressed }) => ({
+    <View
+      style={{
         borderRadius: 20,
         borderWidth: 1,
         borderColor: "#262626",
         backgroundColor: "#0A0A0A",
         padding: 18,
         gap: 16,
-        transform: [{ scale: pressed ? 0.98 : 1 }],
-      })}
+      }}
     >
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
         <View
@@ -94,26 +94,76 @@ function EntryCard({
         <Text type="heading-4" numberOfLines={1} style={{ flex: 1 }}>
           {entry.name}
         </Text>
-        <Ionicons name="expand-outline" size={16} color="#525252" />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Open ${entry.name}'s day`}
+          onPress={onExpand}
+          hitSlop={8}
+          style={{ padding: 4 }}
+        >
+          <Ionicons name="expand-outline" size={16} color="#525252" />
+        </Pressable>
       </View>
 
       {entry.totals ? (
-        <View style={{ flexDirection: "row", alignItems: "stretch" }}>
-          <View style={{ flex: 1, gap: 2 }}>
-            <Text type="heading-2" style={{ letterSpacing: -1 }}>
-              {formatCalories(entry.totals.calories)}
-            </Text>
-            <Eyebrow>CALORIES</Eyebrow>
+        <View style={{ gap: 14 }}>
+          <View style={{ flexDirection: "row", alignItems: "stretch" }}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ expanded: entriesOpen }}
+              accessibilityLabel={
+                entriesOpen ? "Hide calorie entries" : "Show calorie entries"
+              }
+              disabled={!canShowEntries}
+              onPress={() => setEntriesOpen((open) => !open)}
+              style={{ flex: 1, gap: 2 }}
+            >
+              <Text type="heading-2" style={{ letterSpacing: -1 }}>
+                {formatCalories(entry.totals.calories)}
+              </Text>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+              >
+                <Eyebrow>CALORIES</Eyebrow>
+                {canShowEntries ? (
+                  <Ionicons
+                    name={entriesOpen ? "chevron-up" : "chevron-down"}
+                    size={12}
+                    color="#737373"
+                  />
+                ) : null}
+              </View>
+            </Pressable>
+            <View
+              style={{ width: 1, backgroundColor: "#262626", marginRight: 18 }}
+            />
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text type="heading-2" style={{ letterSpacing: -1 }}>
+                {`${formatProtein(entry.totals.proteinG)}g`}
+              </Text>
+              <Eyebrow>PROTEIN</Eyebrow>
+            </View>
           </View>
-          <View
-            style={{ width: 1, backgroundColor: "#262626", marginRight: 18 }}
-          />
-          <View style={{ flex: 1, gap: 2 }}>
-            <Text type="heading-2" style={{ letterSpacing: -1 }}>
-              {`${formatProtein(entry.totals.proteinG)}g`}
-            </Text>
-            <Eyebrow>PROTEIN</Eyebrow>
-          </View>
+
+          {entriesOpen ? (
+            <View style={{ gap: 12 }}>
+              {entry.calorieLogs.map((log) => (
+                <View key={log._id} style={{ gap: 2 }}>
+                  <Text type="text-medium">
+                    {formatCalories(log.calories)} cal
+                    <Text type="text-medium" color="#737373">
+                      {`  ${formatProtein(log.proteinG)}g`}
+                    </Text>
+                  </Text>
+                  {log.description ? (
+                    <Text type="text-regular" color="#D4D4D4">
+                      {log.description}
+                    </Text>
+                  ) : null}
+                </View>
+              ))}
+            </View>
+          ) : null}
         </View>
       ) : null}
 
@@ -148,7 +198,7 @@ function EntryCard({
           A quiet day so far.
         </Text>
       ) : null}
-    </Pressable>
+    </View>
   );
 }
 
@@ -271,7 +321,7 @@ export default function FeedScreen() {
                     <EntryCard
                       key={entry.profileId}
                       entry={entry}
-                      onPress={() =>
+                      onExpand={() =>
                         setShareDay({
                           name:
                             entry.profileId === feed.me.profileId
