@@ -6,7 +6,10 @@ import type { FunctionArgs } from "convex/server";
 import { appFonts } from "@/constants/fonts";
 import Text from "@/components/ui/Text";
 import {
+  formatLongDate,
+  formatProtein,
   parseCaloriesInput,
+  parseLocalDateKey,
   parseProteinInput,
   toLocalDateKey,
 } from "@/utils/calorieWeek";
@@ -19,9 +22,22 @@ import {
   View,
 } from "react-native";
 
+const MAX_DESCRIPTION_LENGTH = 200;
+
+type EditableCalorieLog = {
+  _id: UpdateCalorieLogArgs["calorieLogId"];
+  calories: number;
+  proteinG: number;
+  description?: string;
+};
+
 type LogCaloriesModalProps = {
   visible: boolean;
   onClose: () => void;
+  /** When set, the modal edits this entry instead of creating one. */
+  log?: EditableCalorieLog;
+  /** Local YYYY-MM-DD for a new entry. Defaults to today. */
+  date?: string;
 };
 
 function sanitizeCalories(value: string) {
@@ -63,6 +79,7 @@ function applyCreateCalorieLogOptimisticUpdate(
 
     const optimisticId =
       `optimistic-calorie-${now}` as (typeof value.calorieLogs)[number]["_id"];
+    const description = args.description?.trim() || undefined;
     localStore.setQuery(api.home.bootstrap.bootstrap, queryArgs, {
       ...value,
       calorieLogs: [
@@ -74,6 +91,7 @@ function applyCreateCalorieLogOptimisticUpdate(
           date: args.date,
           calories: args.calories,
           proteinG,
+          ...(description ? { description } : {}),
           createdAt: now,
         },
       ],
@@ -81,15 +99,73 @@ function applyCreateCalorieLogOptimisticUpdate(
   }
 }
 
-function LogCaloriesForm({ onClose }: { onClose: () => void }) {
+type UpdateCalorieLogArgs = FunctionArgs<
+  typeof api.calorieLogs.updateCalorieLog.updateCalorieLog
+>;
+
+function applyUpdateCalorieLogOptimisticUpdate(
+  localStore: OptimisticLocalStore,
+  args: UpdateCalorieLogArgs,
+) {
+  const patch = {
+    calories: args.calories,
+    proteinG: Math.round(args.proteinG * 10) / 10,
+    description: args.description?.trim() || undefined,
+  };
+  for (const { args: queryArgs, value } of localStore.getAllQueries(
+    api.home.bootstrap.bootstrap,
+  )) {
+    if (!value || value.profile === null) continue;
+    if (!value.calorieLogs.some((log) => log._id === args.calorieLogId)) {
+      continue;
+    }
+    localStore.setQuery(api.home.bootstrap.bootstrap, queryArgs, {
+      ...value,
+      calorieLogs: value.calorieLogs.map((log) =>
+        log._id === args.calorieLogId ? { ...log, ...patch } : log,
+      ),
+    });
+  }
+
+  for (const { args: queryArgs, value } of localStore.getAllQueries(
+    api.calorieLogs.listCalorieLogs.listCalorieLogs,
+  )) {
+    if (!value?.some((log) => log._id === args.calorieLogId)) continue;
+    localStore.setQuery(
+      api.calorieLogs.listCalorieLogs.listCalorieLogs,
+      queryArgs,
+      value.map((log) =>
+        log._id === args.calorieLogId ? { ...log, ...patch } : log,
+      ),
+    );
+  }
+}
+
+function LogCaloriesForm({
+  onClose,
+  log,
+  date,
+}: {
+  onClose: () => void;
+  log?: EditableCalorieLog;
+  date?: string;
+}) {
   const createCalorieLog = useMutation(
     api.calorieLogs.createCalorieLog.createCalorieLog,
   ).withOptimisticUpdate((localStore, args) => {
     applyCreateCalorieLogOptimisticUpdate(localStore, args);
   });
+  const updateCalorieLog = useMutation(
+    api.calorieLogs.updateCalorieLog.updateCalorieLog,
+  ).withOptimisticUpdate((localStore, args) => {
+    applyUpdateCalorieLogOptimisticUpdate(localStore, args);
+  });
   const savingRef = useRef(false);
-  const [calories, setCalories] = useState("");
-  const [protein, setProtein] = useState("");
+  const [calories, setCalories] = useState(log ? String(log.calories) : "");
+  const [protein, setProtein] = useState(
+    log ? formatProtein(log.proteinG) : "",
+  );
+  const [description, setDescription] = useState(log?.description ?? "");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -116,11 +192,22 @@ function LogCaloriesForm({ onClose }: { onClose: () => void }) {
     setSaving(true);
     setError(null);
     try {
-      await createCalorieLog({
-        date: toLocalDateKey(new Date()),
-        calories: parsedCalories,
-        proteinG: parsedProtein,
-      });
+      const trimmedDescription = description.trim();
+      if (log) {
+        await updateCalorieLog({
+          calorieLogId: log._id,
+          calories: parsedCalories,
+          proteinG: parsedProtein,
+          description: trimmedDescription,
+        });
+      } else {
+        await createCalorieLog({
+          date: date ?? toLocalDateKey(new Date()),
+          calories: parsedCalories,
+          proteinG: parsedProtein,
+          ...(trimmedDescription ? { description: trimmedDescription } : {}),
+        });
+      }
       onClose();
     } catch (saveError) {
       const message =
@@ -177,9 +264,18 @@ function LogCaloriesForm({ onClose }: { onClose: () => void }) {
               gap: 16,
             }}
           >
-            <Text type="heading-4" accessibilityRole="header">
-              Log Calories
-            </Text>
+            <View style={{ gap: 4 }}>
+              <Text type="heading-4" accessibilityRole="header">
+                {log ? "Edit Calories" : "Log Calories"}
+              </Text>
+              {!log ? (
+                <Text type="text-detail" color="#9CA3AF">
+                  {formatLongDate(
+                    parseLocalDateKey(date ?? toLocalDateKey(new Date())),
+                  )}
+                </Text>
+              ) : null}
+            </View>
 
             <View style={{ gap: 6 }}>
               <Text type="text-detail" color="#9CA3AF">
@@ -227,6 +323,30 @@ function LogCaloriesForm({ onClose }: { onClose: () => void }) {
                   fontFamily: appFonts.semiBold,
                   fontSize: 28,
                   lineHeight: 36,
+                  paddingVertical: 8,
+                }}
+              />
+            </View>
+
+            <View style={{ gap: 6 }}>
+              <Text type="text-detail" color="#9CA3AF">
+                Description (optional)
+              </Text>
+              <TextInput
+                value={description}
+                onChangeText={setDescription}
+                maxLength={MAX_DESCRIPTION_LENGTH}
+                placeholder="What was it?"
+                placeholderTextColor="#6B7280"
+                accessibilityLabel="Description"
+                editable={!saving}
+                style={{
+                  color: "#F9FAFB",
+                  borderBottomWidth: 1,
+                  borderBottomColor: "#374151",
+                  fontFamily: appFonts.regular,
+                  fontSize: 18,
+                  lineHeight: 24,
                   paddingVertical: 8,
                 }}
               />
@@ -287,7 +407,9 @@ function LogCaloriesForm({ onClose }: { onClose: () => void }) {
 export default function LogCaloriesModal({
   visible,
   onClose,
+  log,
+  date,
 }: LogCaloriesModalProps) {
   if (!visible) return null;
-  return <LogCaloriesForm onClose={onClose} />;
+  return <LogCaloriesForm onClose={onClose} log={log} date={date} />;
 }

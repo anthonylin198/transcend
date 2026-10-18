@@ -27,7 +27,7 @@ export function useCalorieWidgetSync(isAuthenticated: boolean | null) {
       clearCalorieWidget();
       return;
     }
-    if (homeBootstrap === undefined) return;
+    if (homeBootstrap === undefined || homeBootstrap.profile === null) return;
     syncCalorieWidget(homeBootstrap.calorieLogs, today);
   }, [homeBootstrap, isAuthenticated, today]);
 }

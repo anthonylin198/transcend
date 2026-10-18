@@ -11,8 +11,11 @@ import {
   getDateKey,
   useCalendarEvents,
 } from "@/components/home/hooks/useCalendarEvents";
+import Eyebrow from "@/components/ui/Eyebrow";
+import Rings from "@/components/ui/Rings";
 import SplashCover from "@/components/ui/SplashCover";
 import Text from "@/components/ui/Text";
+import { appFonts } from "@/constants/fonts";
 import { useLocalToday } from "@/hooks/useLocalToday";
 import {
   HOME_DAY_WINDOW,
@@ -93,10 +96,14 @@ export default function HomeScreen() {
     });
   const calendarRangeKey = `${getDateKey(calendarRangeStart)}:${getDateKey(calendarRangeEnd)}`;
   const isSwitchingDay = visibleDayKey !== todayKey;
+  const [ignoreCalendarWait, setIgnoreCalendarWait] = useState(false);
+  const hasBootstrapProfile = homeBootstrap?.profile != null;
   const dayChangeReady =
     !isSwitchingDay ||
-    (homeBootstrap !== undefined &&
-      (!canShowCalendar || loadedRangeKey === calendarRangeKey));
+    (hasBootstrapProfile &&
+      (!canShowCalendar ||
+        ignoreCalendarWait ||
+        loadedRangeKey === calendarRangeKey));
   const entranceStyle = {
     opacity: entranceAnimation,
     transform: [
@@ -125,9 +132,14 @@ export default function HomeScreen() {
   }, [dayChangeReady, isSwitchingDay, todayKey]);
 
   useEffect(() => {
-    if (!isSwitchingDay) return;
+    if (!isSwitchingDay) {
+      setIgnoreCalendarWait(false);
+      return;
+    }
+    // Calendar can hang after a long suspend. Bootstrap still has to arrive
+    // for the new day; revealing early paints "No priorities" from empty data.
     const timeout = setTimeout(() => {
-      setVisibleDayKey(todayKey);
+      setIgnoreCalendarWait(true);
     }, DAY_CHANGE_REVEAL_TIMEOUT_MS);
     return () => clearTimeout(timeout);
   }, [isSwitchingDay, todayKey]);
@@ -147,7 +159,8 @@ export default function HomeScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: "black" }}>
+    <View style={{ flex: 1, backgroundColor: "black", overflow: "hidden" }}>
+      <Rings size={420} overhang={150} color="#141414" />
       <PagerView
         // PagerView can't handle its children all changing (every page key
         // shifts when the day rolls over), which leaves blank pages. Keying
@@ -159,26 +172,26 @@ export default function HomeScreen() {
       >
         {days.map((day) => {
           const dayGreeting = getGreeting(day, today);
-          const dayDateLabel = new Intl.DateTimeFormat(undefined, {
-            weekday: "short",
-            month: "long",
-            day: "numeric",
-          }).format(day);
+          const dayDateLabel = [
+            new Intl.DateTimeFormat(undefined, { weekday: "long" }).format(day),
+            new Intl.DateTimeFormat(undefined, {
+              month: "short",
+              day: "numeric",
+            }).format(day),
+          ]
+            .join(" · ")
+            .toUpperCase();
           const dayEvents = eventsByDay[getDateKey(day)] ?? [];
 
           return (
             <ScrollView
               key={day.toISOString()}
-              style={{
-                flex: 1,
-                backgroundColor: "black",
-              }}
+              style={{ flex: 1, backgroundColor: "transparent" }}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{
-                padding: 20,
-                paddingTop: insets.top + 16,
+                padding: 24,
+                paddingTop: insets.top + 28,
                 paddingBottom: 150,
-                gap: 24,
               }}
               refreshControl={
                 <RefreshControl
@@ -190,16 +203,22 @@ export default function HomeScreen() {
               }
             >
               <Animated.View style={entranceStyle}>
-                <View style={{ alignItems: "center", gap: 4 }}>
-                  <Text type="heading-4" color="#E5E7EB">
+                <View style={{ gap: 10 }}>
+                  <Eyebrow color="#737373">{dayDateLabel}</Eyebrow>
+                  <Text
+                    accessibilityRole="header"
+                    style={{
+                      fontFamily: appFonts.semiBold,
+                      fontSize: 36,
+                      lineHeight: 42,
+                      letterSpacing: -1.2,
+                    }}
+                  >
                     {dayGreeting}
-                  </Text>
-                  <Text type="text-medium" color="#9CA3AF">
-                    {dayDateLabel}
                   </Text>
                 </View>
 
-                <View style={{ marginTop: 24, gap: 24 }}>
+                <View style={{ marginTop: 40, gap: 36 }}>
                   {canShowCalendar ? (
                     <CalendarSection calendarEvents={dayEvents} />
                   ) : null}
@@ -236,8 +255,8 @@ export default function HomeScreen() {
           onPress={() => router.push("/(authenticated)/intake")}
           style={{
             borderTopWidth: 1,
-            borderTopColor: "#1F2937",
-            paddingHorizontal: 20,
+            borderTopColor: "#1A1A1A",
+            paddingHorizontal: 24,
             paddingTop: 16,
             paddingBottom: 22,
             flexDirection: "row",
@@ -245,10 +264,10 @@ export default function HomeScreen() {
             alignItems: "center",
           }}
         >
-          <Text type="text-medium" color="#9CA3AF">
+          <Text type="text-medium" color="#737373">
             View Intake List
           </Text>
-          <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
+          <Ionicons name="chevron-forward" size={18} color="#525252" />
         </Pressable>
       </View>
     </View>

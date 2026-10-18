@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { AppState, type AppStateStatus } from "react-native";
 import {
   EntityTypes,
   getCalendarPermissions,
@@ -129,6 +130,15 @@ export function useCalendarEvents({
 
   useEffect(() => {
     void loadCalendarEvents();
+  }, [loadCalendarEvents]);
+
+  useEffect(() => {
+    const onChange = (state: AppStateStatus) => {
+      if (state !== "active") return;
+      void loadCalendarEvents();
+    };
+    const subscription = AppState.addEventListener("change", onChange);
+    return () => subscription.remove();
   }, [loadCalendarEvents]);
 
   return {

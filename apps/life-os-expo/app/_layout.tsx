@@ -13,11 +13,19 @@ import { Platform, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Text from "@/components/ui/Text";
 import { useAuthBootstrap } from "@/hooks/useAuthBootstrap";
+import { useConvexForegroundReconnect } from "@/hooks/useConvexForegroundReconnect";
 import { useCalorieWidgetSync } from "@/widgets/useCalorieWidgetSync";
 import { useTodayWidgetSync } from "@/widgets/useTodayWidgetSync";
 
 const convexUrl = process.env.EXPO_PUBLIC_CONVEX_URL;
-const convexClient = convexUrl ? new ConvexReactClient(convexUrl) : null;
+const convexClient = convexUrl
+  ? new ConvexReactClient(convexUrl, {
+      unsavedChangesWarning: false,
+      // Hold queries until auth is ready so a resume cannot cache the
+      // logged-out empty bootstrap for the new day's date range.
+      expectAuth: true,
+    })
+  : null;
 const secureStorage = {
   getItem: SecureStore.getItemAsync,
   setItem: SecureStore.setItemAsync,
@@ -72,6 +80,7 @@ function AppRouter({ loadedFonts }: { loadedFonts: boolean }) {
 }
 
 export default function RootLayout() {
+  useConvexForegroundReconnect(convexClient);
   const [fontsLoaded] = useFonts({
     DMSans_400Regular,
     DMSans_500Medium,

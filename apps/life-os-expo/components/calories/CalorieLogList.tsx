@@ -3,6 +3,7 @@ import { api } from "@transcend/convex";
 import { useMutation } from "convex/react";
 import type { FunctionReturnType } from "convex/server";
 import { Ionicons } from "@expo/vector-icons";
+import LogCaloriesModal from "@/components/calories/LogCaloriesModal";
 import Text from "@/components/ui/Text";
 import {
   formatCalories,
@@ -19,13 +20,18 @@ type CalorieLog = FunctionReturnType<
 type CalorieLogListProps = {
   logs: CalorieLog[];
   todayKey: string;
+  showDateHeadings?: boolean;
+  emptyText?: string;
 };
 
 export default function CalorieLogList({
   logs,
   todayKey,
+  showDateHeadings = true,
+  emptyText = "No logs yet",
 }: CalorieLogListProps) {
   const [deletingId, setDeletingId] = useState<CalorieLog["_id"] | null>(null);
+  const [editingLog, setEditingLog] = useState<CalorieLog | null>(null);
   const deleteCalorieLog = useMutation(
     api.calorieLogs.deleteCalorieLog.deleteCalorieLog,
   ).withOptimisticUpdate((localStore, args) => {
@@ -90,7 +96,7 @@ export default function CalorieLogList({
   if (groups.length === 0) {
     return (
       <Text type="text-detail" color="#6B7280">
-        No logs yet
+        {emptyText}
       </Text>
     );
   }
@@ -99,9 +105,11 @@ export default function CalorieLogList({
     <View style={{ gap: 16 }}>
       {groups.map((group) => (
         <View key={group.date} style={{ gap: 4 }}>
-          <Text type="text-detail" color="#9CA3AF">
-            {formatLogDateHeading(group.date, todayKey)}
-          </Text>
+          {showDateHeadings ? (
+            <Text type="text-detail" color="#9CA3AF">
+              {formatLogDateHeading(group.date, todayKey)}
+            </Text>
+          ) : null}
           {group.entries.map((log) => {
             const deleting = deletingId === log._id;
             return (
@@ -111,20 +119,39 @@ export default function CalorieLogList({
                   minHeight: 40,
                   flexDirection: "row",
                   alignItems: "center",
+                  gap: 8,
                   opacity: deleting ? 0.45 : 1,
                 }}
               >
-                <Text type="text-semibold">
-                  {formatCalories(log.calories)} cal
-                </Text>
-                <Text
-                  type="text-regular"
-                  color="#9CA3AF"
-                  style={{ marginLeft: 12 }}
+                <View style={{ flex: 1, paddingVertical: 6 }}>
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <Text type="text-semibold">
+                      {formatCalories(log.calories)} cal
+                    </Text>
+                    <Text
+                      type="text-regular"
+                      color="#9CA3AF"
+                      style={{ marginLeft: 12 }}
+                    >
+                      {formatProtein(log.proteinG)}g protein
+                    </Text>
+                  </View>
+                  {log.description ? (
+                    <Text type="text-regular" color="#D4D4D4">
+                      {log.description}
+                    </Text>
+                  ) : null}
+                </View>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Edit ${formatCalories(log.calories)} calorie entry`}
+                  disabled={deletingId !== null}
+                  hitSlop={8}
+                  onPress={() => setEditingLog(log)}
+                  style={{ padding: 6, marginRight: 6 }}
                 >
-                  {formatProtein(log.proteinG)}g protein
-                </Text>
-                <View style={{ flex: 1 }} />
+                  <Ionicons name="pencil-outline" size={17} color="#9CA3AF" />
+                </Pressable>
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel={`Delete ${formatCalories(log.calories)} calorie entry`}
@@ -140,6 +167,11 @@ export default function CalorieLogList({
           })}
         </View>
       ))}
+      <LogCaloriesModal
+        visible={editingLog !== null}
+        log={editingLog ?? undefined}
+        onClose={() => setEditingLog(null)}
+      />
     </View>
   );
 }

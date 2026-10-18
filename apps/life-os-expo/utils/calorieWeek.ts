@@ -58,6 +58,17 @@ export function getSundayWeek(day: Date) {
   };
 }
 
+/** Previous Saturday through today. No days after today. */
+export function getFitnessLogDays(today: Date) {
+  const first = addDays(getSundayWeek(today).start, -1);
+  const lastKey = toLocalDateKey(today);
+  const days: Date[] = [];
+  for (let day = first; toLocalDateKey(day) <= lastKey; day = addDays(day, 1)) {
+    days.push(day);
+  }
+  return days;
+}
+
 export function eachDateKeyOfWeek(startKey: string) {
   const start = parseLocalDateKey(startKey);
   return Array.from({ length: 7 }, (_, index) =>
@@ -66,7 +77,9 @@ export function eachDateKeyOfWeek(startKey: string) {
 }
 
 /** Average of days that have logs. Days with no entries are left out. */
-export function averageLoggedDays<T extends DatedCalorieLog>(
+export function averageLoggedDays<
+  T extends Pick<DatedCalorieLog, "date" | "calories" | "proteinG">,
+>(
   logs: T[],
   startDate: string,
   endDateInclusive: string,
@@ -107,7 +120,9 @@ export function averageLoggedDays<T extends DatedCalorieLog>(
   };
 }
 
-export function groupLogsByDate<T extends DatedCalorieLog>(logs: T[]) {
+export function groupLogsByDate<T extends { date: string; createdAt: number }>(
+  logs: T[],
+) {
   const byDate = new Map<string, T[]>();
   for (const log of logs) {
     const entries = byDate.get(log.date);
