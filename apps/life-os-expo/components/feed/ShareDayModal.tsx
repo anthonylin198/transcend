@@ -131,7 +131,6 @@ function ShareCard({ day, width }: { day: ShareDay; width: number }) {
           A quiet day so far.
         </Text>
       ) : null}
-
     </View>
   );
 }

@@ -124,9 +124,7 @@ export default function CalorieLogList({
                 }}
               >
                 <View style={{ flex: 1, paddingVertical: 6 }}>
-                  <View
-                    style={{ flexDirection: "row", alignItems: "center" }}
-                  >
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
                     <Text type="text-semibold">
                       {formatCalories(log.calories)} cal
                     </Text>

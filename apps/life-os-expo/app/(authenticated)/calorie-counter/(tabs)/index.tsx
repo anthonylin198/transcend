@@ -298,8 +298,7 @@ export default function CalorieCounterScreen() {
   const week = getSundayWeek(today);
   const bootstrapRange = useMemo(() => getHomeBootstrapRange(today), [today]);
   const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, bootstrapRange);
-  const loading =
-    homeBootstrap === undefined || homeBootstrap.profile === null;
+  const loading = homeBootstrap === undefined || homeBootstrap.profile === null;
   const calorieLogs = homeBootstrap?.calorieLogs ?? [];
   const workoutLogs = homeBootstrap?.workoutLogs ?? [];
   const weekLogs = useMemo(
@@ -316,11 +315,7 @@ export default function CalorieCounterScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>
-      <PagerView
-        key={todayKey}
-        style={{ flex: 1 }}
-        initialPage={initialPage}
-      >
+      <PagerView key={todayKey} style={{ flex: 1 }} initialPage={initialPage}>
         {days.map((day) => (
           <View
             key={toLocalDateKey(day)}
