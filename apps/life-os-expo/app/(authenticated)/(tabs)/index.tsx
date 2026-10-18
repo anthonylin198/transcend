@@ -96,10 +96,14 @@ export default function HomeScreen() {
     });
   const calendarRangeKey = `${getDateKey(calendarRangeStart)}:${getDateKey(calendarRangeEnd)}`;
   const isSwitchingDay = visibleDayKey !== todayKey;
+  const [ignoreCalendarWait, setIgnoreCalendarWait] = useState(false);
+  const hasBootstrapProfile = homeBootstrap?.profile != null;
   const dayChangeReady =
     !isSwitchingDay ||
-    (homeBootstrap !== undefined &&
-      (!canShowCalendar || loadedRangeKey === calendarRangeKey));
+    (hasBootstrapProfile &&
+      (!canShowCalendar ||
+        ignoreCalendarWait ||
+        loadedRangeKey === calendarRangeKey));
   const entranceStyle = {
     opacity: entranceAnimation,
     transform: [
@@ -128,9 +132,14 @@ export default function HomeScreen() {
   }, [dayChangeReady, isSwitchingDay, todayKey]);
 
   useEffect(() => {
-    if (!isSwitchingDay) return;
+    if (!isSwitchingDay) {
+      setIgnoreCalendarWait(false);
+      return;
+    }
+    // Calendar can hang after a long suspend. Bootstrap still has to arrive
+    // for the new day; revealing early paints "No priorities" from empty data.
     const timeout = setTimeout(() => {
-      setVisibleDayKey(todayKey);
+      setIgnoreCalendarWait(true);
     }, DAY_CHANGE_REVEAL_TIMEOUT_MS);
     return () => clearTimeout(timeout);
   }, [isSwitchingDay, todayKey]);

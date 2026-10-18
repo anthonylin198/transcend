@@ -6,8 +6,10 @@ import type { FunctionArgs } from "convex/server";
 import { appFonts } from "@/constants/fonts";
 import Text from "@/components/ui/Text";
 import {
+  formatLongDate,
   formatProtein,
   parseCaloriesInput,
+  parseLocalDateKey,
   parseProteinInput,
   toLocalDateKey,
 } from "@/utils/calorieWeek";
@@ -31,6 +33,8 @@ type LogCaloriesModalProps = {
   onClose: () => void;
   /** When set, the modal edits this entry instead of creating one. */
   log?: EditableCalorieLog;
+  /** Local YYYY-MM-DD for a new entry. Defaults to today. */
+  date?: string;
 };
 
 function sanitizeCalories(value: string) {
@@ -134,9 +138,11 @@ function applyUpdateCalorieLogOptimisticUpdate(
 function LogCaloriesForm({
   onClose,
   log,
+  date,
 }: {
   onClose: () => void;
   log?: EditableCalorieLog;
+  date?: string;
 }) {
   const createCalorieLog = useMutation(
     api.calorieLogs.createCalorieLog.createCalorieLog,
@@ -187,7 +193,7 @@ function LogCaloriesForm({
         });
       } else {
         await createCalorieLog({
-          date: toLocalDateKey(new Date()),
+          date: date ?? toLocalDateKey(new Date()),
           calories: parsedCalories,
           proteinG: parsedProtein,
         });
@@ -248,9 +254,18 @@ function LogCaloriesForm({
               gap: 16,
             }}
           >
-            <Text type="heading-4" accessibilityRole="header">
-              {log ? "Edit Calories" : "Log Calories"}
-            </Text>
+            <View style={{ gap: 4 }}>
+              <Text type="heading-4" accessibilityRole="header">
+                {log ? "Edit Calories" : "Log Calories"}
+              </Text>
+              {!log ? (
+                <Text type="text-detail" color="#9CA3AF">
+                  {formatLongDate(
+                    parseLocalDateKey(date ?? toLocalDateKey(new Date())),
+                  )}
+                </Text>
+              ) : null}
+            </View>
 
             <View style={{ gap: 6 }}>
               <Text type="text-detail" color="#9CA3AF">
@@ -359,7 +374,8 @@ export default function LogCaloriesModal({
   visible,
   onClose,
   log,
+  date,
 }: LogCaloriesModalProps) {
   if (!visible) return null;
-  return <LogCaloriesForm onClose={onClose} log={log} />;
+  return <LogCaloriesForm onClose={onClose} log={log} date={date} />;
 }

@@ -5,7 +5,11 @@ import { useMutation } from "convex/react";
 import type { FunctionArgs } from "convex/server";
 import { appFonts } from "@/constants/fonts";
 import Text from "@/components/ui/Text";
-import { toLocalDateKey } from "@/utils/calorieWeek";
+import {
+  formatLongDate,
+  parseLocalDateKey,
+  toLocalDateKey,
+} from "@/utils/calorieWeek";
 import {
   KeyboardAvoidingView,
   Modal,
@@ -27,6 +31,8 @@ type LogWorkoutModalProps = {
   onClose: () => void;
   /** When set, the modal edits this workout instead of creating one. */
   log?: EditableWorkoutLog;
+  /** Local YYYY-MM-DD for a new workout. Defaults to today. */
+  date?: string;
 };
 
 type UpdateWorkoutLogArgs = FunctionArgs<
@@ -108,9 +114,11 @@ function applyCreateWorkoutLogOptimisticUpdate(
 function LogWorkoutForm({
   onClose,
   log,
+  date,
 }: {
   onClose: () => void;
   log?: EditableWorkoutLog;
+  date?: string;
 }) {
   const createWorkoutLog = useMutation(
     api.workoutLogs.createWorkoutLog.createWorkoutLog,
@@ -148,7 +156,7 @@ function LogWorkoutForm({
         await updateWorkoutLog({ workoutLogId: log._id, description });
       } else {
         await createWorkoutLog({
-          date: toLocalDateKey(new Date()),
+          date: date ?? toLocalDateKey(new Date()),
           description,
         });
       }
@@ -210,9 +218,18 @@ function LogWorkoutForm({
               gap: 16,
             }}
           >
-            <Text type="heading-4" accessibilityRole="header">
-              {log ? "Edit Workout" : "Log Workout"}
-            </Text>
+            <View style={{ gap: 4 }}>
+              <Text type="heading-4" accessibilityRole="header">
+                {log ? "Edit Workout" : "Log Workout"}
+              </Text>
+              {!log ? (
+                <Text type="text-detail" color="#9CA3AF">
+                  {formatLongDate(
+                    parseLocalDateKey(date ?? toLocalDateKey(new Date())),
+                  )}
+                </Text>
+              ) : null}
+            </View>
 
             <View style={{ gap: 6 }}>
               <Text type="text-detail" color="#9CA3AF">
@@ -299,7 +316,8 @@ export default function LogWorkoutModal({
   visible,
   onClose,
   log,
+  date,
 }: LogWorkoutModalProps) {
   if (!visible) return null;
-  return <LogWorkoutForm onClose={onClose} log={log} />;
+  return <LogWorkoutForm onClose={onClose} log={log} date={date} />;
 }

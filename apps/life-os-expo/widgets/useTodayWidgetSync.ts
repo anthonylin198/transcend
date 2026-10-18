@@ -27,7 +27,7 @@ export function useTodayWidgetSync(isAuthenticated: boolean | null) {
       clearTodayWidget();
       return;
     }
-    if (homeBootstrap === undefined) return;
+    if (homeBootstrap === undefined || homeBootstrap.profile === null) return;
     syncTodayWidget(
       {
         priorities: homeBootstrap.priorities,

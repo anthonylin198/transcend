@@ -58,6 +58,17 @@ export function getSundayWeek(day: Date) {
   };
 }
 
+/** Previous Saturday through today. No days after today. */
+export function getFitnessLogDays(today: Date) {
+  const first = addDays(getSundayWeek(today).start, -1);
+  const lastKey = toLocalDateKey(today);
+  const days: Date[] = [];
+  for (let day = first; toLocalDateKey(day) <= lastKey; day = addDays(day, 1)) {
+    days.push(day);
+  }
+  return days;
+}
+
 export function eachDateKeyOfWeek(startKey: string) {
   const start = parseLocalDateKey(startKey);
   return Array.from({ length: 7 }, (_, index) =>
