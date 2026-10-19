@@ -16,7 +16,13 @@ export type ShareDay = {
   dateKey: string;
   totals: { calories: number; proteinG: number } | null;
   workouts: { _id: string; description: string }[];
+  steps: number | null;
+  stepsPending: boolean;
 };
+
+function formatSteps(value: number) {
+  return Math.round(value).toLocaleString("en-US");
+}
 
 type ShareDayModalProps = {
   day: ShareDay | null;
@@ -37,7 +43,8 @@ function ShareCard({ day, width }: { day: ShareDay; width: number }) {
   })
     .format(date)
     .toUpperCase();
-  const hasAnything = day.totals !== null || day.workouts.length > 0;
+  const hasAnything =
+    day.totals !== null || day.workouts.length > 0 || day.steps !== null;
 
   return (
     <View
@@ -99,7 +106,7 @@ function ShareCard({ day, width }: { day: ShareDay; width: number }) {
         </View>
       ) : null}
 
-      {day.workouts.length > 0 ? (
+      {day.workouts.length > 0 || day.steps !== null ? (
         <View style={{ marginTop: 32, gap: 14 }}>
           <View style={{ height: 1, backgroundColor: faint }} />
           <Eyebrow>MOVEMENT</Eyebrow>
@@ -123,10 +130,29 @@ function ShareCard({ day, width }: { day: ShareDay; width: number }) {
               </Text>
             </View>
           ))}
+          {day.steps !== null ? (
+            <View
+              style={{
+                flexDirection: "row",
+                gap: 14,
+                alignItems: "flex-start",
+              }}
+            >
+              <Ionicons
+                name="footsteps-outline"
+                size={18}
+                color={muted}
+                style={{ marginTop: 3 }}
+              />
+              <Text type="heading-5" style={{ flex: 1 }}>
+                {`${formatSteps(day.steps)} steps`}
+              </Text>
+            </View>
+          ) : null}
         </View>
       ) : null}
 
-      {!hasAnything ? (
+      {!hasAnything && !day.stepsPending ? (
         <Text type="heading-5" color={muted} style={{ marginTop: 32 }}>
           A quiet day so far.
         </Text>

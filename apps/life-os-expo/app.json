@@ -41,6 +41,14 @@
         }
       ],
       [
+        "@kingstinct/react-native-healthkit",
+        {
+          "NSHealthShareUsageDescription": "Allow lifeOS to read your step count so an expanded day can show how much you've moved.",
+          "NSHealthUpdateUsageDescription": "lifeOS reads your step count and does not write health data.",
+          "background": false
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",

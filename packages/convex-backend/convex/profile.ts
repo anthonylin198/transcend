@@ -23,6 +23,7 @@ export const ensureProfile = mutation({
     await ctx.db.insert("profiles", {
       userId,
       calendarSyncEnabled: false,
+      healthSyncEnabled: false,
     });
   },
 });
@@ -67,6 +68,32 @@ export const setCalendarSyncEnabled = mutation({
     if (existingProfile) {
       await ctx.db.patch(existingProfile._id, {
         calendarSyncEnabled: args.enabled,
+      });
+      return;
+    }
+
+    throw new Error("Profile not initialized");
+  },
+});
+
+export const setHealthSyncEnabled = mutation({
+  args: {
+    enabled: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+
+    const existingProfile = await ctx.db
+      .query("profiles")
+      .withIndex("by_user_id", (q) => q.eq("userId", userId))
+      .unique();
+
+    if (existingProfile) {
+      await ctx.db.patch(existingProfile._id, {
+        healthSyncEnabled: args.enabled,
       });
       return;
     }

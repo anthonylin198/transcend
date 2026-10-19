@@ -95,7 +95,8 @@ const loadPerson = async (
 /**
  * The current user plus accepted friends (in the viewer's chosen order), each
  * with per-day calorie/protein totals, the calorie entries behind those
- * totals, and workouts for the range.
+ * totals, and workouts for the range. Also returns whether the viewer
+ * connected Apple Health. Step counts themselves stay on the device.
  */
 export const weeklyFeed = query({
   args: {
@@ -129,6 +130,10 @@ export const weeklyFeed = query({
         loadPerson(ctx, profileId, args.startDate, args.endDate),
       ),
     );
-    return { me, friends };
+    return {
+      me,
+      friends,
+      healthSyncEnabled: profile.healthSyncEnabled ?? false,
+    };
   },
 });

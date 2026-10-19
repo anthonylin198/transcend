@@ -7,6 +7,8 @@ export default defineSchema({
   profiles: defineTable({
     userId: v.string(),
     calendarSyncEnabled: v.boolean(),
+    // Device opt-in only. Step counts stay on the phone and are not stored here.
+    healthSyncEnabled: v.optional(v.boolean()),
     displayName: v.optional(v.string()),
     // Viewer-specific friend order for the Friends tab and feed. May contain
     // removed friends; friends missing from it sort after it by friend date.

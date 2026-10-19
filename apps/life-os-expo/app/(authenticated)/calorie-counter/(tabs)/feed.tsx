@@ -10,6 +10,7 @@ import CalorieAppHeader from "@/components/calories/CalorieAppHeader";
 import Eyebrow from "@/components/ui/Eyebrow";
 import ShareDayModal, { type ShareDay } from "@/components/feed/ShareDayModal";
 import Text from "@/components/ui/Text";
+import { useDaySteps } from "@/hooks/useDaySteps";
 import { useLocalToday } from "@/hooks/useLocalToday";
 import {
   addDays,
@@ -25,6 +26,10 @@ import {
 type FeedPerson = NonNullable<
   FunctionReturnType<typeof api.feed.weeklyFeed.weeklyFeed>
 >["me"];
+
+type OpenDay = Omit<ShareDay, "steps" | "stepsPending"> & {
+  isMine: boolean;
+};
 
 type DayEntry = {
   profileId: FeedPerson["profileId"];
@@ -215,7 +220,21 @@ export default function FeedScreen() {
     [week.endKey, week.startKey],
   );
   const feed = useQuery(api.feed.weeklyFeed.weeklyFeed, queryRange);
-  const [shareDay, setShareDay] = useState<ShareDay | null>(null);
+  const [openDay, setOpenDay] = useState<OpenDay | null>(null);
+  const healthEnabled = feed?.healthSyncEnabled ?? false;
+  const { steps, loading: stepsLoading } = useDaySteps(
+    openDay?.isMine && healthEnabled ? openDay.dateKey : null,
+  );
+  const shareDay: ShareDay | null = openDay
+    ? {
+        name: openDay.name,
+        dateKey: openDay.dateKey,
+        totals: openDay.totals,
+        workouts: openDay.workouts,
+        steps: openDay.isMine && healthEnabled ? steps : null,
+        stepsPending: openDay.isMine && healthEnabled && stepsLoading,
+      }
+    : null;
 
   const days = useMemo(() => {
     if (!feed) return [];
@@ -322,7 +341,8 @@ export default function FeedScreen() {
                       key={entry.profileId}
                       entry={entry}
                       onExpand={() =>
-                        setShareDay({
+                        setOpenDay({
+                          isMine: entry.profileId === feed.me.profileId,
                           name:
                             entry.profileId === feed.me.profileId
                               ? (feed.me.displayName ?? "You")
@@ -365,7 +385,7 @@ export default function FeedScreen() {
         )}
       </ScrollView>
 
-      <ShareDayModal day={shareDay} onClose={() => setShareDay(null)} />
+      <ShareDayModal day={shareDay} onClose={() => setOpenDay(null)} />
     </View>
   );
 }
