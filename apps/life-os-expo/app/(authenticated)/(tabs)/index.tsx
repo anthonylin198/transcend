@@ -13,7 +13,6 @@ import {
 } from "@/components/home/hooks/useCalendarEvents";
 import Eyebrow from "@/components/ui/Eyebrow";
 import Rings from "@/components/ui/Rings";
-import SplashCover from "@/components/ui/SplashCover";
 import Text from "@/components/ui/Text";
 import { appFonts } from "@/constants/fonts";
 import { useLocalToday } from "@/hooks/useLocalToday";
@@ -62,14 +61,10 @@ function getGreeting(value: Date, today: Date) {
   return new Intl.DateTimeFormat(undefined, { weekday: "long" }).format(value);
 }
 
-const DAY_CHANGE_REVEAL_TIMEOUT_MS = 12_000;
-
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const today = useLocalToday();
-  const todayKey = getDateKey(today);
-  const [visibleDayKey, setVisibleDayKey] = useState(todayKey);
   const bootstrapRange = useMemo(() => getHomeBootstrapRange(today), [today]);
   const days = useMemo(
     () =>
@@ -89,21 +84,10 @@ export default function HomeScreen() {
   const entranceAnimation = useRef(new Animated.Value(0)).current;
   const pagerRef = useRef<PagerView>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const { eventsByDay, loadedRangeKey, reloadCalendarEvents } =
-    useCalendarEvents({
-      startDate: calendarRangeStart,
-      endDate: calendarRangeEnd,
-    });
-  const calendarRangeKey = `${getDateKey(calendarRangeStart)}:${getDateKey(calendarRangeEnd)}`;
-  const isSwitchingDay = visibleDayKey !== todayKey;
-  const [ignoreCalendarWait, setIgnoreCalendarWait] = useState(false);
-  const hasBootstrapProfile = homeBootstrap?.profile != null;
-  const dayChangeReady =
-    !isSwitchingDay ||
-    (hasBootstrapProfile &&
-      (!canShowCalendar ||
-        ignoreCalendarWait ||
-        loadedRangeKey === calendarRangeKey));
+  const { eventsByDay, reloadCalendarEvents } = useCalendarEvents({
+    startDate: calendarRangeStart,
+    endDate: calendarRangeEnd,
+  });
   const entranceStyle = {
     opacity: entranceAnimation,
     transform: [
@@ -126,24 +110,6 @@ export default function HomeScreen() {
     }).start();
   }, [entranceAnimation]);
 
-  useEffect(() => {
-    if (!dayChangeReady || !isSwitchingDay) return;
-    setVisibleDayKey(todayKey);
-  }, [dayChangeReady, isSwitchingDay, todayKey]);
-
-  useEffect(() => {
-    if (!isSwitchingDay) {
-      setIgnoreCalendarWait(false);
-      return;
-    }
-    // Calendar can hang after a long suspend. Bootstrap still has to arrive
-    // for the new day; revealing early paints "No priorities" from empty data.
-    const timeout = setTimeout(() => {
-      setIgnoreCalendarWait(true);
-    }, DAY_CHANGE_REVEAL_TIMEOUT_MS);
-    return () => clearTimeout(timeout);
-  }, [isSwitchingDay, todayKey]);
-
   const onRefresh = async () => {
     setIsRefreshing(true);
     pagerRef.current?.setPage(initialPage);
@@ -153,10 +119,6 @@ export default function HomeScreen() {
       setIsRefreshing(false);
     }
   };
-
-  if (!dayChangeReady) {
-    return <SplashCover />;
-  }
 
   return (
     <View style={{ flex: 1, backgroundColor: "black", overflow: "hidden" }}>

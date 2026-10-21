@@ -29,12 +29,7 @@ export default function CalendarSection({
 
   return (
     <View style={{ gap: 14 }}>
-      <SectionHeader
-        title="CALENDAR"
-        meta={
-          calendarEvents.length > 0 ? String(calendarEvents.length) : undefined
-        }
-      />
+      <SectionHeader title="CALENDAR" />
       {calendarEvents.length === 0 ? (
         <Text type="text-regular" color="#525252">
           No events

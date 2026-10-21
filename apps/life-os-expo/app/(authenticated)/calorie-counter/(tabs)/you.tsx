@@ -7,6 +7,7 @@ import type { FunctionReturnType } from "convex/server";
 import { Ionicons } from "@expo/vector-icons";
 import {
   Alert,
+  Platform,
   Pressable,
   ScrollView,
   TextInput,
@@ -16,6 +17,7 @@ import {
 import Sortable from "react-native-sortables";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CalorieAppHeader from "@/components/calories/CalorieAppHeader";
+import { requestStepCountAccess } from "@/components/health/appleHealth";
 import Text from "@/components/ui/Text";
 import { appFonts } from "@/constants/fonts";
 
@@ -140,6 +142,83 @@ function DisplayNameEditor({
         </Text>
       ) : null}
     </View>
+  );
+}
+
+function AppleHealthSection({ enabled }: { enabled: boolean }) {
+  const setHealthSyncEnabled = useMutation(api.profile.setHealthSyncEnabled);
+  const [syncing, setSyncing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const onToggle = async () => {
+    if (syncing) return;
+    if (Platform.OS !== "ios") {
+      const message = "Apple Health is only available on iOS.";
+      setError(message);
+      Alert.alert("Apple Health", message);
+      return;
+    }
+
+    setSyncing(true);
+    setError(null);
+    try {
+      if (enabled) {
+        await setHealthSyncEnabled({ enabled: false });
+        return;
+      }
+      await requestStepCountAccess();
+      await setHealthSyncEnabled({ enabled: true });
+    } catch (toggleError) {
+      const message = errorMessage(
+        toggleError,
+        "Could not update Apple Health",
+      );
+      setError(message);
+      Alert.alert("Apple Health", message);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  return (
+    <>
+      <SectionTitle>Apple Health</SectionTitle>
+      <Text type="text-detail" color="#9CA3AF">
+        Step count is added under Movement when you expand your day.
+      </Text>
+      <View
+        style={{
+          marginTop: 12,
+          minHeight: 52,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 12,
+        }}
+      >
+        <Text type="text-medium" style={{ flex: 1 }}>
+          {enabled ? "Connected" : "Not connected"}
+        </Text>
+        <SmallButton
+          label={
+            syncing
+              ? enabled
+                ? "Disconnecting..."
+                : "Connecting..."
+              : enabled
+                ? "Disconnect"
+                : "Connect"
+          }
+          onPress={() => void onToggle()}
+          disabled={syncing || Platform.OS !== "ios"}
+          primary={!enabled}
+        />
+      </View>
+      {error ? (
+        <Text type="text-detail" color="#F87171">
+          {error}
+        </Text>
+      ) : null}
+    </>
   );
 }
 
@@ -391,6 +470,8 @@ export default function YouScreen() {
                 </View>
               )}
             </View>
+
+            <AppleHealthSection enabled={data.me.healthSyncEnabled} />
 
             <SectionTitle>Add a friend by email</SectionTitle>
             <AddFriendForm />

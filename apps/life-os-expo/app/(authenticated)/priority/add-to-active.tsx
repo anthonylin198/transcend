@@ -7,6 +7,8 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Alert, Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import ActiveDayField from "@/components/priorities/ActiveDayField";
+import Eyebrow from "@/components/ui/Eyebrow";
 import Text from "@/components/ui/Text";
 import { getHomeBootstrapRange } from "@/utils/homeBootstrapRange";
 
@@ -16,6 +18,8 @@ type PriorityItem = {
   name: string;
   status: "todo" | "next_up" | "done";
   isActive: boolean;
+  activeDateKey?: string;
+  activatedAt?: number;
   orderIndex: number;
 };
 
@@ -35,6 +39,14 @@ function toDateKey(value: Date | number) {
 
 function getActivationTimestampMs() {
   return Date.now();
+}
+
+function readActiveDateKey(priority: PriorityItem) {
+  if (!priority.isActive) return null;
+  if (priority.activeDateKey) return priority.activeDateKey;
+  if (priority.activatedAt !== undefined)
+    return toDateKey(priority.activatedAt);
+  return null;
 }
 
 type HomeBootstrapRange = ReturnType<typeof getHomeBootstrapRange>;
@@ -142,27 +154,36 @@ export default function AddToActiveScreen() {
     .filter((group) => group.priorities.length > 0);
 
   const groups: Group[] = [...projectGroups];
-  groups.push({
-    key: "unlinked",
-    title: "Unlinked Priorities",
-    priorities: unlinked.sort((a, b) => a.orderIndex - b.orderIndex),
-  });
+  if (unlinked.length > 0) {
+    groups.push({
+      key: "unlinked",
+      title: "Unlinked Priorities",
+      priorities: unlinked.sort((a, b) => a.orderIndex - b.orderIndex),
+    });
+  }
 
-  const onToggleActive = async (priority: PriorityItem) => {
-    const nextIsActive = !priority.isActive;
-    const activatedAtMs = nextIsActive ? getActivationTimestampMs() : undefined;
-    const activeDateKey = nextIsActive ? toDateKey(selectedDateMs) : undefined;
+  const showingDateKey = toDateKey(selectedDateMs);
+
+  const onSetActiveDate = async (
+    priority: PriorityItem,
+    nextDateKey: string | null,
+  ) => {
+    const turningOn = nextDateKey !== null;
     try {
       await setPriorityActive({
         priorityId: priority._id as never,
-        isActive: nextIsActive,
-        activatedAtMs,
-        activeDateKey,
+        isActive: turningOn,
+        activatedAtMs: turningOn
+          ? priority.isActive
+            ? priority.activatedAt
+            : getActivationTimestampMs()
+          : undefined,
+        activeDateKey: turningOn ? nextDateKey : undefined,
       } as never);
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Failed to activate priority";
-      Alert.alert("Could not add priority", message);
+        error instanceof Error ? error.message : "Failed to update priority";
+      Alert.alert("Could not update priority", message);
     }
   };
 
@@ -174,6 +195,7 @@ export default function AddToActiveScreen() {
           paddingHorizontal: 16,
           borderBottomWidth: 1,
           borderBottomColor: "#1F2937",
+          backgroundColor: "black",
         }}
       >
         <View
@@ -190,44 +212,39 @@ export default function AddToActiveScreen() {
           <View>
             <Text type="heading-4">Add to Active</Text>
             <Text type="text-detail" color="#9CA3AF">
-              Select priorities to work on this day
+              Set the active day for each priority
             </Text>
           </View>
         </View>
       </View>
 
       <ScrollView
-        contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 40 }}
+        contentContainerStyle={{
+          paddingHorizontal: 24,
+          paddingTop: 28,
+          paddingBottom: 40,
+          gap: 36,
+        }}
       >
         {groups.length === 0 ? (
-          <Text type="text-regular" color="#9CA3AF">
+          <Text type="text-regular" color="#525252">
             No next priorities available.
           </Text>
         ) : (
           groups.map((group) => (
-            <View
-              key={group.key}
-              style={{
-                borderRadius: 12,
-                borderWidth: 1,
-                borderColor: "#1F2937",
-                overflow: "hidden",
-              }}
-            >
+            <View key={group.key} style={{ gap: 14 }}>
               <View
                 style={{
-                  paddingHorizontal: 14,
-                  paddingVertical: 12,
-                  borderBottomWidth: 1,
-                  borderBottomColor: "#1F2937",
                   flexDirection: "row",
                   alignItems: "center",
                   justifyContent: "space-between",
                 }}
               >
-                <Text type="text-semibold">{group.title}</Text>
+                <Eyebrow>{group.title.toUpperCase()}</Eyebrow>
                 {group.key !== "unlinked" ? (
                   <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`Add priority to ${group.title}`}
                     onPress={() =>
                       router.push({
                         pathname: "/(authenticated)/priority/add-priority",
@@ -239,64 +256,54 @@ export default function AddToActiveScreen() {
                         },
                       })
                     }
-                    style={{ padding: 4 }}
+                    hitSlop={8}
+                    style={{ padding: 2 }}
                   >
-                    <Ionicons name="add" size={20} color="#9CA3AF" />
+                    <Ionicons name="add" size={20} color="#525252" />
                   </Pressable>
                 ) : null}
               </View>
-              <View>
-                {group.priorities.length === 0 ? (
-                  <Text
-                    type="text-detail"
-                    color="#6B7280"
-                    style={{ paddingHorizontal: 14, paddingVertical: 12 }}
+              <View style={{ gap: 16 }}>
+                {group.priorities.map((priority) => (
+                  <View
+                    key={priority._id}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 12,
+                    }}
                   >
-                    No priorities
-                  </Text>
-                ) : (
-                  group.priorities.map((priority, index) => {
-                    const actionLabel = priority.isActive ? "Remove" : "Add";
-                    return (
-                      <View
-                        key={priority._id}
-                        style={{
-                          paddingHorizontal: 14,
-                          paddingVertical: 12,
-                          borderTopWidth: index === 0 ? 0 : 1,
-                          borderTopColor: "#1F2937",
-                          flexDirection: "row",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          gap: 10,
-                        }}
-                      >
-                        <Text type="text-regular" style={{ flex: 1 }}>
-                          {priority.name}
-                        </Text>
-                        <Pressable
-                          onPress={() => void onToggleActive(priority)}
-                          style={{
-                            borderWidth: 1,
-                            borderColor: priority.isActive
-                              ? "#7F1D1D"
-                              : "#374151",
-                            borderRadius: 8,
-                            paddingHorizontal: 12,
-                            paddingVertical: 5,
-                          }}
-                        >
-                          <Text
-                            type="text-detail"
-                            color={priority.isActive ? "#FCA5A5" : "#D1D5DB"}
-                          >
-                            {actionLabel}
-                          </Text>
-                        </Pressable>
-                      </View>
-                    );
-                  })
-                )}
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={priority.name}
+                      onPress={() =>
+                        router.push({
+                          pathname: "/(authenticated)/priority/[priorityId]",
+                          params: {
+                            priorityId: priority._id,
+                            initialPriority: JSON.stringify(priority),
+                            selectedDateMs: String(selectedDateMs),
+                          },
+                        })
+                      }
+                      style={({ pressed }) => ({
+                        flex: 1,
+                        opacity: pressed ? 0.7 : 1,
+                      })}
+                    >
+                      <Text type="text-regular">{priority.name}</Text>
+                    </Pressable>
+                    <ActiveDayField
+                      variant="value"
+                      activeDateKey={readActiveDateKey(priority)}
+                      defaultDateKey={showingDateKey}
+                      onChange={(nextDateKey) =>
+                        void onSetActiveDate(priority, nextDateKey)
+                      }
+                    />
+                  </View>
+                ))}
               </View>
             </View>
           ))

@@ -157,12 +157,14 @@ export default function PrioritiesSection({
       | "/(authenticated)/priority/add-to-active",
     params: Record<string, string>,
   ) => {
-    setQuickAddModalOpen(false);
+    router.push({
+      pathname: route,
+      params,
+    });
+    // The modal sits above the next screen. Push first, then drop it on the
+    // next frame so coming back doesn't show Quick Add again.
     requestAnimationFrame(() => {
-      router.push({
-        pathname: route,
-        params,
-      });
+      setQuickAddModalOpen(false);
     });
   };
 
@@ -371,34 +373,54 @@ export default function PrioritiesSection({
         </Text>
       </Pressable>
 
-      <Modal visible={quickAddModalOpen} transparent animationType="none">
-        <Pressable
-          onPress={() => setQuickAddModalOpen(false)}
+      <Modal
+        visible={quickAddModalOpen}
+        transparent
+        animationType="none"
+        onRequestClose={() => setQuickAddModalOpen(false)}
+      >
+        <View
           style={{
             flex: 1,
-            backgroundColor: "rgba(0,0,0,0.55)",
-            justifyContent: "flex-end",
+            backgroundColor: "rgba(0,0,0,0.64)",
+            justifyContent: "center",
+            padding: 20,
           }}
         >
           <Pressable
-            onPress={(event) => event.stopPropagation()}
+            accessibilityRole="button"
+            accessibilityLabel="Dismiss quick add"
+            onPress={() => setQuickAddModalOpen(false)}
             style={{
-              borderTopLeftRadius: 20,
-              borderTopRightRadius: 20,
-              backgroundColor: "black",
-              borderTopWidth: 1,
-              borderTopColor: "#1F2937",
-              paddingHorizontal: 16,
-              paddingTop: 20,
-              paddingBottom: 24,
-              gap: 14,
+              position: "absolute",
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0,
+            }}
+          />
+          <View
+            accessibilityViewIsModal
+            style={{
+              zIndex: 1,
+              alignSelf: "center",
+              width: "100%",
+              maxWidth: 420,
+              backgroundColor: "#111111",
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: "#2A2A2A",
+              padding: 20,
+              gap: 20,
             }}
           >
-            <Text type="heading-4" style={{ textAlign: "center" }}>
+            <Text type="heading-4" accessibilityRole="header">
               Quick Add
             </Text>
-            <View style={{ flexDirection: "row", gap: 12 }}>
+            <View style={{ flexDirection: "row", gap: 10 }}>
               <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Add new priority"
                 onPress={() => {
                   navigateFromQuickAdd(
                     "/(authenticated)/priority/add-priority",
@@ -411,21 +433,25 @@ export default function PrioritiesSection({
                 }}
                 style={{
                   flex: 1,
+                  minHeight: 96,
                   borderRadius: 10,
                   borderWidth: 1,
-                  borderColor: "#1F2937",
-                  paddingVertical: 18,
+                  borderColor: "#374151",
                   paddingHorizontal: 12,
+                  paddingVertical: 16,
                   alignItems: "center",
+                  justifyContent: "center",
                   gap: 10,
                 }}
               >
-                <Ionicons name="add" size={22} color="#E5E7EB" />
+                <Ionicons name="add" size={22} color="#F9FAFB" />
                 <Text type="text-medium" style={{ textAlign: "center" }}>
                   Add New Priority
                 </Text>
               </Pressable>
               <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="From next priorities"
                 onPress={() => {
                   navigateFromQuickAdd(
                     "/(authenticated)/priority/add-to-active",
@@ -436,23 +462,25 @@ export default function PrioritiesSection({
                 }}
                 style={{
                   flex: 1,
+                  minHeight: 96,
                   borderRadius: 10,
                   borderWidth: 1,
-                  borderColor: "#1F2937",
-                  paddingVertical: 18,
+                  borderColor: "#374151",
                   paddingHorizontal: 12,
+                  paddingVertical: 16,
                   alignItems: "center",
+                  justifyContent: "center",
                   gap: 10,
                 }}
               >
-                <Ionicons name="list" size={20} color="#E5E7EB" />
+                <Ionicons name="list" size={20} color="#F9FAFB" />
                 <Text type="text-medium" style={{ textAlign: "center" }}>
                   From Next Priorities
                 </Text>
               </Pressable>
             </View>
-          </Pressable>
-        </Pressable>
+          </View>
+        </View>
       </Modal>
     </View>
   );

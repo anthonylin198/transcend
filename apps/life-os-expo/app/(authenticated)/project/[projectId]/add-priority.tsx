@@ -16,8 +16,10 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import ActiveDayField from "@/components/priorities/ActiveDayField";
 import Text from "@/components/ui/Text";
 import { appFonts } from "@/constants/fonts";
+import { toLocalDateKey } from "@/utils/calorieWeek";
 import { getHomeBootstrapRange } from "@/utils/homeBootstrapRange";
 
 const STATUS_OPTIONS = [
@@ -168,8 +170,13 @@ export default function AddPriorityScreen() {
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const showingDateKey = toLocalDateKey(
+    selectedDateMs !== undefined ? new Date(selectedDateMs) : new Date(),
+  );
   const [status, setStatus] = useState<PriorityStatus>(defaultStatus);
-  const [isActive, setIsActive] = useState(defaultIsActive);
+  const [activeDateKey, setActiveDateKey] = useState<string | null>(
+    defaultIsActive ? showingDateKey : null,
+  );
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
     projectId ?? null,
   );
@@ -180,14 +187,10 @@ export default function AddPriorityScreen() {
   const onCreate = async () => {
     if (!canSubmit) return;
     const now = Date.now();
-    const activatedAtMs =
-      isActive && status === "next_up"
-        ? getActivatedAtMsForSelectedDay(selectedDateMs)
-        : undefined;
-    const activeDateKey =
-      isActive && status === "next_up"
-        ? toDateKey(selectedDateMs ?? activatedAtMs ?? now)
-        : undefined;
+    const isActive = activeDateKey !== null;
+    const activatedAtMs = isActive
+      ? getActivatedAtMsForSelectedDay(selectedDateMs)
+      : undefined;
     const completedAtMs =
       status === "done" ? (selectedDateMs ?? now) : undefined;
     const createInput = selectedProjectId
@@ -198,7 +201,7 @@ export default function AddPriorityScreen() {
           status,
           isActive,
           activatedAtMs,
-          activeDateKey,
+          activeDateKey: isActive ? activeDateKey : undefined,
           completedAtMs,
           completedDateKey:
             status === "done" ? toDateKey(completedAtMs ?? now) : undefined,
@@ -209,7 +212,7 @@ export default function AddPriorityScreen() {
           status,
           isActive,
           activatedAtMs,
-          activeDateKey,
+          activeDateKey: isActive ? activeDateKey : undefined,
           completedAtMs,
           completedDateKey:
             status === "done" ? toDateKey(completedAtMs ?? now) : undefined,
@@ -339,23 +342,11 @@ export default function AddPriorityScreen() {
           </View>
         </View>
 
-        <Pressable
-          onPress={() => setIsActive((value) => !value)}
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            paddingVertical: 4,
-          }}
-        >
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-            <Ionicons name="calendar-clear-outline" size={20} color="#9CA3AF" />
-            <Text type="text-regular">Active</Text>
-          </View>
-          <Text type="text-semibold" color="#D1D5DB">
-            {isActive ? "Yes" : "No"}
-          </Text>
-        </Pressable>
+        <ActiveDayField
+          activeDateKey={activeDateKey}
+          defaultDateKey={showingDateKey}
+          onChange={setActiveDateKey}
+        />
 
         <TextInput
           value={description}

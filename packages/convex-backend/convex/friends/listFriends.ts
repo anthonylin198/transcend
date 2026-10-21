@@ -54,7 +54,11 @@ export const listFriends = query({
     ]);
 
     return {
-      me: { profileId: profile._id, displayName: profile.displayName ?? null },
+      me: {
+        profileId: profile._id,
+        displayName: profile.displayName ?? null,
+        healthSyncEnabled: profile.healthSyncEnabled ?? false,
+      },
       friends: sortByFriendOrder(friends, profile.friendOrder),
       incoming: incoming.sort((a, b) => b.createdAt - a.createdAt),
       outgoing: outgoing.sort((a, b) => b.createdAt - a.createdAt),
