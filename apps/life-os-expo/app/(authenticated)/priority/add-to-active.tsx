@@ -271,9 +271,26 @@ export default function AddToActiveScreen() {
                           gap: 10,
                         }}
                       >
-                        <Text type="text-regular" style={{ flex: 1 }}>
-                          {priority.name}
-                        </Text>
+                        <Pressable
+                          accessibilityRole="button"
+                          accessibilityLabel={priority.name}
+                          onPress={() =>
+                            router.push({
+                              pathname: "/(authenticated)/priority/[priorityId]",
+                              params: {
+                                priorityId: priority._id,
+                                initialPriority: JSON.stringify(priority),
+                                selectedDateMs: String(selectedDateMs),
+                              },
+                            })
+                          }
+                          style={({ pressed }) => ({
+                            flex: 1,
+                            opacity: pressed ? 0.7 : 1,
+                          })}
+                        >
+                          <Text type="text-regular">{priority.name}</Text>
+                        </Pressable>
                         <Pressable
                           onPress={() => void onToggleActive(priority)}
                           style={{

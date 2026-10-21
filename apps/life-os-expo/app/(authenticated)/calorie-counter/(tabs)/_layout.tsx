@@ -3,6 +3,7 @@ import * as Haptics from "expo-haptics";
 import { Tabs, usePathname } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { View } from "react-native";
+import DayChangeCover from "@/components/ui/DayChangeCover";
 import { appFonts } from "@/constants/fonts";
 
 export default function CalorieCounterTabLayout() {
@@ -65,6 +66,7 @@ export default function CalorieCounterTabLayout() {
           }}
         />
       </Tabs>
+      <DayChangeCover />
     </View>
   );
 }
