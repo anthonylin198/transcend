@@ -17,6 +17,7 @@ import {
   DescriptionTextInput,
   KeyboardAwareFormScroll,
 } from "@/components/ui/KeyboardAwareFormScroll";
+import ActiveDayField from "@/components/priorities/ActiveDayField";
 import Text from "@/components/ui/Text";
 import { appFonts } from "@/constants/fonts";
 import { getHomeBootstrapRange } from "@/utils/homeBootstrapRange";
@@ -34,8 +35,21 @@ type InitialPriority = {
   description?: string;
   status: PriorityStatus;
   isActive?: boolean;
+  activeDateKey?: string;
+  activatedAt?: number;
   projectId?: string;
 };
+
+function readActiveDateKey(priority: {
+  isActive?: boolean;
+  activeDateKey?: string;
+  activatedAt?: number;
+} | null | undefined) {
+  if (!priority?.isActive) return null;
+  if (priority.activeDateKey) return priority.activeDateKey;
+  if (priority.activatedAt !== undefined) return toDateKey(priority.activatedAt);
+  return null;
+}
 
 function toDateKey(value: Date | number) {
   const date = new Date(value);
@@ -95,7 +109,9 @@ export default function PriorityDetailScreen() {
   const [name, setName] = useState<string | null>(null);
   const [description, setDescription] = useState<string | null>(null);
   const [status, setStatus] = useState<PriorityStatus | null>(null);
-  const [isActive, setIsActive] = useState<boolean | null>(null);
+  const [activeDateDraft, setActiveDateDraft] = useState<
+    string | null | undefined
+  >(undefined);
   const [projectId, setProjectId] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [projectModalOpen, setProjectModalOpen] = useState(false);
@@ -166,7 +182,10 @@ export default function PriorityDetailScreen() {
   const currentName = name ?? priority?.name ?? "";
   const currentDescription = description ?? priority?.description ?? "";
   const currentStatus = status ?? priority?.status ?? "todo";
-  const currentIsActive = isActive ?? priority?.isActive ?? false;
+  const savedActiveDateKey = readActiveDateKey(priority);
+  const currentActiveDateKey =
+    activeDateDraft === undefined ? savedActiveDateKey : activeDateDraft;
+  const showingDateKey = toDateKey(selectedDateMs ?? Date.now());
   const currentProjectId = useMemo(() => {
     if (projectId !== null) return projectId;
     if (priority?.projectId) return priority.projectId;
@@ -208,16 +227,17 @@ export default function PriorityDetailScreen() {
           });
         }
 
-        if (currentIsActive !== priority.isActive) {
-          const activationNow = Date.now();
-          const activeDateReferenceMs = selectedDateMs ?? activationNow;
+        if (currentActiveDateKey !== savedActiveDateKey) {
+          const turningOn = currentActiveDateKey !== null;
           await setPriorityActive({
             priorityId: priority._id as never,
-            isActive: currentIsActive,
-            activatedAtMs: currentIsActive ? activationNow : undefined,
-            activeDateKey: currentIsActive
-              ? toDateKey(activeDateReferenceMs)
+            isActive: turningOn,
+            activatedAtMs: turningOn
+              ? priority.isActive
+                ? priority.activatedAt
+                : Date.now()
               : undefined,
+            activeDateKey: turningOn ? currentActiveDateKey : undefined,
           });
         }
 
@@ -372,23 +392,12 @@ export default function PriorityDetailScreen() {
           </View>
         </View>
 
-        <Pressable
-          onPress={() => setIsActive(!currentIsActive)}
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            paddingVertical: 4,
-          }}
-        >
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-            <Ionicons name="calendar-clear-outline" size={20} color="#9CA3AF" />
-            <Text type="text-regular">Active</Text>
-          </View>
-          <Text type="text-semibold" color="#D1D5DB">
-            {currentIsActive ? "Yes" : "No"}
-          </Text>
-        </Pressable>
+        <ActiveDayField
+          activeDateKey={currentActiveDateKey}
+          defaultDateKey={showingDateKey}
+          onChange={setActiveDateDraft}
+          disabled={!hasLoaded || saving}
+        />
 
         <DescriptionTextInput
           value={currentDescription}
