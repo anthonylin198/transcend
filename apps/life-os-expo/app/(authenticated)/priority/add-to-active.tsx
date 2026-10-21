@@ -276,7 +276,8 @@ export default function AddToActiveScreen() {
                           accessibilityLabel={priority.name}
                           onPress={() =>
                             router.push({
-                              pathname: "/(authenticated)/priority/[priorityId]",
+                              pathname:
+                                "/(authenticated)/priority/[priorityId]",
                               params: {
                                 priorityId: priority._id,
                                 initialPriority: JSON.stringify(priority),

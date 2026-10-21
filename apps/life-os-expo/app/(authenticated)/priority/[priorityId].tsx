@@ -40,14 +40,20 @@ type InitialPriority = {
   projectId?: string;
 };
 
-function readActiveDateKey(priority: {
-  isActive?: boolean;
-  activeDateKey?: string;
-  activatedAt?: number;
-} | null | undefined) {
+function readActiveDateKey(
+  priority:
+    | {
+        isActive?: boolean;
+        activeDateKey?: string;
+        activatedAt?: number;
+      }
+    | null
+    | undefined,
+) {
   if (!priority?.isActive) return null;
   if (priority.activeDateKey) return priority.activeDateKey;
-  if (priority.activatedAt !== undefined) return toDateKey(priority.activatedAt);
+  if (priority.activatedAt !== undefined)
+    return toDateKey(priority.activatedAt);
   return null;
 }
 
