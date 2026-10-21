@@ -191,7 +191,8 @@ export default function PriorityDetailScreen() {
   const savedActiveDateKey = readActiveDateKey(priority);
   const currentActiveDateKey =
     activeDateDraft === undefined ? savedActiveDateKey : activeDateDraft;
-  const showingDateKey = toDateKey(selectedDateMs ?? Date.now());
+  const showingDateKey =
+    selectedDateMs !== undefined ? toDateKey(selectedDateMs) : undefined;
   const currentProjectId = useMemo(() => {
     if (projectId !== null) return projectId;
     if (priority?.projectId) return priority.projectId;

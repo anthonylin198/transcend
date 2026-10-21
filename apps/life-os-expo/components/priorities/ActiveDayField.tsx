@@ -12,9 +12,12 @@ import {
 
 type ActiveDayFieldProps = {
   activeDateKey: string | null;
-  defaultDateKey: string;
+  /** Day to use when turning an inactive priority on. Falls back to today. */
+  defaultDateKey?: string;
   onChange: (activeDateKey: string | null) => void;
   disabled?: boolean;
+  /** `value` shows only the day, for use beside a priority name. */
+  variant?: "field" | "value";
 };
 
 function formatActiveDay(dateKey: string) {
@@ -43,15 +46,20 @@ export default function ActiveDayField({
   defaultDateKey,
   onChange,
   disabled,
+  variant = "field",
 }: ActiveDayFieldProps) {
   const [open, setOpen] = useState(false);
-  const label = activeDateKey ? formatActiveDay(activeDateKey) : "No";
+  const label = activeDateKey
+    ? formatActiveDay(activeDateKey)
+    : variant === "value"
+      ? "Make active"
+      : "No";
 
   const onPress = () => {
     if (disabled) return;
     if (!activeDateKey) {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      onChange(defaultDateKey);
+      onChange(defaultDateKey ?? toLocalDateKey(new Date()));
       return;
     }
     setOpen(true);
@@ -67,27 +75,33 @@ export default function ActiveDayField({
     <View>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`Active, ${label}`}
+        accessibilityLabel={
+          variant === "value" ? `Active day, ${label}` : `Active, ${label}`
+        }
         accessibilityState={{ disabled }}
         disabled={disabled}
         onPress={onPress}
+        hitSlop={variant === "value" ? 8 : undefined}
         style={{
           flexDirection: "row",
-          justifyContent: "space-between",
+          justifyContent: variant === "value" ? "flex-end" : "space-between",
           alignItems: "center",
+          gap: variant === "value" ? 4 : 8,
           paddingVertical: 4,
           opacity: disabled ? 0.5 : 1,
         }}
       >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          <Ionicons name="calendar-clear-outline" size={20} color="#9CA3AF" />
-          <Text type="text-regular">Active</Text>
-        </View>
+        {variant === "field" ? (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Ionicons name="calendar-clear-outline" size={20} color="#9CA3AF" />
+            <Text type="text-regular">Active</Text>
+          </View>
+        ) : null}
         <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
           <Text type="text-semibold" color="#D1D5DB">
             {label}
           </Text>
-          {activeDateKey ? (
+          {activeDateKey || variant === "value" ? (
             <Ionicons name="chevron-forward" size={18} color="#6B7280" />
           ) : null}
         </View>
