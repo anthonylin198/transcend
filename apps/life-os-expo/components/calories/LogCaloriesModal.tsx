@@ -1,9 +1,24 @@
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "@transcend/convex";
-import type { OptimisticLocalStore } from "convex/browser";
-import { useMutation } from "convex/react";
-import type { FunctionArgs } from "convex/server";
-import { appFonts } from "@/constants/fonts";
+import { useMutation, useQuery } from "convex/react";
+import { useFocusEffect, useRouter } from "expo-router";
+import {
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  View,
+} from "react-native";
+import {
+  applyCreateCalorieLogOptimisticUpdate,
+  applyUpdateCalorieLogOptimisticUpdate,
+} from "@/components/calories/calorieLogOptimistic";
+import NutritionFields, {
+  MAX_NUTRITION_DESCRIPTION_LENGTH,
+  sanitizeCalories,
+  sanitizeProtein,
+} from "@/components/calories/NutritionFields";
+import { takeStagedSavedMeal } from "@/components/calories/stagedSavedMeal";
 import Text from "@/components/ui/Text";
 import {
   formatLongDate,
@@ -13,19 +28,9 @@ import {
   parseProteinInput,
   toLocalDateKey,
 } from "@/utils/calorieWeek";
-import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  TextInput,
-  View,
-} from "react-native";
-
-const MAX_DESCRIPTION_LENGTH = 200;
 
 type EditableCalorieLog = {
-  _id: UpdateCalorieLogArgs["calorieLogId"];
+  _id: string;
   calories: number;
   proteinG: number;
   description?: string;
@@ -40,105 +45,16 @@ type LogCaloriesModalProps = {
   date?: string;
 };
 
-function sanitizeCalories(value: string) {
-  return value.replace(/[^\d]/g, "").slice(0, 5);
-}
-
-function sanitizeProtein(value: string) {
-  const cleaned = value.replace(/[^\d.]/g, "");
-  const dotIndex = cleaned.indexOf(".");
-  if (dotIndex === -1) return cleaned.slice(0, 4);
-
-  const whole = cleaned.slice(0, dotIndex).slice(0, 4);
-  const decimals = cleaned
-    .slice(dotIndex + 1)
-    .replace(/\./g, "")
-    .slice(0, 1);
-  return `${whole}.${decimals}`;
-}
-
-type CreateCalorieLogArgs = FunctionArgs<
-  typeof api.calorieLogs.createCalorieLog.createCalorieLog
->;
-
-function applyCreateCalorieLogOptimisticUpdate(
-  localStore: OptimisticLocalStore,
-  args: CreateCalorieLogArgs,
-) {
-  const now = Date.now();
-  const proteinG = Math.round(args.proteinG * 10) / 10;
-  const bootstrapQueries = localStore.getAllQueries(
-    api.home.bootstrap.bootstrap,
-  );
-  for (const { args: queryArgs, value } of bootstrapQueries) {
-    if (!value || value.profile === null) continue;
-    const inRange =
-      args.date >= queryArgs.rangeStartDateKey &&
-      args.date < queryArgs.rangeEndDateKey;
-    if (!inRange) continue;
-
-    const optimisticId =
-      `optimistic-calorie-${now}` as (typeof value.calorieLogs)[number]["_id"];
-    const description = args.description?.trim() || undefined;
-    localStore.setQuery(api.home.bootstrap.bootstrap, queryArgs, {
-      ...value,
-      calorieLogs: [
-        ...value.calorieLogs,
-        {
-          _id: optimisticId,
-          _creationTime: now,
-          profileId: value.profile._id,
-          date: args.date,
-          calories: args.calories,
-          proteinG,
-          ...(description ? { description } : {}),
-          createdAt: now,
-        },
-      ],
-    });
-  }
-}
-
-type UpdateCalorieLogArgs = FunctionArgs<
-  typeof api.calorieLogs.updateCalorieLog.updateCalorieLog
->;
-
-function applyUpdateCalorieLogOptimisticUpdate(
-  localStore: OptimisticLocalStore,
-  args: UpdateCalorieLogArgs,
-) {
-  const patch = {
-    calories: args.calories,
-    proteinG: Math.round(args.proteinG * 10) / 10,
-    description: args.description?.trim() || undefined,
+function fieldsFromMeal(meal: {
+  calories: number;
+  proteinG: number;
+  description: string;
+}) {
+  return {
+    calories: sanitizeCalories(String(meal.calories)),
+    protein: sanitizeProtein(formatProtein(meal.proteinG)),
+    description: meal.description.slice(0, MAX_NUTRITION_DESCRIPTION_LENGTH),
   };
-  for (const { args: queryArgs, value } of localStore.getAllQueries(
-    api.home.bootstrap.bootstrap,
-  )) {
-    if (!value || value.profile === null) continue;
-    if (!value.calorieLogs.some((log) => log._id === args.calorieLogId)) {
-      continue;
-    }
-    localStore.setQuery(api.home.bootstrap.bootstrap, queryArgs, {
-      ...value,
-      calorieLogs: value.calorieLogs.map((log) =>
-        log._id === args.calorieLogId ? { ...log, ...patch } : log,
-      ),
-    });
-  }
-
-  for (const { args: queryArgs, value } of localStore.getAllQueries(
-    api.calorieLogs.listCalorieLogs.listCalorieLogs,
-  )) {
-    if (!value?.some((log) => log._id === args.calorieLogId)) continue;
-    localStore.setQuery(
-      api.calorieLogs.listCalorieLogs.listCalorieLogs,
-      queryArgs,
-      value.map((log) =>
-        log._id === args.calorieLogId ? { ...log, ...patch } : log,
-      ),
-    );
-  }
 }
 
 function LogCaloriesForm({
@@ -150,6 +66,7 @@ function LogCaloriesForm({
   log?: EditableCalorieLog;
   date?: string;
 }) {
+  const router = useRouter();
   const createCalorieLog = useMutation(
     api.calorieLogs.createCalorieLog.createCalorieLog,
   ).withOptimisticUpdate((localStore, args) => {
@@ -160,7 +77,13 @@ function LogCaloriesForm({
   ).withOptimisticUpdate((localStore, args) => {
     applyUpdateCalorieLogOptimisticUpdate(localStore, args);
   });
+  // Same query the saved-meals page uses, so opening that page is already cached.
+  useQuery(api.savedMeals.listSavedMeals.listSavedMeals);
+
   const savingRef = useRef(false);
+  const pickingRef = useRef(false);
+  const navigatedRef = useRef(false);
+  const [modalPresented, setModalPresented] = useState(true);
   const [calories, setCalories] = useState(log ? String(log.calories) : "");
   const [protein, setProtein] = useState(
     log ? formatProtein(log.proteinG) : "",
@@ -169,9 +92,41 @@ function LogCaloriesForm({
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  useFocusEffect(
+    useCallback(() => {
+      if (!pickingRef.current) return;
+      pickingRef.current = false;
+      navigatedRef.current = false;
+      const meal = takeStagedSavedMeal();
+      if (meal) {
+        const next = fieldsFromMeal(meal);
+        setCalories(next.calories);
+        setProtein(next.protein);
+        setDescription(next.description);
+        setError(null);
+      }
+      setModalPresented(true);
+    }, [setCalories, setDescription, setError, setModalPresented, setProtein]),
+  );
+
+  useEffect(() => {
+    if (modalPresented || !pickingRef.current || navigatedRef.current) return;
+    navigatedRef.current = true;
+    router.push({
+      pathname: "/(authenticated)/calorie-counter/saved-meals",
+      params: { pick: "1" },
+    });
+  }, [modalPresented, router]);
+
   const requestClose = () => {
     if (savingRef.current) return;
     onClose();
+  };
+
+  const openSavedMeals = () => {
+    if (savingRef.current || pickingRef.current) return;
+    pickingRef.current = true;
+    setModalPresented(false);
   };
 
   const onSave = async () => {
@@ -195,7 +150,7 @@ function LogCaloriesForm({
       const trimmedDescription = description.trim();
       if (log) {
         await updateCalorieLog({
-          calorieLogId: log._id,
+          calorieLogId: log._id as never,
           calories: parsedCalories,
           proteinG: parsedProtein,
           description: trimmedDescription,
@@ -217,6 +172,8 @@ function LogCaloriesForm({
       setSaving(false);
     }
   };
+
+  if (!modalPresented) return null;
 
   return (
     <Modal
@@ -264,93 +221,62 @@ function LogCaloriesForm({
               gap: 16,
             }}
           >
-            <View style={{ gap: 4 }}>
-              <Text type="heading-4" accessibilityRole="header">
-                {log ? "Edit Calories" : "Log Calories"}
-              </Text>
-              {!log ? (
-                <Text type="text-detail" color="#9CA3AF">
-                  {formatLongDate(
-                    parseLocalDateKey(date ?? toLocalDateKey(new Date())),
-                  )}
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "flex-start",
+                justifyContent: "space-between",
+                gap: 12,
+              }}
+            >
+              <View style={{ flex: 1, gap: 4 }}>
+                <Text type="heading-4" accessibilityRole="header">
+                  {log ? "Edit Calories" : "Log Calories"}
                 </Text>
-              ) : null}
+                {!log ? (
+                  <Text type="text-detail" color="#9CA3AF">
+                    {formatLongDate(
+                      parseLocalDateKey(date ?? toLocalDateKey(new Date())),
+                    )}
+                  </Text>
+                ) : null}
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Choose a saved meal"
+                disabled={saving}
+                hitSlop={8}
+                onPress={openSavedMeals}
+                style={({ pressed }) => ({
+                  paddingVertical: 4,
+                  opacity: saving ? 0.5 : pressed ? 0.7 : 1,
+                })}
+              >
+                <Text type="text-semibold">Saved meals</Text>
+              </Pressable>
             </View>
 
-            <View style={{ gap: 6 }}>
-              <Text type="text-detail" color="#9CA3AF">
-                Calories
-              </Text>
-              <TextInput
-                value={calories}
-                onChangeText={(value) => setCalories(sanitizeCalories(value))}
-                keyboardType="number-pad"
-                inputMode="numeric"
-                placeholder="0"
-                placeholderTextColor="#6B7280"
-                accessibilityLabel="Calories"
-                autoFocus
-                editable={!saving}
-                style={{
-                  color: "#F9FAFB",
-                  borderBottomWidth: 1,
-                  borderBottomColor: "#374151",
-                  fontFamily: appFonts.semiBold,
-                  fontSize: 28,
-                  lineHeight: 36,
-                  paddingVertical: 8,
-                }}
-              />
-            </View>
-
-            <View style={{ gap: 6 }}>
-              <Text type="text-detail" color="#9CA3AF">
-                Protein (g)
-              </Text>
-              <TextInput
-                value={protein}
-                onChangeText={(value) => setProtein(sanitizeProtein(value))}
-                keyboardType="decimal-pad"
-                inputMode="decimal"
-                placeholder="0"
-                placeholderTextColor="#6B7280"
-                accessibilityLabel="Protein in grams"
-                editable={!saving}
-                style={{
-                  color: "#F9FAFB",
-                  borderBottomWidth: 1,
-                  borderBottomColor: "#374151",
-                  fontFamily: appFonts.semiBold,
-                  fontSize: 28,
-                  lineHeight: 36,
-                  paddingVertical: 8,
-                }}
-              />
-            </View>
-
-            <View style={{ gap: 6 }}>
-              <Text type="text-detail" color="#9CA3AF">
-                Description (optional)
-              </Text>
-              <TextInput
-                value={description}
-                onChangeText={setDescription}
-                maxLength={MAX_DESCRIPTION_LENGTH}
-                placeholder="What was it?"
-                placeholderTextColor="#6B7280"
-                accessibilityLabel="Description"
-                editable={!saving}
-                style={{
-                  color: "#F9FAFB",
-                  borderBottomWidth: 1,
-                  borderBottomColor: "#374151",
-                  fontFamily: appFonts.regular,
-                  fontSize: 18,
-                  lineHeight: 24,
-                  paddingVertical: 8,
-                }}
-              />
-            </View>
+            <NutritionFields
+              calories={calories}
+              protein={protein}
+              description={description}
+              onCalories={(value) => {
+                setCalories(value);
+                setError(null);
+              }}
+              onProtein={(value) => {
+                setProtein(value);
+                setError(null);
+              }}
+              onDescription={(value) => {
+                setDescription(value);
+                setError(null);
+              }}
+              editable={!saving}
+              descriptionLabel="Description (optional)"
+              descriptionPlaceholder="What was it?"
+              autoFocus="calories"
+            />
 
             {error ? (
               <Text type="text-detail" color="#F87171">
