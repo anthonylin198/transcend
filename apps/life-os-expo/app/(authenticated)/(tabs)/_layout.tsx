@@ -5,7 +5,6 @@ import { Tabs, usePathname, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { appFonts } from "@/constants/fonts";
 import { Image, TouchableOpacity, View } from "react-native";
-import DayChangeCover from "@/components/ui/DayChangeCover";
 
 export default function TabLayout() {
   const hasMounted = useRef(false);
@@ -116,7 +115,6 @@ export default function TabLayout() {
           style={{ width: 36, height: 36 }}
         />
       </TouchableOpacity>
-      <DayChangeCover />
     </View>
   );
 }

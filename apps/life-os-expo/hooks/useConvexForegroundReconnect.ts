@@ -10,6 +10,7 @@ type LiveSocket = {
 type WebSocketManagerLike = {
   socket?: LiveSocket;
   closeAndReconnect?: (reason: string) => void;
+  tryRestart?: () => void;
 };
 
 function convexSocket(client: ConvexReactClient) {
@@ -26,16 +27,25 @@ function isSocketOpen(client: ConvexReactClient) {
 }
 
 /**
- * Drop the websocket and open a new one. onOpen reissues every current
- * subscription, including a bootstrap query whose date range just changed.
+ * Open a fresh Convex socket. onOpen resends every current subscription,
+ * including the home query whose date range just moved to today.
+ *
  * Closing the raw socket is not enough: a socket iOS froze overnight often
- * never fires onclose, so the client keeps treating it as connected.
+ * never fires onclose, so the client keeps treating it as connected and the
+ * new day's query is never sent.
  */
 export function reconnectConvexClient(client: ConvexReactClient) {
   const manager = convexSocket(client);
   const state = manager?.socket?.state;
-  if (state !== "ready" && state !== "connecting") return;
-  manager?.closeAndReconnect?.("AppForeground");
+  if (state === "ready" || state === "connecting") {
+    manager?.closeAndReconnect?.("AppForeground");
+    return;
+  }
+  // A token refresh stops the socket. If that restart never happened, start
+  // it now. Otherwise today's query has nowhere to go.
+  if (state === "stopped") {
+    manager?.tryRestart?.();
+  }
 }
 
 export function useConvexForegroundReconnect(client: ConvexReactClient | null) {
@@ -49,10 +59,11 @@ export function useConvexForegroundReconnect(client: ConvexReactClient | null) {
       const nextDateKey = toLocalDateKey(new Date());
       const dayChanged = nextDateKey !== lastDateKey;
       lastDateKey = nextDateKey;
+      // Same-day resume can reuse an open socket. A new day cannot.
       if (!dayChanged && isSocketOpen(client)) return;
 
-      // The date hooks set state in this same event. Wait until that render
-      // subscribes with the new range, then restart so the refetch uses it.
+      // useLocalToday updates in this same event. Reconnect after that
+      // render so the new socket asks for today's range, not yesterday's.
       setTimeout(() => reconnectConvexClient(client), 0);
     };
 
