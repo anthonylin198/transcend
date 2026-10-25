@@ -12,7 +12,7 @@ import {
 
 type ActiveDayFieldProps = {
   activeDateKey: string | null;
-  /** Day to use when turning an inactive priority on. Falls back to today. */
+  /** Day the picker opens on when turning an inactive priority on. Falls back to today. */
   defaultDateKey?: string;
   onChange: (activeDateKey: string | null) => void;
   disabled?: boolean;
@@ -49,26 +49,45 @@ export default function ActiveDayField({
   variant = "field",
 }: ActiveDayFieldProps) {
   const [open, setOpen] = useState(false);
+  // Day shown while activating, before the parent has a committed date.
+  const [draftDateKey, setDraftDateKey] = useState<string | null>(null);
+  const modalDateKey = draftDateKey ?? activeDateKey;
   const label = activeDateKey
     ? formatActiveDay(activeDateKey)
     : variant === "value"
       ? "Make active"
       : "No";
 
+  const close = () => {
+    setOpen(false);
+    setDraftDateKey(null);
+  };
+
   const onPress = () => {
     if (disabled) return;
     if (!activeDateKey) {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      onChange(defaultDateKey ?? toLocalDateKey(new Date()));
-      return;
+      setDraftDateKey(defaultDateKey ?? toLocalDateKey(new Date()));
     }
     setOpen(true);
   };
 
+  const confirm = () => {
+    if (!activeDateKey && draftDateKey) {
+      onChange(draftDateKey);
+    }
+    close();
+  };
+
   const shift = (amount: number) => {
-    if (!activeDateKey) return;
+    if (!modalDateKey) return;
     void Haptics.selectionAsync();
-    onChange(shiftDateKey(activeDateKey, amount));
+    const next = shiftDateKey(modalDateKey, amount);
+    if (activeDateKey) {
+      onChange(next);
+      return;
+    }
+    setDraftDateKey(next);
   };
 
   return (
@@ -108,10 +127,10 @@ export default function ActiveDayField({
       </Pressable>
 
       <Modal
-        visible={open && activeDateKey !== null}
+        visible={open && modalDateKey !== null}
         transparent
         animationType="fade"
-        onRequestClose={() => setOpen(false)}
+        onRequestClose={close}
       >
         <View
           style={{
@@ -124,7 +143,7 @@ export default function ActiveDayField({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Dismiss active day"
-            onPress={() => setOpen(false)}
+            onPress={close}
             style={{
               position: "absolute",
               top: 0,
@@ -178,7 +197,7 @@ export default function ActiveDayField({
                   lineHeight: 36,
                 }}
               >
-                {activeDateKey ? formatActiveDay(activeDateKey) : ""}
+                {modalDateKey ? formatActiveDay(modalDateKey) : ""}
               </Text>
               <Pressable
                 accessibilityRole="button"
@@ -194,7 +213,7 @@ export default function ActiveDayField({
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Done"
-                onPress={() => setOpen(false)}
+                onPress={confirm}
                 style={{
                   minHeight: 48,
                   borderRadius: 10,
@@ -212,8 +231,8 @@ export default function ActiveDayField({
                 accessibilityLabel="Make not active"
                 onPress={() => {
                   void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  onChange(null);
-                  setOpen(false);
+                  if (activeDateKey) onChange(null);
+                  close();
                 }}
                 style={{
                   minHeight: 48,

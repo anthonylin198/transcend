@@ -127,7 +127,7 @@ export default function SystemProjectsScreen() {
           onPress={() => router.push("/(authenticated)/project/unlinked")}
           style={{
             borderTopWidth: 1,
-            borderTopColor: "#1F2937",
+            borderTopColor: "#1A1A1A",
             paddingHorizontal: 20,
             paddingTop: 16,
             paddingBottom: 10,
@@ -136,10 +136,10 @@ export default function SystemProjectsScreen() {
             justifyContent: "space-between",
           }}
         >
-          <Text type="text-medium" color="#9CA3AF">
+          <Text type="text-medium" color="#737373">
             Unlinked Priorities
           </Text>
-          <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
+          <Ionicons name="chevron-forward" size={18} color="#525252" />
         </Pressable>
       </View>
     </View>
