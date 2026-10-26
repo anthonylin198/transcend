@@ -9,6 +9,7 @@ import { Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CalorieLogList from "@/components/calories/CalorieLogList";
 import LogCaloriesModal from "@/components/calories/LogCaloriesModal";
+import { LogOverlayHost } from "@/components/calories/LogOverlayHost";
 import WeekAverageValue from "@/components/calories/WeekAverageValue";
 import Eyebrow from "@/components/ui/Eyebrow";
 import Text from "@/components/ui/Text";
@@ -314,28 +315,30 @@ export default function CalorieCounterScreen() {
     : averageLoggedDays(weekLogs, week.startKey, throughYesterday, todayKey);
 
   return (
-    <View style={{ flex: 1, backgroundColor: "black" }}>
-      <PagerView key={todayKey} style={{ flex: 1 }} initialPage={initialPage}>
-        {days.map((day) => (
-          <View
-            key={toLocalDateKey(day)}
-            collapsable={false}
-            style={{ flex: 1 }}
-          >
-            <FitnessDayPage
-              day={day}
-              today={today}
-              loading={loading}
-              calorieLogs={calorieLogs}
-              workoutLogs={workoutLogs}
-              weekAverage={weekAverage}
-              weekLabel={formatWeekRange(week.start, week.end)}
-              weekStartKey={week.startKey}
-              topInset={insets.top}
-            />
-          </View>
-        ))}
-      </PagerView>
-    </View>
+    <LogOverlayHost>
+      <View style={{ flex: 1, backgroundColor: "black" }}>
+        <PagerView key={todayKey} style={{ flex: 1 }} initialPage={initialPage}>
+          {days.map((day) => (
+            <View
+              key={toLocalDateKey(day)}
+              collapsable={false}
+              style={{ flex: 1 }}
+            >
+              <FitnessDayPage
+                day={day}
+                today={today}
+                loading={loading}
+                calorieLogs={calorieLogs}
+                workoutLogs={workoutLogs}
+                weekAverage={weekAverage}
+                weekLabel={formatWeekRange(week.start, week.end)}
+                weekStartKey={week.startKey}
+                topInset={insets.top}
+              />
+            </View>
+          ))}
+        </PagerView>
+      </View>
+    </LogOverlayHost>
   );
 }

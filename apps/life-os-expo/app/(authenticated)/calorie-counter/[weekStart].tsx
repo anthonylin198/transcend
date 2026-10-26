@@ -6,6 +6,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CalorieLogList from "@/components/calories/CalorieLogList";
+import { LogOverlayHost } from "@/components/calories/LogOverlayHost";
 import WeekAverageValue from "@/components/calories/WeekAverageValue";
 import Text from "@/components/ui/Text";
 import WorkoutLogList from "@/components/workouts/WorkoutLogList";
@@ -70,127 +71,137 @@ export default function CalorieWeekScreen() {
   const dayKeys = weekStartKey ? eachDateKeyOfWeek(weekStartKey) : [];
 
   return (
-    <View style={{ flex: 1, backgroundColor: "black" }}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingTop: insets.top + 8,
-          paddingHorizontal: 20,
-          paddingBottom: insets.bottom + 28,
-          alignItems: "center",
-        }}
-      >
-        <View style={{ width: "100%", maxWidth: 640 }}>
-          <View
-            style={{
-              minHeight: 56,
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 4,
-            }}
-          >
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Back"
-              onPress={() => router.back()}
-              hitSlop={8}
-              style={{ padding: 6, marginLeft: -6 }}
+    <LogOverlayHost>
+      <View style={{ flex: 1, backgroundColor: "black" }}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingTop: insets.top + 8,
+            paddingHorizontal: 20,
+            paddingBottom: insets.bottom + 28,
+            alignItems: "center",
+          }}
+        >
+          <View style={{ width: "100%", maxWidth: 640 }}>
+            <View
+              style={{
+                minHeight: 56,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 4,
+              }}
             >
-              <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
-            </Pressable>
-            <Text
-              type="heading-4"
-              accessibilityRole="header"
-              style={{ flex: 1 }}
-            >
-              {weekStart && weekEnd
-                ? formatWeekRange(weekStart, weekEnd)
-                : "Week"}
-            </Text>
-          </View>
-
-          {!queryRange ? (
-            <Text type="text-detail" color="#9CA3AF" style={{ marginTop: 12 }}>
-              That week could not be opened.
-            </Text>
-          ) : logs === undefined || !average ? (
-            <Text type="text-detail" color="#9CA3AF" style={{ marginTop: 12 }}>
-              Loading...
-            </Text>
-          ) : (
-            <View style={{ marginTop: 8, gap: 28 }}>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "flex-start",
-                  justifyContent: "space-between",
-                  gap: 12,
-                }}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Back"
+                onPress={() => router.back()}
+                hitSlop={8}
+                style={{ padding: 6, marginLeft: -6 }}
               >
-                <Text type="text-semibold" style={{ flex: 1 }}>
-                  Weekly average
-                </Text>
-                <WeekAverageValue
-                  calories={average.calories}
-                  proteinG={average.proteinG}
-                  pending={average.pending}
-                />
-              </View>
-
-              <View style={{ gap: 10 }}>
-                <Text type="text-semibold">Daily totals</Text>
-                {dayKeys.map((dateKey) => {
-                  const dayLogs = logs.filter((log) => log.date === dateKey);
-                  const calories = dayLogs.reduce(
-                    (sum, log) => sum + log.calories,
-                    0,
-                  );
-                  const protein = dayLogs.reduce(
-                    (sum, log) => sum + log.proteinG,
-                    0,
-                  );
-                  return (
-                    <View
-                      key={dateKey}
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        gap: 12,
-                        minHeight: 32,
-                      }}
-                    >
-                      <Text type="text-regular" color="#E5E7EB">
-                        {formatShortDate(parseLocalDateKey(dateKey))}
-                      </Text>
-                      <Text type="text-regular" color="#9CA3AF">
-                        {formatCalories(calories)} cal ·{" "}
-                        {formatProtein(protein)}g
-                      </Text>
-                    </View>
-                  );
-                })}
-              </View>
-
-              <View style={{ gap: 8 }}>
-                <Text type="text-semibold">Logs</Text>
-                <CalorieLogList logs={logs} todayKey={todayKey} />
-              </View>
-
-              <View style={{ gap: 8 }}>
-                <Text type="text-semibold">Workouts</Text>
-                {workouts === undefined ? (
-                  <Text type="text-detail" color="#9CA3AF">
-                    Loading...
-                  </Text>
-                ) : (
-                  <WorkoutLogList logs={workouts} todayKey={todayKey} />
-                )}
-              </View>
+                <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
+              </Pressable>
+              <Text
+                type="heading-4"
+                accessibilityRole="header"
+                style={{ flex: 1 }}
+              >
+                {weekStart && weekEnd
+                  ? formatWeekRange(weekStart, weekEnd)
+                  : "Week"}
+              </Text>
             </View>
-          )}
-        </View>
-      </ScrollView>
-    </View>
+
+            {!queryRange ? (
+              <Text
+                type="text-detail"
+                color="#9CA3AF"
+                style={{ marginTop: 12 }}
+              >
+                That week could not be opened.
+              </Text>
+            ) : logs === undefined || !average ? (
+              <Text
+                type="text-detail"
+                color="#9CA3AF"
+                style={{ marginTop: 12 }}
+              >
+                Loading...
+              </Text>
+            ) : (
+              <View style={{ marginTop: 8, gap: 28 }}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "flex-start",
+                    justifyContent: "space-between",
+                    gap: 12,
+                  }}
+                >
+                  <Text type="text-semibold" style={{ flex: 1 }}>
+                    Weekly average
+                  </Text>
+                  <WeekAverageValue
+                    calories={average.calories}
+                    proteinG={average.proteinG}
+                    pending={average.pending}
+                  />
+                </View>
+
+                <View style={{ gap: 10 }}>
+                  <Text type="text-semibold">Daily totals</Text>
+                  {dayKeys.map((dateKey) => {
+                    const dayLogs = logs.filter((log) => log.date === dateKey);
+                    const calories = dayLogs.reduce(
+                      (sum, log) => sum + log.calories,
+                      0,
+                    );
+                    const protein = dayLogs.reduce(
+                      (sum, log) => sum + log.proteinG,
+                      0,
+                    );
+                    return (
+                      <View
+                        key={dateKey}
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: 12,
+                          minHeight: 32,
+                        }}
+                      >
+                        <Text type="text-regular" color="#E5E7EB">
+                          {formatShortDate(parseLocalDateKey(dateKey))}
+                        </Text>
+                        <Text type="text-regular" color="#9CA3AF">
+                          {formatCalories(calories)} cal ·{" "}
+                          {formatProtein(protein)}g
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </View>
+
+                <View style={{ gap: 8 }}>
+                  <Text type="text-semibold">Logs</Text>
+                  <CalorieLogList logs={logs} todayKey={todayKey} />
+                </View>
+
+                <View style={{ gap: 8 }}>
+                  <Text type="text-semibold">Workouts</Text>
+                  {workouts === undefined ? (
+                    <Text type="text-detail" color="#9CA3AF">
+                      Loading...
+                    </Text>
+                  ) : (
+                    <WorkoutLogList logs={workouts} todayKey={todayKey} />
+                  )}
+                </View>
+              </View>
+            )}
+          </View>
+        </ScrollView>
+      </View>
+    </LogOverlayHost>
   );
 }

@@ -1,18 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { api } from "@transcend/convex";
 import { useMutation, useQuery } from "convex/react";
 import { useFocusEffect, useRouter } from "expo-router";
-import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  View,
-} from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, View } from "react-native";
 import {
   applyCreateCalorieLogOptimisticUpdate,
   applyUpdateCalorieLogOptimisticUpdate,
 } from "@/components/calories/calorieLogOptimistic";
+import { LogOverlaySlot } from "@/components/calories/LogOverlayHost";
 import NutritionFields, {
   MAX_NUTRITION_DESCRIPTION_LENGTH,
   sanitizeCalories,
@@ -77,13 +72,11 @@ function LogCaloriesForm({
   ).withOptimisticUpdate((localStore, args) => {
     applyUpdateCalorieLogOptimisticUpdate(localStore, args);
   });
-  // Same query the saved-meals page uses, so opening that page is already cached.
+  // Same query the saved-meals list uses, so that screen is already cached.
   useQuery(api.savedMeals.listSavedMeals.listSavedMeals);
 
   const savingRef = useRef(false);
   const pickingRef = useRef(false);
-  const navigatedRef = useRef(false);
-  const [modalPresented, setModalPresented] = useState(true);
   const [calories, setCalories] = useState(log ? String(log.calories) : "");
   const [protein, setProtein] = useState(
     log ? formatProtein(log.proteinG) : "",
@@ -96,7 +89,6 @@ function LogCaloriesForm({
     useCallback(() => {
       if (!pickingRef.current) return;
       pickingRef.current = false;
-      navigatedRef.current = false;
       const meal = takeStagedSavedMeal();
       if (meal) {
         const next = fieldsFromMeal(meal);
@@ -105,18 +97,8 @@ function LogCaloriesForm({
         setDescription(next.description);
         setError(null);
       }
-      setModalPresented(true);
-    }, [setCalories, setDescription, setError, setModalPresented, setProtein]),
+    }, [setCalories, setDescription, setError, setProtein]),
   );
-
-  useEffect(() => {
-    if (modalPresented || !pickingRef.current || navigatedRef.current) return;
-    navigatedRef.current = true;
-    router.push({
-      pathname: "/(authenticated)/calorie-counter/saved-meals",
-      params: { pick: "1" },
-    });
-  }, [modalPresented, router]);
 
   const requestClose = () => {
     if (savingRef.current) return;
@@ -126,7 +108,10 @@ function LogCaloriesForm({
   const openSavedMeals = () => {
     if (savingRef.current || pickingRef.current) return;
     pickingRef.current = true;
-    setModalPresented(false);
+    router.push({
+      pathname: "/(authenticated)/calorie-counter/saved-meals",
+      params: { pick: "1" },
+    });
   };
 
   const onSave = async () => {
@@ -173,14 +158,16 @@ function LogCaloriesForm({
     }
   };
 
-  if (!modalPresented) return null;
-
   return (
-    <Modal
-      visible
-      transparent
-      animationType="fade"
-      onRequestClose={requestClose}
+    <View
+      style={{
+        position: "absolute",
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+        zIndex: 20,
+      }}
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -326,7 +313,7 @@ function LogCaloriesForm({
           </View>
         </View>
       </KeyboardAvoidingView>
-    </Modal>
+    </View>
   );
 }
 
@@ -337,5 +324,9 @@ export default function LogCaloriesModal({
   date,
 }: LogCaloriesModalProps) {
   if (!visible) return null;
-  return <LogCaloriesForm onClose={onClose} log={log} date={date} />;
+  return (
+    <LogOverlaySlot>
+      <LogCaloriesForm onClose={onClose} log={log} date={date} />
+    </LogOverlaySlot>
+  );
 }
