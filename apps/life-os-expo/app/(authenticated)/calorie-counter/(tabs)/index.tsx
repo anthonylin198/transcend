@@ -300,7 +300,10 @@ export default function CalorieCounterScreen() {
   const bootstrapRange = useMemo(() => getHomeBootstrapRange(today), [today]);
   const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, bootstrapRange);
   const loading = homeBootstrap === undefined || homeBootstrap.profile === null;
-  const calorieLogs = homeBootstrap?.calorieLogs ?? [];
+  const calorieLogs = useMemo(
+    () => homeBootstrap?.calorieLogs ?? [],
+    [homeBootstrap?.calorieLogs],
+  );
   const workoutLogs = homeBootstrap?.workoutLogs ?? [];
   const weekLogs = useMemo(
     () =>

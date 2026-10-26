@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import * as Haptics from "expo-haptics";
@@ -511,9 +511,11 @@ export default function ShareDayModal({ day, onClose }: ShareDayModalProps) {
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const [page, setPage] = useState(0);
   const isOpen = day !== null;
-  useEffect(() => {
+  const [prevOpen, setPrevOpen] = useState(isOpen);
+  if (prevOpen !== isOpen) {
+    setPrevOpen(isOpen);
     if (!isOpen) setPage(0);
-  }, [isOpen]);
+  }
   const cardWidth = Math.min(screenWidth - 40, 400);
   const maxCardHeight = Math.max(
     280,
