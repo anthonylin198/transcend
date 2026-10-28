@@ -18,6 +18,7 @@ import { appFonts } from "@/constants/fonts";
 import LogWorkoutModal from "@/components/workouts/LogWorkoutModal";
 import WorkoutLogList from "@/components/workouts/WorkoutLogList";
 import { useDaySteps } from "@/hooks/useDaySteps";
+import { useSyncDailyActivity } from "@/hooks/useSyncDailyActivity";
 import { useLocalToday } from "@/hooks/useLocalToday";
 import { getHomeBootstrapRange } from "@/utils/homeBootstrapRange";
 import {
@@ -353,6 +354,19 @@ export default function CalorieCounterScreen() {
   const week = getSundayWeek(today);
   const bootstrapRange = useMemo(() => getHomeBootstrapRange(today), [today]);
   const homeBootstrap = useQuery(api.home.bootstrap.bootstrap, bootstrapRange);
+  const healthSyncEnabled = homeBootstrap?.profile?.healthSyncEnabled ?? false;
+  const savedActivity = useQuery(
+    api.dailyActivity.listMyDailyActivity.listMyDailyActivity,
+    healthSyncEnabled
+      ? { startDate: week.startKey, endDate: week.endKey }
+      : "skip",
+  );
+  useSyncDailyActivity(
+    healthSyncEnabled,
+    week.startKey,
+    week.endKey,
+    healthSyncEnabled ? savedActivity : [],
+  );
   const loading = homeBootstrap === undefined || homeBootstrap.profile === null;
   const calorieLogs = useMemo(
     () => homeBootstrap?.calorieLogs ?? [],
@@ -392,9 +406,7 @@ export default function CalorieCounterScreen() {
                 weekStartKey={week.startKey}
                 topInset={insets.top}
                 displayName={homeBootstrap?.profile?.displayName ?? null}
-                healthSyncEnabled={
-                  homeBootstrap?.profile?.healthSyncEnabled ?? false
-                }
+                healthSyncEnabled={healthSyncEnabled}
               />
             </View>
           ))}

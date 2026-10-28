@@ -9,12 +9,17 @@ import CalorieLogList from "@/components/calories/CalorieLogList";
 import LogWeightModal from "@/components/calories/LogWeightModal";
 import { LogOverlayHost } from "@/components/calories/LogOverlayHost";
 import WeekAverageValue from "@/components/calories/WeekAverageValue";
+import ShareGroupModal, {
+  type ShareGroup,
+} from "@/components/feed/ShareGroupModal";
 import ShareWeekModal, {
   type ShareWeek,
 } from "@/components/feed/ShareWeekModal";
 import Text from "@/components/ui/Text";
 import WorkoutLogList from "@/components/workouts/WorkoutLogList";
+import { useSyncDailyActivity } from "@/hooks/useSyncDailyActivity";
 import { useLocalToday } from "@/hooks/useLocalToday";
+import { groupWeekStats } from "@/utils/groupWeek";
 import {
   addDays,
   averageLoggedDays,
@@ -49,6 +54,7 @@ export default function CalorieWeekScreen() {
   const params = useLocalSearchParams<{ weekStart?: string | string[] }>();
   const weekStartKey = readWeekStart(params.weekStart);
   const [shareOpen, setShareOpen] = useState(false);
+  const [friendsOpen, setFriendsOpen] = useState(false);
   const [weightOpen, setWeightOpen] = useState(false);
   const today = useLocalToday();
   const todayKey = toLocalDateKey(today);
@@ -68,6 +74,21 @@ export default function CalorieWeekScreen() {
     queryRange ?? "skip",
   );
   const weightData = useQuery(api.weightLogs.listWeightLogs.listWeightLogs);
+  const groupFeed = useQuery(
+    api.feed.weeklyFeed.weeklyFeed,
+    queryRange ?? "skip",
+  );
+  const groupStats = useMemo(
+    () =>
+      groupFeed ? groupWeekStats([groupFeed.me, ...groupFeed.friends]) : null,
+    [groupFeed],
+  );
+  useSyncDailyActivity(
+    Boolean(groupFeed?.healthSyncEnabled && queryRange),
+    queryRange?.startDate ?? "1970-01-01",
+    queryRange?.endDate ?? "1970-01-01",
+    groupFeed ? groupFeed.me.activity : undefined,
+  );
   const currentWeight =
     weightData?.weights.find((weight) => weight.weekStart === weekStartKey) ??
     null;
@@ -105,6 +126,21 @@ export default function CalorieWeekScreen() {
             : { calories: average.calories, proteinG: average.proteinG },
           weightPounds: currentWeight?.pounds ?? null,
           weightComparison: comparison,
+        }
+      : null;
+  const shareGroup: ShareGroup | null =
+    friendsOpen && groupFeed && groupStats && queryRange && weekStartKey
+      ? {
+          startKey: weekStartKey,
+          endKey: queryRange.endDate,
+          names: [groupFeed.me, ...groupFeed.friends].map((person, index) => {
+            const name = person.displayName?.trim();
+            return name || (index === 0 ? "You" : "Friend");
+          }),
+          poundsLost: groupStats.poundsLost,
+          workouts: groupStats.workouts,
+          steps: groupStats.steps,
+          caloriesEaten: groupStats.caloriesEaten,
         }
       : null;
   const dayKeys = weekStartKey ? eachDateKeyOfWeek(weekStartKey) : [];
@@ -308,6 +344,24 @@ export default function CalorieWeekScreen() {
                     <WorkoutLogList logs={workouts} todayKey={todayKey} />
                   )}
                 </View>
+
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="View friend totals"
+                  disabled={!groupStats}
+                  onPress={() => setFriendsOpen(true)}
+                  style={({ pressed }) => ({
+                    minHeight: 52,
+                    borderRadius: 10,
+                    borderWidth: 1,
+                    borderColor: "#374151",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    opacity: !groupStats ? 0.5 : pressed ? 0.72 : 1,
+                  })}
+                >
+                  <Text type="text-semibold">View friend totals</Text>
+                </Pressable>
               </View>
             )}
           </View>
@@ -322,6 +376,10 @@ export default function CalorieWeekScreen() {
           />
         ) : null}
         <ShareWeekModal week={shareWeek} onClose={() => setShareOpen(false)} />
+        <ShareGroupModal
+          group={shareGroup}
+          onClose={() => setFriendsOpen(false)}
+        />
       </View>
     </LogOverlayHost>
   );

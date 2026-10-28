@@ -33,8 +33,28 @@ export async function requestStepCountAccess() {
   }
 }
 
-/** Local step total for a calendar day. Null when HealthKit cannot be read. */
-export async function readStepCount(dateKey: string): Promise<number | null> {
+/** Asks for steps. Silent once that prompt has been answered. */
+export async function ensureActivityAccess() {
+  if (Platform.OS !== "ios") return false;
+  try {
+    const healthkit = await loadHealthKit();
+    if (!healthkit.isHealthDataAvailable()) return false;
+    return await healthkit.requestAuthorization({
+      toRead: [STEP_COUNT],
+    });
+  } catch {
+    return false;
+  }
+}
+
+async function readDaySum(
+  dateKey: string,
+  read: (
+    healthkit: Awaited<ReturnType<typeof loadHealthKit>>,
+    start: Date,
+    end: Date,
+  ) => Promise<number | undefined>,
+): Promise<number | null> {
   if (Platform.OS !== "ios") return null;
 
   try {
@@ -43,20 +63,25 @@ export async function readStepCount(dateKey: string): Promise<number | null> {
 
     const start = parseLocalDateKey(dateKey);
     const end = new Date(addDays(start, 1).getTime() - 1);
-    const result = await healthkit.queryStatisticsForQuantity(
-      STEP_COUNT,
-      ["cumulativeSum"],
-      {
-        unit: "count",
-        filter: {
-          date: { startDate: start, endDate: end },
-        },
-      },
-    );
-    const quantity = result.sumQuantity?.quantity;
+    const quantity = await read(healthkit, start, end);
     if (typeof quantity !== "number" || !Number.isFinite(quantity)) return 0;
     return Math.max(0, Math.round(quantity));
   } catch {
     return null;
   }
+}
+
+/** Local step total for a calendar day. Null when HealthKit cannot be read. */
+export function readStepCount(dateKey: string) {
+  return readDaySum(dateKey, async (healthkit, start, end) => {
+    const result = await healthkit.queryStatisticsForQuantity(
+      STEP_COUNT,
+      ["cumulativeSum"],
+      {
+        unit: "count",
+        filter: { date: { startDate: start, endDate: end } },
+      },
+    );
+    return result.sumQuantity?.quantity;
+  });
 }

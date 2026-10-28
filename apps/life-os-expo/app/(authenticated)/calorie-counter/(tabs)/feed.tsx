@@ -10,8 +10,11 @@ import CalorieAppHeader from "@/components/calories/CalorieAppHeader";
 import Eyebrow from "@/components/ui/Eyebrow";
 import ShareDayModal, { type ShareDay } from "@/components/feed/ShareDayModal";
 import Text from "@/components/ui/Text";
+import { appFonts } from "@/constants/fonts";
 import { useDaySteps } from "@/hooks/useDaySteps";
+import { useSyncDailyActivity } from "@/hooks/useSyncDailyActivity";
 import { useLocalToday } from "@/hooks/useLocalToday";
+import { groupWeekStats } from "@/utils/groupWeek";
 import {
   addDays,
   eachDateKeyOfWeek,
@@ -222,6 +225,16 @@ export default function FeedScreen() {
   const feed = useQuery(api.feed.weeklyFeed.weeklyFeed, queryRange);
   const [openDay, setOpenDay] = useState<OpenDay | null>(null);
   const healthEnabled = feed?.healthSyncEnabled ?? false;
+  const stats = useMemo(
+    () => (feed ? groupWeekStats([feed.me, ...feed.friends]) : null),
+    [feed],
+  );
+  useSyncDailyActivity(
+    healthEnabled,
+    week.startKey,
+    week.endKey,
+    feed ? feed.me.activity : undefined,
+  );
   const { steps, loading: stepsLoading } = useDaySteps(
     openDay?.isMine && healthEnabled ? openDay.dateKey : null,
   );
@@ -311,6 +324,54 @@ export default function FeedScreen() {
             <Ionicons name="chevron-forward" size={20} color="#FFFFFF" />
           </Pressable>
         </View>
+
+        {stats ? (
+          <View style={{ marginTop: 18, gap: 10 }}>
+            <Eyebrow color="#A3A3A3">FRIEND TOTALS</Eyebrow>
+            <View
+              accessibilityLabel={`Friend totals, ${stats.workouts} workouts, ${formatCalories(stats.steps)} steps, ${formatCalories(stats.caloriesEaten)} calories eaten`}
+              style={{ flexDirection: "row", gap: 8 }}
+            >
+              {(
+                [
+                  [formatCalories(stats.workouts), "WORKOUTS"],
+                  [formatCalories(stats.steps), "STEPS"],
+                  [formatCalories(stats.caloriesEaten), "CALORIES"],
+                ] as const
+              ).map(([value, label]) => (
+                <View
+                  key={label}
+                  style={{
+                    flex: 1,
+                    minHeight: 72,
+                    borderRadius: 14,
+                    borderWidth: 1,
+                    borderColor: "#262626",
+                    backgroundColor: "#0A0A0A",
+                    paddingHorizontal: 12,
+                    paddingVertical: 12,
+                    gap: 6,
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <Text
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    style={{
+                      fontFamily: appFonts.semiBold,
+                      fontSize: 20,
+                      lineHeight: 24,
+                      letterSpacing: -0.5,
+                    }}
+                  >
+                    {value}
+                  </Text>
+                  <Eyebrow>{label}</Eyebrow>
+                </View>
+              ))}
+            </View>
+          </View>
+        ) : null}
 
         {feed === undefined ? (
           <Text type="text-detail" color="#9CA3AF" style={{ marginTop: 24 }}>

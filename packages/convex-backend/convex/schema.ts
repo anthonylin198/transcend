@@ -121,6 +121,13 @@ export default defineSchema({
     description: v.string(),
     createdAt: v.number(),
   }).index("by_profile_id_date", ["profileId", "date"]),
+  // Daily step count written by the member's own device.
+  dailyActivity: defineTable({
+    profileId: v.id("profiles"),
+    date: v.string(),
+    steps: v.number(),
+    updatedAt: v.number(),
+  }).index("by_profile_id_date", ["profileId", "date"]),
   // One weigh-in per week. weekStart is the Sunday (YYYY-MM-DD) the client uses for that week.
   weightLogs: defineTable({
     profileId: v.id("profiles"),

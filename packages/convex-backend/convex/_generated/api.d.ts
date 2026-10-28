@@ -18,6 +18,8 @@ import type * as calorieLogs_createCalorieLog from "../calorieLogs/createCalorie
 import type * as calorieLogs_deleteCalorieLog from "../calorieLogs/deleteCalorieLog.js";
 import type * as calorieLogs_listCalorieLogs from "../calorieLogs/listCalorieLogs.js";
 import type * as calorieLogs_updateCalorieLog from "../calorieLogs/updateCalorieLog.js";
+import type * as dailyActivity_listMyDailyActivity from "../dailyActivity/listMyDailyActivity.js";
+import type * as dailyActivity_setDailyActivity from "../dailyActivity/setDailyActivity.js";
 import type * as feed_weeklyFeed from "../feed/weeklyFeed.js";
 import type * as friends_listFriends from "../friends/listFriends.js";
 import type * as friends_removeFriend from "../friends/removeFriend.js";
@@ -86,6 +88,8 @@ declare const fullApi: ApiFromModules<{
   "calorieLogs/deleteCalorieLog": typeof calorieLogs_deleteCalorieLog;
   "calorieLogs/listCalorieLogs": typeof calorieLogs_listCalorieLogs;
   "calorieLogs/updateCalorieLog": typeof calorieLogs_updateCalorieLog;
+  "dailyActivity/listMyDailyActivity": typeof dailyActivity_listMyDailyActivity;
+  "dailyActivity/setDailyActivity": typeof dailyActivity_setDailyActivity;
   "feed/weeklyFeed": typeof feed_weeklyFeed;
   "friends/listFriends": typeof friends_listFriends;
   "friends/removeFriend": typeof friends_removeFriend;
