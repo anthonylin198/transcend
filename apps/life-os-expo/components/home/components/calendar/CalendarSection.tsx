@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
-import type { CalendarEventItem } from "@/components/home/hooks/useCalendarEvents";
+import { useRouter } from "expo-router";
+import {
+  stageCalendarEvent,
+  type CalendarEventItem,
+} from "@/components/home/hooks/useCalendarEvents";
 import SectionHeader from "@/components/home/components/SectionHeader";
 import Text from "@/components/ui/Text";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 
 const EVENT_PAST_CHECK_INTERVAL_MS = 30_000;
 
@@ -18,6 +22,7 @@ export default function CalendarSection({
 }: {
   calendarEvents: CalendarEventItem[];
 }) {
+  const router = useRouter();
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
@@ -43,9 +48,28 @@ export default function CalendarSection({
               : `${formatEventTime(item.startsAt)} – ${formatEventTime(item.endsAt)}`;
 
             return (
-              <View
-                key={item.id}
-                style={{ flexDirection: "row", alignItems: "stretch", gap: 10 }}
+              <Pressable
+                key={`${item.id}-${item.startsAt.getTime()}`}
+                accessibilityRole="button"
+                accessibilityLabel={item.title}
+                onPress={() => {
+                  stageCalendarEvent(item);
+                  router.push({
+                    pathname: "/(authenticated)/calendar/event",
+                    params: {
+                      eventId: item.id,
+                      startsAt: String(item.startsAt.getTime()),
+                      endsAt: String(item.endsAt.getTime()),
+                      allDay: item.allDay ? "1" : "0",
+                    },
+                  });
+                }}
+                style={({ pressed }) => ({
+                  flexDirection: "row",
+                  alignItems: "stretch",
+                  gap: 10,
+                  opacity: pressed ? 0.6 : 1,
+                })}
               >
                 <View style={{ width: 22, alignItems: "center" }}>
                   <View
@@ -73,7 +97,7 @@ export default function CalendarSection({
                     {timeLabel}
                   </Text>
                 </View>
-              </View>
+              </Pressable>
             );
           })}
         </View>

@@ -13,7 +13,23 @@ export type CalendarEventItem = {
   startsAt: Date;
   endsAt: Date;
   allDay: boolean;
+  notes: string;
+  location: string | null;
+  url?: string;
 };
+
+let stagedCalendarEvent: CalendarEventItem | null = null;
+
+export function stageCalendarEvent(event: CalendarEventItem) {
+  stagedCalendarEvent = event;
+}
+
+export function readStagedCalendarEvent(id: string, startsAtMs: number) {
+  const event = stagedCalendarEvent;
+  if (!event) return null;
+  if (event.id !== id || event.startsAt.getTime() !== startsAtMs) return null;
+  return event;
+}
 
 type UseCalendarEventsArgs = {
   startDate: Date;
@@ -101,6 +117,9 @@ export function useCalendarEvents({
           startsAt: new Date(event.startDate),
           endsAt: new Date(event.endDate),
           allDay: !!event.allDay,
+          notes: typeof event.notes === "string" ? event.notes : "",
+          location: event.location?.trim() ? event.location.trim() : null,
+          url: event.url?.trim() ? event.url.trim() : undefined,
         }))
         .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
 
