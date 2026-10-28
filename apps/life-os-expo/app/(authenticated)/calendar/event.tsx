@@ -99,7 +99,9 @@ function eventSchedule(startsAt: Date, endsAt: Date, allDay: boolean) {
 function toPlainText(value: string) {
   const trimmed = value.trim();
   if (!trimmed) return "";
-  if (!/<(?:br|p|div|span|a|ul|ol|li|b|i|strong|em|html|body)\b/i.test(trimmed)) {
+  if (
+    !/<(?:br|p|div|span|a|ul|ol|li|b|i|strong|em|html|body)\b/i.test(trimmed)
+  ) {
     return trimmed;
   }
 
