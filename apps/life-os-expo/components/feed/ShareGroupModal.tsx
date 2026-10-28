@@ -8,7 +8,7 @@ import Rings from "@/components/ui/Rings";
 import Text from "@/components/ui/Text";
 import { appFonts } from "@/constants/fonts";
 import { formatCalories, parseLocalDateKey } from "@/utils/calorieWeek";
-import { formatGroupWeight } from "@/utils/groupWeek";
+import { formatCompactCount, formatGroupWeight } from "@/utils/groupWeek";
 
 export type ShareGroup = {
   startKey: string;
@@ -52,7 +52,7 @@ function ShareGroupCard({
   const stats = [
     [weight.value, weight.label],
     [formatCalories(group.workouts), "WORKOUTS"],
-    [formatCalories(group.steps), "STEPS"],
+    [formatCompactCount(group.steps), "STEPS"],
     [formatCalories(group.caloriesEaten), "CALORIES"],
   ] as const;
 

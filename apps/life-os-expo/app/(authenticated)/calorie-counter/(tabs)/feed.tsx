@@ -14,7 +14,7 @@ import { appFonts } from "@/constants/fonts";
 import { useDaySteps } from "@/hooks/useDaySteps";
 import { useSyncDailyActivity } from "@/hooks/useSyncDailyActivity";
 import { useLocalToday } from "@/hooks/useLocalToday";
-import { groupWeekStats } from "@/utils/groupWeek";
+import { formatCompactCount, groupWeekStats } from "@/utils/groupWeek";
 import {
   addDays,
   eachDateKeyOfWeek,
@@ -335,7 +335,7 @@ export default function FeedScreen() {
               {(
                 [
                   [formatCalories(stats.workouts), "WORKOUTS"],
-                  [formatCalories(stats.steps), "STEPS"],
+                  [formatCompactCount(stats.steps), "STEPS"],
                   [formatCalories(stats.caloriesEaten), "CALORIES"],
                 ] as const
               ).map(([value, label]) => (
