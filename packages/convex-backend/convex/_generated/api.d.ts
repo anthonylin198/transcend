@@ -64,6 +64,9 @@ import type * as savedMeals_deleteSavedMeal from "../savedMeals/deleteSavedMeal.
 import type * as savedMeals_listSavedMeals from "../savedMeals/listSavedMeals.js";
 import type * as savedMeals_updateSavedMeal from "../savedMeals/updateSavedMeal.js";
 import type * as tasks from "../tasks.js";
+import type * as weightLogs_deleteWeightLog from "../weightLogs/deleteWeightLog.js";
+import type * as weightLogs_listWeightLogs from "../weightLogs/listWeightLogs.js";
+import type * as weightLogs_setWeightLog from "../weightLogs/setWeightLog.js";
 import type * as workoutLogs_createWorkoutLog from "../workoutLogs/createWorkoutLog.js";
 import type * as workoutLogs_deleteWorkoutLog from "../workoutLogs/deleteWorkoutLog.js";
 import type * as workoutLogs_listWorkoutLogs from "../workoutLogs/listWorkoutLogs.js";
@@ -129,6 +132,9 @@ declare const fullApi: ApiFromModules<{
   "savedMeals/listSavedMeals": typeof savedMeals_listSavedMeals;
   "savedMeals/updateSavedMeal": typeof savedMeals_updateSavedMeal;
   tasks: typeof tasks;
+  "weightLogs/deleteWeightLog": typeof weightLogs_deleteWeightLog;
+  "weightLogs/listWeightLogs": typeof weightLogs_listWeightLogs;
+  "weightLogs/setWeightLog": typeof weightLogs_setWeightLog;
   "workoutLogs/createWorkoutLog": typeof workoutLogs_createWorkoutLog;
   "workoutLogs/deleteWorkoutLog": typeof workoutLogs_deleteWorkoutLog;
   "workoutLogs/listWorkoutLogs": typeof workoutLogs_listWorkoutLogs;

@@ -17,6 +17,7 @@ import {
   parseLocalDateKey,
   toLocalDateKey,
 } from "@/utils/calorieWeek";
+import { formatWeight } from "@/utils/weight";
 
 const HISTORY_START = "1970-01-01";
 
@@ -34,6 +35,14 @@ export default function PreviousWeeksScreen() {
     api.calorieLogs.listCalorieLogs.listCalorieLogs,
     queryRange,
   );
+  const weightData = useQuery(api.weightLogs.listWeightLogs.listWeightLogs);
+  const weightByWeek = useMemo(() => {
+    const byWeek = new Map<string, number>();
+    for (const weight of weightData?.weights ?? []) {
+      byWeek.set(weight.weekStart, weight.pounds);
+    }
+    return byWeek;
+  }, [weightData]);
   const weeks = logs ? groupLogsByWeek(logs) : [];
 
   return (
@@ -70,7 +79,7 @@ export default function PreviousWeeksScreen() {
             </Text>
           </View>
 
-          {logs === undefined ? (
+          {logs === undefined || weightData === undefined ? (
             <Text type="text-detail" color="#9CA3AF" style={{ marginTop: 8 }}>
               Loading...
             </Text>
@@ -85,11 +94,17 @@ export default function PreviousWeeksScreen() {
                   parseLocalDateKey(week.startKey),
                   parseLocalDateKey(week.endKey),
                 );
+                const pounds = weightByWeek.get(week.startKey);
+                const summary = `${formatCalories(week.average.calories)} cal · ${formatProtein(week.average.proteinG)}g protein`;
                 return (
                   <Pressable
                     key={week.startKey}
                     accessibilityRole="button"
-                    accessibilityLabel={`${rangeLabel}, ${formatCalories(week.average.calories)} calories, ${formatProtein(week.average.proteinG)} grams protein`}
+                    accessibilityLabel={
+                      pounds === undefined
+                        ? `${rangeLabel}, ${formatCalories(week.average.calories)} calories, ${formatProtein(week.average.proteinG)} grams protein`
+                        : `${rangeLabel}, ${formatCalories(week.average.calories)} calories, ${formatProtein(week.average.proteinG)} grams protein, ${formatWeight(pounds)}`
+                    }
                     onPress={() =>
                       router.push({
                         pathname:
@@ -111,8 +126,9 @@ export default function PreviousWeeksScreen() {
                     <View style={{ flex: 1 }}>
                       <Text type="text-semibold">{rangeLabel}</Text>
                       <Text type="text-detail" color="#9CA3AF">
-                        {formatCalories(week.average.calories)} cal ·{" "}
-                        {formatProtein(week.average.proteinG)}g protein
+                        {pounds === undefined
+                          ? summary
+                          : `${summary} · ${formatWeight(pounds)}`}
                       </Text>
                     </View>
                     <Ionicons
