@@ -105,6 +105,15 @@ export default defineSchema({
     description: v.optional(v.string()),
     createdAt: v.number(),
   }).index("by_profile_id_date", ["profileId", "date"]),
+  // Reusable meals. Logging copies these values onto a calorie log.
+  savedMeals: defineTable({
+    profileId: v.id("profiles"),
+    calories: v.number(),
+    proteinG: v.number(),
+    description: v.string(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_profile_id", ["profileId"]),
   workoutLogs: defineTable({
     profileId: v.id("profiles"),
     // Local calendar day (YYYY-MM-DD) supplied by the client. Not derived from createdAt.

@@ -5,6 +5,7 @@ import { useAuthActions } from "@convex-dev/auth/react";
 import { useMutation, useQuery } from "convex/react";
 import type { FunctionReturnType } from "convex/server";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import {
   Alert,
   Platform,
@@ -319,6 +320,7 @@ function PersonRow({
 
 export default function YouScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const data = useQuery(api.friends.listFriends.listFriends);
   const respond = useMutation(
     api.friends.respondToFriendRequest.respondToFriendRequest,
@@ -470,6 +472,34 @@ export default function YouScreen() {
                 </View>
               )}
             </View>
+
+            <SectionTitle>Saved meals</SectionTitle>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Manage saved meals"
+              onPress={() =>
+                router.push("/(authenticated)/calorie-counter/saved-meals")
+              }
+              style={({ pressed }) => ({
+                minHeight: 52,
+                borderRadius: 12,
+                borderWidth: 1,
+                borderColor: "#262626",
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                paddingHorizontal: 14,
+                opacity: pressed ? 0.7 : 1,
+              })}
+            >
+              <View style={{ flex: 1, paddingVertical: 12, gap: 2 }}>
+                <Text type="text-semibold">Manage saved meals</Text>
+                <Text type="text-detail" color="#9CA3AF">
+                  Reuse calories, protein, and a description
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
+            </Pressable>
 
             <AppleHealthSection enabled={data.me.healthSyncEnabled} />
 
