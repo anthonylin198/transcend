@@ -123,7 +123,7 @@ function toPlainText(value: string) {
     .trim();
 }
 
-function firstText(...values: Array<string | null | undefined>) {
+function firstText(...values: (string | null | undefined)[]) {
   for (const value of values) {
     const trimmed = value?.trim();
     if (trimmed) return trimmed;
@@ -145,19 +145,21 @@ export default function CalendarEventScreen() {
   const endsAtMs = Number(readParam(params.endsAt));
   const allDay = readParam(params.allDay) === "1";
   const staged = readStagedCalendarEvent(eventId, startsAtMs);
-  const [remote, setRemote] = useState<RemoteEventDetails | null>(null);
+  const [remote, setRemote] = useState<
+    (RemoteEventDetails & { eventId: string }) | null
+  >(null);
 
   useEffect(() => {
     if (!eventId) return;
 
     let cancelled = false;
-    setRemote(null);
 
     void (async () => {
       try {
         const event = await ExpoCalendarEvent.get(eventId);
         if (cancelled) return;
         setRemote({
+          eventId,
           title: event.title || "",
           notes: typeof event.notes === "string" ? event.notes : "",
           location: event.location?.trim() ? event.location.trim() : null,
@@ -173,16 +175,19 @@ export default function CalendarEventScreen() {
     };
   }, [eventId]);
 
+  const remoteDetails = remote?.eventId === eventId ? remote : null;
+
   const startsAt = Number.isFinite(startsAtMs)
     ? new Date(startsAtMs)
     : (staged?.startsAt ?? null);
   const endsAt = Number.isFinite(endsAtMs)
     ? new Date(endsAtMs)
     : (staged?.endsAt ?? null);
-  const title = firstText(staged?.title, remote?.title) || "Untitled event";
-  const location = firstText(staged?.location, remote?.location);
-  const url = firstText(staged?.url, remote?.url);
-  const notes = toPlainText(firstText(staged?.notes, remote?.notes));
+  const title =
+    firstText(staged?.title, remoteDetails?.title) || "Untitled event";
+  const location = firstText(staged?.location, remoteDetails?.location);
+  const url = firstText(staged?.url, remoteDetails?.url);
+  const notes = toPlainText(firstText(staged?.notes, remoteDetails?.notes));
   const schedule =
     startsAt && endsAt
       ? eventSchedule(startsAt, endsAt, allDay || !!staged?.allDay)
