@@ -133,10 +133,11 @@ export default function CalorieWeekScreen() {
       ? {
           startKey: weekStartKey,
           endKey: queryRange.endDate,
-          names: [groupFeed.me, ...groupFeed.friends].map((person, index) => {
-            const name = person.displayName?.trim();
-            return name || (index === 0 ? "You" : "Friend");
-          }),
+          people: [groupFeed.me, ...groupFeed.friends].map((person, index) => ({
+            name:
+              person.displayName?.trim() || (index === 0 ? "You" : "Friend"),
+            poundsLost: person.poundsLost,
+          })),
           poundsLost: groupStats.poundsLost,
           workouts: groupStats.workouts,
           steps: groupStats.steps,

@@ -59,6 +59,14 @@ function formatScaled(scaled: number) {
   return scaled.toFixed(digits).replace(/\.0$/, "");
 }
 
+/** One person's change. Weight lost is −, weight gained is +. Null when there is no comparison. */
+export function formatPersonWeightDelta(poundsLost: number | null) {
+  if (poundsLost === null) return null;
+  if (poundsLost === 0) return "0 lb";
+  const sign = poundsLost > 0 ? "−" : "+";
+  return `${sign}${formatWeightNumber(Math.abs(poundsLost))} lb`;
+}
+
 export function formatGroupWeight(poundsLost: number | null) {
   if (poundsLost === null) return { value: "—", label: "LB LOST" };
   if (poundsLost < 0) {

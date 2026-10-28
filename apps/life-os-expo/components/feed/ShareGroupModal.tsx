@@ -8,12 +8,21 @@ import Rings from "@/components/ui/Rings";
 import Text from "@/components/ui/Text";
 import { appFonts } from "@/constants/fonts";
 import { formatCalories, parseLocalDateKey } from "@/utils/calorieWeek";
-import { formatCompactCount, formatGroupWeight } from "@/utils/groupWeek";
+import {
+  formatCompactCount,
+  formatGroupWeight,
+  formatPersonWeightDelta,
+} from "@/utils/groupWeek";
+
+export type ShareGroupPerson = {
+  name: string;
+  poundsLost: number | null;
+};
 
 export type ShareGroup = {
   startKey: string;
   endKey: string;
-  names: string[];
+  people: ShareGroupPerson[];
   poundsLost: number | null;
   workouts: number;
   steps: number;
@@ -48,6 +57,7 @@ function ShareGroupCard({
         textShadowRadius: 8,
       }
     : undefined;
+  const compactNames = group.people.length > 4;
   const weight = formatGroupWeight(group.poundsLost);
   const stats = [
     [weight.value, weight.label],
@@ -102,45 +112,55 @@ function ShareGroupCard({
           </Eyebrow>
         </View>
 
-        {group.names.length <= 4 ? (
-          <View style={{ marginTop: 22, gap: 2 }}>
-            {group.names.map((name, index) => (
-              <Text
-                key={`${name}-${index}`}
-                color={theme.text}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                style={[
-                  {
-                    fontFamily: appFonts.semiBold,
-                    fontSize: 26,
-                    lineHeight: 34,
-                    letterSpacing: -0.6,
-                  },
-                  labelShadow,
-                ]}
+        <View style={{ marginTop: 22, gap: compactNames ? 6 : 2 }}>
+          {group.people.map((person, index) => {
+            const delta = formatPersonWeightDelta(person.poundsLost);
+            return (
+              <View
+                key={`${person.name}-${index}`}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "baseline",
+                  justifyContent: "space-between",
+                  gap: 16,
+                }}
               >
-                {name}
-              </Text>
-            ))}
-          </View>
-        ) : (
-          <Text
-            color={theme.text}
-            style={[
-              {
-                marginTop: 22,
-                fontFamily: appFonts.semiBold,
-                fontSize: 18,
-                lineHeight: 26,
-                letterSpacing: -0.3,
-              },
-              labelShadow,
-            ]}
-          >
-            {group.names.join("  ·  ")}
-          </Text>
-        )}
+                <Text
+                  color={theme.text}
+                  numberOfLines={1}
+                  style={[
+                    {
+                      flexShrink: 1,
+                      fontFamily: appFonts.semiBold,
+                      fontSize: compactNames ? 18 : 26,
+                      lineHeight: compactNames ? 24 : 34,
+                      letterSpacing: compactNames ? -0.3 : -0.6,
+                    },
+                    labelShadow,
+                  ]}
+                >
+                  {person.name}
+                </Text>
+                {delta ? (
+                  <Text
+                    color={theme.muted}
+                    style={[
+                      {
+                        fontFamily: appFonts.medium,
+                        fontSize: compactNames ? 15 : 18,
+                        lineHeight: compactNames ? 24 : 34,
+                        letterSpacing: -0.3,
+                      },
+                      labelShadow,
+                    ]}
+                  >
+                    {delta}
+                  </Text>
+                ) : null}
+              </View>
+            );
+          })}
+        </View>
       </View>
 
       <View style={{ marginTop: 36, gap: 28 }}>
@@ -188,7 +208,7 @@ export default function ShareGroupModal({
       open={group !== null}
       posterKey={
         group
-          ? `${group.startKey}-${group.names.join(",")}-${group.poundsLost ?? "none"}-${group.workouts}-${group.steps}-${group.caloriesEaten}`
+          ? `${group.startKey}-${group.people.map((person) => `${person.name}:${person.poundsLost ?? "none"}`).join(",")}-${group.poundsLost ?? "none"}-${group.workouts}-${group.steps}-${group.caloriesEaten}`
           : ""
       }
       onClose={onClose}
