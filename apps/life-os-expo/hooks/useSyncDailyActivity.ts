@@ -51,9 +51,7 @@ export function useSyncDailyActivity(
   const [resumeTick, setResumeTick] = useState(0);
   const ready = saved !== undefined;
   const savedKey =
-    saved
-      ?.map((day) => `${day.date}:${day.steps}`)
-      .join(",") ?? "";
+    saved?.map((day) => `${day.date}:${day.steps}`).join(",") ?? "";
 
   useEffect(() => {
     savedRef.current = saved;
