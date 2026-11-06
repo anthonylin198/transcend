@@ -18,6 +18,8 @@ import type * as calorieLogs_createCalorieLog from "../calorieLogs/createCalorie
 import type * as calorieLogs_deleteCalorieLog from "../calorieLogs/deleteCalorieLog.js";
 import type * as calorieLogs_listCalorieLogs from "../calorieLogs/listCalorieLogs.js";
 import type * as calorieLogs_updateCalorieLog from "../calorieLogs/updateCalorieLog.js";
+import type * as dailyActivity_listMyDailyActivity from "../dailyActivity/listMyDailyActivity.js";
+import type * as dailyActivity_setDailyActivity from "../dailyActivity/setDailyActivity.js";
 import type * as feed_weeklyFeed from "../feed/weeklyFeed.js";
 import type * as friends_listFriends from "../friends/listFriends.js";
 import type * as friends_removeFriend from "../friends/removeFriend.js";
@@ -64,6 +66,9 @@ import type * as savedMeals_deleteSavedMeal from "../savedMeals/deleteSavedMeal.
 import type * as savedMeals_listSavedMeals from "../savedMeals/listSavedMeals.js";
 import type * as savedMeals_updateSavedMeal from "../savedMeals/updateSavedMeal.js";
 import type * as tasks from "../tasks.js";
+import type * as weightLogs_deleteWeightLog from "../weightLogs/deleteWeightLog.js";
+import type * as weightLogs_listWeightLogs from "../weightLogs/listWeightLogs.js";
+import type * as weightLogs_setWeightLog from "../weightLogs/setWeightLog.js";
 import type * as workoutLogs_createWorkoutLog from "../workoutLogs/createWorkoutLog.js";
 import type * as workoutLogs_deleteWorkoutLog from "../workoutLogs/deleteWorkoutLog.js";
 import type * as workoutLogs_listWorkoutLogs from "../workoutLogs/listWorkoutLogs.js";
@@ -83,6 +88,8 @@ declare const fullApi: ApiFromModules<{
   "calorieLogs/deleteCalorieLog": typeof calorieLogs_deleteCalorieLog;
   "calorieLogs/listCalorieLogs": typeof calorieLogs_listCalorieLogs;
   "calorieLogs/updateCalorieLog": typeof calorieLogs_updateCalorieLog;
+  "dailyActivity/listMyDailyActivity": typeof dailyActivity_listMyDailyActivity;
+  "dailyActivity/setDailyActivity": typeof dailyActivity_setDailyActivity;
   "feed/weeklyFeed": typeof feed_weeklyFeed;
   "friends/listFriends": typeof friends_listFriends;
   "friends/removeFriend": typeof friends_removeFriend;
@@ -129,6 +136,9 @@ declare const fullApi: ApiFromModules<{
   "savedMeals/listSavedMeals": typeof savedMeals_listSavedMeals;
   "savedMeals/updateSavedMeal": typeof savedMeals_updateSavedMeal;
   tasks: typeof tasks;
+  "weightLogs/deleteWeightLog": typeof weightLogs_deleteWeightLog;
+  "weightLogs/listWeightLogs": typeof weightLogs_listWeightLogs;
+  "weightLogs/setWeightLog": typeof weightLogs_setWeightLog;
   "workoutLogs/createWorkoutLog": typeof workoutLogs_createWorkoutLog;
   "workoutLogs/deleteWorkoutLog": typeof workoutLogs_deleteWorkoutLog;
   "workoutLogs/listWorkoutLogs": typeof workoutLogs_listWorkoutLogs;

@@ -185,7 +185,7 @@ function AppleHealthSection({ enabled }: { enabled: boolean }) {
     <>
       <SectionTitle>Apple Health</SectionTitle>
       <Text type="text-detail" color="#9CA3AF">
-        Step count is added under Movement when you expand your day.
+        Steps are saved so your group week can include them.
       </Text>
       <View
         style={{

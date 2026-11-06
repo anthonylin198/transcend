@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { api } from "@transcend/convex";
 import { useQuery } from "convex/react";
 import { Ionicons } from "@expo/vector-icons";
@@ -6,11 +6,20 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CalorieLogList from "@/components/calories/CalorieLogList";
+import LogWeightModal from "@/components/calories/LogWeightModal";
 import { LogOverlayHost } from "@/components/calories/LogOverlayHost";
 import WeekAverageValue from "@/components/calories/WeekAverageValue";
+import ShareGroupModal, {
+  type ShareGroup,
+} from "@/components/feed/ShareGroupModal";
+import ShareWeekModal, {
+  type ShareWeek,
+} from "@/components/feed/ShareWeekModal";
 import Text from "@/components/ui/Text";
 import WorkoutLogList from "@/components/workouts/WorkoutLogList";
+import { useSyncDailyActivity } from "@/hooks/useSyncDailyActivity";
 import { useLocalToday } from "@/hooks/useLocalToday";
+import { groupWeekStats } from "@/utils/groupWeek";
 import {
   addDays,
   averageLoggedDays,
@@ -23,6 +32,11 @@ import {
   parseLocalDateKey,
   toLocalDateKey,
 } from "@/utils/calorieWeek";
+import {
+  formatWeight,
+  formatWeightComparison,
+  priorWeight,
+} from "@/utils/weight";
 
 function readWeekStart(value: string | string[] | undefined) {
   const raw = Array.isArray(value) ? value[0] : value;
@@ -39,6 +53,9 @@ export default function CalorieWeekScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ weekStart?: string | string[] }>();
   const weekStartKey = readWeekStart(params.weekStart);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [friendsOpen, setFriendsOpen] = useState(false);
+  const [weightOpen, setWeightOpen] = useState(false);
   const today = useLocalToday();
   const todayKey = toLocalDateKey(today);
   const queryRange = useMemo(() => {
@@ -56,6 +73,33 @@ export default function CalorieWeekScreen() {
     api.workoutLogs.listWorkoutLogs.listWorkoutLogs,
     queryRange ?? "skip",
   );
+  const weightData = useQuery(api.weightLogs.listWeightLogs.listWeightLogs);
+  const groupFeed = useQuery(
+    api.feed.weeklyFeed.weeklyFeed,
+    queryRange ?? "skip",
+  );
+  const groupStats = useMemo(
+    () =>
+      groupFeed ? groupWeekStats([groupFeed.me, ...groupFeed.friends]) : null,
+    [groupFeed],
+  );
+  useSyncDailyActivity(
+    Boolean(groupFeed?.healthSyncEnabled && queryRange),
+    queryRange?.startDate ?? "1970-01-01",
+    queryRange?.endDate ?? "1970-01-01",
+    groupFeed ? groupFeed.me.activity : undefined,
+  );
+  const currentWeight =
+    weightData?.weights.find((weight) => weight.weekStart === weekStartKey) ??
+    null;
+  const prior =
+    weekStartKey && weightData
+      ? priorWeight(weightData.weights, weekStartKey)
+      : null;
+  const comparison =
+    currentWeight && prior && weekStartKey
+      ? formatWeightComparison(currentWeight.pounds, prior, weekStartKey)
+      : null;
 
   const weekStart = weekStartKey ? parseLocalDateKey(weekStartKey) : null;
   const weekEnd = weekStart ? addDays(weekStart, 6) : null;
@@ -67,6 +111,38 @@ export default function CalorieWeekScreen() {
           queryRange.endDate,
           todayKey,
         )
+      : null;
+  const canShare = Boolean(
+    queryRange && logs && average && weightData && weekStartKey,
+  );
+  const shareWeek: ShareWeek | null =
+    shareOpen && canShare && queryRange && average && weightData && weekStartKey
+      ? {
+          name: weightData.displayName?.trim() || "You",
+          startKey: weekStartKey,
+          endKey: queryRange.endDate,
+          average: average.pending
+            ? null
+            : { calories: average.calories, proteinG: average.proteinG },
+          weightPounds: currentWeight?.pounds ?? null,
+          weightComparison: comparison,
+        }
+      : null;
+  const shareGroup: ShareGroup | null =
+    friendsOpen && groupFeed && groupStats && queryRange && weekStartKey
+      ? {
+          startKey: weekStartKey,
+          endKey: queryRange.endDate,
+          people: [groupFeed.me, ...groupFeed.friends].map((person, index) => ({
+            name:
+              person.displayName?.trim() || (index === 0 ? "You" : "Friend"),
+            poundsLost: person.poundsLost,
+          })),
+          poundsLost: groupStats.poundsLost,
+          workouts: groupStats.workouts,
+          steps: groupStats.steps,
+          caloriesEaten: groupStats.caloriesEaten,
+        }
       : null;
   const dayKeys = weekStartKey ? eachDateKeyOfWeek(weekStartKey) : [];
 
@@ -109,6 +185,22 @@ export default function CalorieWeekScreen() {
                   ? formatWeekRange(weekStart, weekEnd)
                   : "Week"}
               </Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Share week"
+                disabled={!canShare}
+                hitSlop={10}
+                onPress={() => setShareOpen(true)}
+                style={({ pressed }) => ({
+                  width: 36,
+                  height: 36,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  opacity: !canShare ? 0.35 : pressed ? 0.55 : 1,
+                })}
+              >
+                <Ionicons name="share-outline" size={22} color="#9CA3AF" />
+              </Pressable>
             </View>
 
             {!queryRange ? (
@@ -119,7 +211,7 @@ export default function CalorieWeekScreen() {
               >
                 That week could not be opened.
               </Text>
-            ) : logs === undefined || !average ? (
+            ) : logs === undefined || weightData === undefined || !average ? (
               <Text
                 type="text-detail"
                 color="#9CA3AF"
@@ -146,6 +238,62 @@ export default function CalorieWeekScreen() {
                     pending={average.pending}
                   />
                 </View>
+
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    currentWeight
+                      ? comparison
+                        ? `Weight ${formatWeight(currentWeight.pounds)}, ${comparison}`
+                        : `Weight ${formatWeight(currentWeight.pounds)}`
+                      : "Add weight"
+                  }
+                  onPress={() => setWeightOpen(true)}
+                  style={({ pressed }) => ({
+                    minHeight: 44,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    opacity: pressed ? 0.7 : 1,
+                  })}
+                >
+                  <Text type="text-semibold">Weight</Text>
+                  <View
+                    style={{
+                      flex: 1,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "flex-end",
+                      gap: 8,
+                    }}
+                  >
+                    <View style={{ alignItems: "flex-end", flexShrink: 1 }}>
+                      <Text
+                        type="text-semibold"
+                        color={currentWeight ? "#FFFFFF" : "#9CA3AF"}
+                      >
+                        {currentWeight
+                          ? formatWeight(currentWeight.pounds)
+                          : "Add"}
+                      </Text>
+                      {comparison ? (
+                        <Text
+                          type="text-detail"
+                          color="#9CA3AF"
+                          style={{ textAlign: "right" }}
+                        >
+                          {comparison}
+                        </Text>
+                      ) : null}
+                    </View>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={18}
+                      color="#9CA3AF"
+                    />
+                  </View>
+                </Pressable>
 
                 <View style={{ gap: 10 }}>
                   <Text type="text-semibold">Daily totals</Text>
@@ -197,10 +345,42 @@ export default function CalorieWeekScreen() {
                     <WorkoutLogList logs={workouts} todayKey={todayKey} />
                   )}
                 </View>
+
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="View friend totals"
+                  disabled={!groupStats}
+                  onPress={() => setFriendsOpen(true)}
+                  style={({ pressed }) => ({
+                    minHeight: 52,
+                    borderRadius: 10,
+                    borderWidth: 1,
+                    borderColor: "#374151",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    opacity: !groupStats ? 0.5 : pressed ? 0.72 : 1,
+                  })}
+                >
+                  <Text type="text-semibold">View friend totals</Text>
+                </Pressable>
               </View>
             )}
           </View>
         </ScrollView>
+        {weekStartKey && weekStart && weekEnd ? (
+          <LogWeightModal
+            visible={weightOpen}
+            weekStart={weekStartKey}
+            weekLabel={formatWeekRange(weekStart, weekEnd)}
+            pounds={currentWeight?.pounds ?? null}
+            onClose={() => setWeightOpen(false)}
+          />
+        ) : null}
+        <ShareWeekModal week={shareWeek} onClose={() => setShareOpen(false)} />
+        <ShareGroupModal
+          group={shareGroup}
+          onClose={() => setFriendsOpen(false)}
+        />
       </View>
     </LogOverlayHost>
   );

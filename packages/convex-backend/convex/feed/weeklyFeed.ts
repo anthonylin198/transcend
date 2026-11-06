@@ -20,27 +20,54 @@ const loadPerson = async (
   startDate: string,
   endDate: string,
 ) => {
-  const [profile, calorieLogs, workoutLogs] = await Promise.all([
-    ctx.db.get(profileId),
-    ctx.db
-      .query("calorieLogs")
-      .withIndex("by_profile_id_date", (q) =>
-        q
-          .eq("profileId", profileId)
-          .gte("date", startDate)
-          .lte("date", endDate),
-      )
-      .collect(),
-    ctx.db
-      .query("workoutLogs")
-      .withIndex("by_profile_id_date", (q) =>
-        q
-          .eq("profileId", profileId)
-          .gte("date", startDate)
-          .lte("date", endDate),
-      )
-      .collect(),
-  ]);
+  const [profile, calorieLogs, workoutLogs, activity, weights] =
+    await Promise.all([
+      ctx.db.get(profileId),
+      ctx.db
+        .query("calorieLogs")
+        .withIndex("by_profile_id_date", (q) =>
+          q
+            .eq("profileId", profileId)
+            .gte("date", startDate)
+            .lte("date", endDate),
+        )
+        .collect(),
+      ctx.db
+        .query("workoutLogs")
+        .withIndex("by_profile_id_date", (q) =>
+          q
+            .eq("profileId", profileId)
+            .gte("date", startDate)
+            .lte("date", endDate),
+        )
+        .collect(),
+      ctx.db
+        .query("dailyActivity")
+        .withIndex("by_profile_id_date", (q) =>
+          q
+            .eq("profileId", profileId)
+            .gte("date", startDate)
+            .lte("date", endDate),
+        )
+        .collect(),
+      ctx.db
+        .query("weightLogs")
+        .withIndex("by_profile_id_week_start", (q) =>
+          q.eq("profileId", profileId),
+        )
+        .collect(),
+    ]);
+
+  const currentWeight = weights.find(
+    (weight) => weight.weekStart === startDate,
+  );
+  const priorWeight = weights
+    .filter((weight) => weight.weekStart < startDate)
+    .sort((left, right) => (left.weekStart < right.weekStart ? 1 : -1))[0];
+  const poundsLost =
+    currentWeight && priorWeight
+      ? Math.round((priorWeight.pounds - currentWeight.pounds) * 10) / 10
+      : null;
 
   const totalsByDate = new Map<
     string,
@@ -89,14 +116,22 @@ const loadPerson = async (
             ? -1
             : 1,
       ),
+    activity: activity
+      .map((day) => ({
+        date: day.date,
+        steps: day.steps,
+      }))
+      .sort((left, right) => (left.date < right.date ? -1 : 1)),
+    // Positive when this week's weigh-in is below the previous one.
+    poundsLost,
   };
 };
 
 /**
  * The current user plus accepted friends (in the viewer's chosen order), each
  * with per-day calorie/protein totals, the calorie entries behind those
- * totals, and workouts for the range. Also returns whether the viewer
- * connected Apple Health. Step counts themselves stay on the device.
+ * totals, workouts, saved steps, and the week's weight
+ * change. `startDate` is the Sunday key used for weigh-ins.
  */
 export const weeklyFeed = query({
   args: {
