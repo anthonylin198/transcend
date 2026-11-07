@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { href: "/home", label: "Home" },
   { href: "/systems", label: "Systems" },
   { href: "/intake", label: "Intake" },
+  { href: "/challenges", label: "Challenges" },
 ];
 
 export function AppTopNav() {

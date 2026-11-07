@@ -9,7 +9,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CalorieAppHeader from "@/components/calories/CalorieAppHeader";
 import Eyebrow from "@/components/ui/Eyebrow";
 import ShareDayModal, { type ShareDay } from "@/components/feed/ShareDayModal";
-import ShareItemModal, { type ShareItem } from "@/components/feed/ShareItemModal";
+import ShareItemModal, {
+  type ShareItem,
+} from "@/components/feed/ShareItemModal";
+import StepChallengeCard from "@/components/feed/StepChallengeCard";
 import Text from "@/components/ui/Text";
 import { appFonts } from "@/constants/fonts";
 import { useDaySteps } from "@/hooks/useDaySteps";
@@ -33,12 +36,14 @@ type FeedPerson = NonNullable<
 
 type OpenDay = Omit<ShareDay, "steps" | "stepsPending"> & {
   isMine: boolean;
+  savedSteps: number | null;
 };
 
 type DayEntry = {
   profileId: FeedPerson["profileId"];
   name: string;
   totals: { calories: number; proteinG: number } | null;
+  steps: number | null;
   calorieLogs: FeedPerson["calorieLogs"];
   workouts: FeedPerson["workouts"];
 };
@@ -52,13 +57,18 @@ function entryForDay(
     profileId: person.profileId,
     name,
     totals: person.dailyTotals.find((day) => day.date === dateKey) ?? null,
+    steps: person.activity.find((day) => day.date === dateKey)?.steps ?? null,
     calorieLogs: person.calorieLogs.filter((log) => log.date === dateKey),
     workouts: person.workouts.filter((workout) => workout.date === dateKey),
   };
 }
 
 function hasLogs(entry: DayEntry) {
-  return entry.totals !== null || entry.workouts.length > 0;
+  return (
+    entry.totals !== null ||
+    entry.workouts.length > 0 ||
+    (entry.steps !== null && entry.steps > 0)
+  );
 }
 
 function EntryCard({
@@ -77,6 +87,9 @@ function EntryCard({
   const [entriesOpen, setEntriesOpen] = useState(false);
   const initial = entry.name.trim().charAt(0).toUpperCase() || "?";
   const canShowEntries = entry.calorieLogs.length > 0;
+  const showSteps =
+    entry.steps !== null &&
+    (entry.steps > 0 || entry.totals !== null || entry.workouts.length > 0);
 
   return (
     <View
@@ -120,44 +133,92 @@ function EntryCard({
         </Pressable>
       </View>
 
-      {entry.totals ? (
+      {entry.totals || showSteps ? (
         <View style={{ gap: 14 }}>
           <View style={{ flexDirection: "row", alignItems: "stretch" }}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityState={{ expanded: entriesOpen }}
-              accessibilityLabel={
-                entriesOpen ? "Hide calorie entries" : "Show calorie entries"
-              }
-              disabled={!canShowEntries}
-              onPress={() => setEntriesOpen((open) => !open)}
-              style={{ flex: 1, gap: 2 }}
-            >
-              <Text type="heading-2" style={{ letterSpacing: -1 }}>
-                {formatCalories(entry.totals.calories)}
-              </Text>
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
-              >
-                <Eyebrow>CALORIES</Eyebrow>
-                {canShowEntries ? (
-                  <Ionicons
-                    name={entriesOpen ? "chevron-up" : "chevron-down"}
-                    size={12}
-                    color="#737373"
+            {entry.totals ? (
+              <>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityState={{ expanded: entriesOpen }}
+                  accessibilityLabel={
+                    entriesOpen
+                      ? "Hide calorie entries"
+                      : "Show calorie entries"
+                  }
+                  disabled={!canShowEntries}
+                  onPress={() => setEntriesOpen((open) => !open)}
+                  style={{ flex: 1, gap: 2 }}
+                >
+                  <Text
+                    type="heading-2"
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    style={{ letterSpacing: -1 }}
+                  >
+                    {formatCalories(entry.totals.calories)}
+                  </Text>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
+                    <Eyebrow>CALORIES</Eyebrow>
+                    {canShowEntries ? (
+                      <Ionicons
+                        name={entriesOpen ? "chevron-up" : "chevron-down"}
+                        size={12}
+                        color="#737373"
+                      />
+                    ) : null}
+                  </View>
+                </Pressable>
+                <View
+                  style={{
+                    width: 1,
+                    backgroundColor: "#262626",
+                    marginRight: 18,
+                  }}
+                />
+                <View style={{ flex: 1, gap: 2 }}>
+                  <Text
+                    type="heading-2"
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    style={{ letterSpacing: -1 }}
+                  >
+                    {`${formatProtein(entry.totals.proteinG)}g`}
+                  </Text>
+                  <Eyebrow>PROTEIN</Eyebrow>
+                </View>
+              </>
+            ) : null}
+            {showSteps && entry.steps !== null ? (
+              <>
+                {entry.totals ? (
+                  <View
+                    style={{
+                      width: 1,
+                      backgroundColor: "#262626",
+                      marginRight: 18,
+                    }}
                   />
                 ) : null}
-              </View>
-            </Pressable>
-            <View
-              style={{ width: 1, backgroundColor: "#262626", marginRight: 18 }}
-            />
-            <View style={{ flex: 1, gap: 2 }}>
-              <Text type="heading-2" style={{ letterSpacing: -1 }}>
-                {`${formatProtein(entry.totals.proteinG)}g`}
-              </Text>
-              <Eyebrow>PROTEIN</Eyebrow>
-            </View>
+                <View style={{ flex: 1, gap: 2 }}>
+                  <Text
+                    type="heading-2"
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    style={{ letterSpacing: -1 }}
+                  >
+                    {formatCalories(entry.steps)}
+                  </Text>
+                  <Eyebrow>STEPS</Eyebrow>
+                </View>
+              </>
+            ) : null}
           </View>
 
           {entriesOpen ? (
@@ -279,6 +340,13 @@ export default function FeedScreen() {
     [week.endKey, week.startKey],
   );
   const feed = useQuery(api.feed.weeklyFeed.weeklyFeed, queryRange);
+  const challenge = useQuery(
+    api.challenges.stepChallengeForWeek.stepChallengeForWeek,
+    {
+      weekStart: week.startKey,
+      today: isCurrentWeek ? todayKey : undefined,
+    },
+  );
   const [openDay, setOpenDay] = useState<OpenDay | null>(null);
   const [shareItem, setShareItem] = useState<ShareItem | null>(null);
   const healthEnabled = feed?.healthSyncEnabled ?? false;
@@ -301,7 +369,7 @@ export default function FeedScreen() {
         dateKey: openDay.dateKey,
         totals: openDay.totals,
         workouts: openDay.workouts,
-        steps: openDay.isMine && healthEnabled ? steps : null,
+        steps: openDay.isMine && healthEnabled ? steps : openDay.savedSteps,
         stepsPending: openDay.isMine && healthEnabled && stepsLoading,
       }
     : null;
@@ -382,7 +450,16 @@ export default function FeedScreen() {
           </Pressable>
         </View>
 
-        {stats ? (
+        {challenge ? (
+          <View style={{ marginTop: 18 }}>
+            <StepChallengeCard
+              key={week.startKey}
+              challenge={challenge}
+              weekLabel={formatWeekRange(week.start, week.end)}
+              showToday={isCurrentWeek}
+            />
+          </View>
+        ) : challenge === undefined ? null : stats ? (
           <View style={{ marginTop: 18, gap: 10 }}>
             <Eyebrow color="#A3A3A3">FRIEND TOTALS</Eyebrow>
             <View
@@ -473,6 +550,7 @@ export default function FeedScreen() {
                             dateKey: day.dateKey,
                             totals: entry.totals,
                             workouts: entry.workouts,
+                            savedSteps: entry.steps,
                           })
                         }
                       />

@@ -128,6 +128,20 @@ export default defineSchema({
     steps: v.number(),
     updatedAt: v.number(),
   }).index("by_profile_id_date", ["profileId", "date"]),
+  // One shared step goal per creator per Sunday week. Friends see the newest
+  // goal created by anyone in that circle, and steps are summed for the creator
+  // plus the creator's accepted friends.
+  stepChallenges: defineTable({
+    creatorProfileId: v.id("profiles"),
+    weekStart: v.string(),
+    goalSteps: v.number(),
+    // Older goals may omit the name. `theme` is unused; left so older rows stay valid.
+    name: v.optional(v.string()),
+    theme: v.optional(v.string()),
+    imageId: v.optional(v.id("_storage")),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_creator_week", ["creatorProfileId", "weekStart"]),
   // One weigh-in per week. weekStart is the Sunday (YYYY-MM-DD) the client uses for that week.
   weightLogs: defineTable({
     profileId: v.id("profiles"),

@@ -4,7 +4,9 @@ import { useMutation } from "convex/react";
 import type { FunctionReturnType } from "convex/server";
 import { Ionicons } from "@expo/vector-icons";
 import LogCaloriesModal from "@/components/calories/LogCaloriesModal";
-import ShareItemModal, { type ShareItem } from "@/components/feed/ShareItemModal";
+import ShareItemModal, {
+  type ShareItem,
+} from "@/components/feed/ShareItemModal";
 import Text from "@/components/ui/Text";
 import {
   formatCalories,

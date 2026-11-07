@@ -1,5 +1,23 @@
 const DATE_KEY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 
+export function addDaysToDateKey(dateKey: string, amount: number) {
+  assertLocalDateKey(dateKey);
+  const [year, month, day] = dateKey.split("-").map(Number);
+  const utc = new Date(Date.UTC(year, month - 1, day + amount));
+  const nextYear = utc.getUTCFullYear();
+  const nextMonth = String(utc.getUTCMonth() + 1).padStart(2, "0");
+  const nextDay = String(utc.getUTCDate()).padStart(2, "0");
+  return `${nextYear}-${nextMonth}-${nextDay}`;
+}
+
+export function assertSundayDateKey(dateKey: string) {
+  assertLocalDateKey(dateKey);
+  const [year, month, day] = dateKey.split("-").map(Number);
+  if (new Date(Date.UTC(year, month - 1, day)).getUTCDay() !== 0) {
+    throw new Error("Week must start on Sunday");
+  }
+}
+
 export function assertLocalDateKey(value: string) {
   const match = DATE_KEY_PATTERN.exec(value);
   if (!match) {

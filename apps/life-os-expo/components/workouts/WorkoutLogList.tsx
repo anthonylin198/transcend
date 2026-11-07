@@ -3,7 +3,9 @@ import { api } from "@transcend/convex";
 import { useMutation } from "convex/react";
 import type { FunctionReturnType } from "convex/server";
 import { Ionicons } from "@expo/vector-icons";
-import ShareItemModal, { type ShareItem } from "@/components/feed/ShareItemModal";
+import ShareItemModal, {
+  type ShareItem,
+} from "@/components/feed/ShareItemModal";
 import Text from "@/components/ui/Text";
 import LogWorkoutModal from "@/components/workouts/LogWorkoutModal";
 import { formatLogDateHeading, groupLogsByDate } from "@/utils/calorieWeek";
