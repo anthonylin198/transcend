@@ -278,6 +278,7 @@ function FitnessDayPage({
           <CalorieLogList
             logs={dayLogs}
             todayKey={toLocalDateKey(today)}
+            shareName={displayName ?? "You"}
             showDateHeadings={false}
             emptyText="Nothing logged yet"
           />
@@ -298,6 +299,7 @@ function FitnessDayPage({
           <WorkoutLogList
             logs={dayWorkouts}
             todayKey={toLocalDateKey(today)}
+            shareName={displayName ?? "You"}
             showDateHeadings={false}
             emptyText="Nothing logged yet"
           />

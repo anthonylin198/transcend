@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CalorieAppHeader from "@/components/calories/CalorieAppHeader";
 import Eyebrow from "@/components/ui/Eyebrow";
 import ShareDayModal, { type ShareDay } from "@/components/feed/ShareDayModal";
+import ShareItemModal, { type ShareItem } from "@/components/feed/ShareItemModal";
 import Text from "@/components/ui/Text";
 import { appFonts } from "@/constants/fonts";
 import { useDaySteps } from "@/hooks/useDaySteps";
@@ -62,10 +63,16 @@ function hasLogs(entry: DayEntry) {
 
 function EntryCard({
   entry,
+  dateKey,
+  shareName,
   onExpand,
+  onShare,
 }: {
   entry: DayEntry;
+  dateKey: string;
+  shareName: string;
   onExpand: () => void;
+  onShare: (item: ShareItem) => void;
 }) {
   const [entriesOpen, setEntriesOpen] = useState(false);
   const initial = entry.name.trim().charAt(0).toUpperCase() || "?";
@@ -156,18 +163,50 @@ function EntryCard({
           {entriesOpen ? (
             <View style={{ gap: 12 }}>
               {entry.calorieLogs.map((log) => (
-                <View key={log._id} style={{ gap: 2 }}>
-                  <Text type="text-medium">
-                    {formatCalories(log.calories)} cal
-                    <Text type="text-medium" color="#737373">
-                      {`  ${formatProtein(log.proteinG)}g`}
+                <View
+                  key={log._id}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                >
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Text type="text-medium">
+                      {formatCalories(log.calories)} cal
+                      <Text type="text-medium" color="#737373">
+                        {`  ${formatProtein(log.proteinG)}g`}
+                      </Text>
                     </Text>
-                  </Text>
-                  {log.description ? (
-                    <Text type="text-regular" color="#D4D4D4">
-                      {log.description}
-                    </Text>
-                  ) : null}
+                    {log.description ? (
+                      <Text type="text-regular" color="#D4D4D4">
+                        {log.description}
+                      </Text>
+                    ) : null}
+                  </View>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      log.description
+                        ? `Share ${log.description}`
+                        : `Share ${formatCalories(log.calories)} calorie entry`
+                    }
+                    hitSlop={8}
+                    onPress={() =>
+                      onShare({
+                        kind: "meal",
+                        id: log._id,
+                        name: shareName,
+                        dateKey,
+                        calories: log.calories,
+                        proteinG: log.proteinG,
+                        description: log.description,
+                      })
+                    }
+                    style={{ padding: 4 }}
+                  >
+                    <Ionicons name="share-outline" size={16} color="#737373" />
+                  </Pressable>
                 </View>
               ))}
             </View>
@@ -196,6 +235,23 @@ function EntryCard({
               <Text type="text-medium" style={{ flex: 1 }}>
                 {workout.description}
               </Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Share workout ${workout.description}`}
+                hitSlop={8}
+                onPress={() =>
+                  onShare({
+                    kind: "workout",
+                    id: workout._id,
+                    name: shareName,
+                    dateKey,
+                    description: workout.description,
+                  })
+                }
+                style={{ padding: 4 }}
+              >
+                <Ionicons name="share-outline" size={16} color="#737373" />
+              </Pressable>
             </View>
           ))}
         </View>
@@ -224,6 +280,7 @@ export default function FeedScreen() {
   );
   const feed = useQuery(api.feed.weeklyFeed.weeklyFeed, queryRange);
   const [openDay, setOpenDay] = useState<OpenDay | null>(null);
+  const [shareItem, setShareItem] = useState<ShareItem | null>(null);
   const healthEnabled = feed?.healthSyncEnabled ?? false;
   const stats = useMemo(
     () => (feed ? groupWeekStats([feed.me, ...feed.friends]) : null),
@@ -397,24 +454,30 @@ export default function FeedScreen() {
                   <Eyebrow color="#A3A3A3">
                     {formatLogDateHeading(day.dateKey, todayKey).toUpperCase()}
                   </Eyebrow>
-                  {day.entries.map((entry) => (
-                    <EntryCard
-                      key={entry.profileId}
-                      entry={entry}
-                      onExpand={() =>
-                        setOpenDay({
-                          isMine: entry.profileId === feed.me.profileId,
-                          name:
-                            entry.profileId === feed.me.profileId
-                              ? (feed.me.displayName ?? "You")
-                              : entry.name,
-                          dateKey: day.dateKey,
-                          totals: entry.totals,
-                          workouts: entry.workouts,
-                        })
-                      }
-                    />
-                  ))}
+                  {day.entries.map((entry) => {
+                    const shareName =
+                      entry.profileId === feed.me.profileId
+                        ? (feed.me.displayName ?? "You")
+                        : entry.name;
+                    return (
+                      <EntryCard
+                        key={entry.profileId}
+                        entry={entry}
+                        dateKey={day.dateKey}
+                        shareName={shareName}
+                        onShare={setShareItem}
+                        onExpand={() =>
+                          setOpenDay({
+                            isMine: entry.profileId === feed.me.profileId,
+                            name: shareName,
+                            dateKey: day.dateKey,
+                            totals: entry.totals,
+                            workouts: entry.workouts,
+                          })
+                        }
+                      />
+                    );
+                  })}
                 </View>
               ))
             )}
@@ -447,6 +510,7 @@ export default function FeedScreen() {
       </ScrollView>
 
       <ShareDayModal day={shareDay} onClose={() => setOpenDay(null)} />
+      <ShareItemModal item={shareItem} onClose={() => setShareItem(null)} />
     </View>
   );
 }

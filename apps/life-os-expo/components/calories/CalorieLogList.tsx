@@ -4,6 +4,7 @@ import { useMutation } from "convex/react";
 import type { FunctionReturnType } from "convex/server";
 import { Ionicons } from "@expo/vector-icons";
 import LogCaloriesModal from "@/components/calories/LogCaloriesModal";
+import ShareItemModal, { type ShareItem } from "@/components/feed/ShareItemModal";
 import Text from "@/components/ui/Text";
 import {
   formatCalories,
@@ -20,6 +21,7 @@ type CalorieLog = FunctionReturnType<
 type CalorieLogListProps = {
   logs: CalorieLog[];
   todayKey: string;
+  shareName?: string;
   showDateHeadings?: boolean;
   emptyText?: string;
 };
@@ -27,11 +29,13 @@ type CalorieLogListProps = {
 export default function CalorieLogList({
   logs,
   todayKey,
+  shareName = "You",
   showDateHeadings = true,
   emptyText = "No logs yet",
 }: CalorieLogListProps) {
   const [deletingId, setDeletingId] = useState<CalorieLog["_id"] | null>(null);
   const [editingLog, setEditingLog] = useState<CalorieLog | null>(null);
+  const [sharingLog, setSharingLog] = useState<CalorieLog | null>(null);
   const deleteCalorieLog = useMutation(
     api.calorieLogs.deleteCalorieLog.deleteCalorieLog,
   ).withOptimisticUpdate((localStore, args) => {
@@ -65,6 +69,17 @@ export default function CalorieLogList({
   });
 
   const groups = groupLogsByDate(logs);
+  const shareItem: ShareItem | null = sharingLog
+    ? {
+        kind: "meal",
+        id: sharingLog._id,
+        name: shareName.trim() || "You",
+        dateKey: sharingLog.date,
+        calories: sharingLog.calories,
+        proteinG: sharingLog.proteinG,
+        description: sharingLog.description,
+      }
+    : null;
 
   const onDelete = (log: CalorieLog) => {
     if (deletingId) return;
@@ -144,6 +159,20 @@ export default function CalorieLogList({
                 </View>
                 <Pressable
                   accessibilityRole="button"
+                  accessibilityLabel={
+                    log.description
+                      ? `Share ${log.description}`
+                      : `Share ${formatCalories(log.calories)} calorie entry`
+                  }
+                  disabled={deletingId !== null}
+                  hitSlop={8}
+                  onPress={() => setSharingLog(log)}
+                  style={{ padding: 6 }}
+                >
+                  <Ionicons name="share-outline" size={18} color="#9CA3AF" />
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
                   accessibilityLabel={`Edit ${formatCalories(log.calories)} calorie entry`}
                   disabled={deletingId !== null}
                   hitSlop={8}
@@ -172,6 +201,7 @@ export default function CalorieLogList({
         log={editingLog ?? undefined}
         onClose={() => setEditingLog(null)}
       />
+      <ShareItemModal item={shareItem} onClose={() => setSharingLog(null)} />
     </View>
   );
 }

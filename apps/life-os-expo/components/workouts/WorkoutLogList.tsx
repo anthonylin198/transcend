@@ -3,6 +3,7 @@ import { api } from "@transcend/convex";
 import { useMutation } from "convex/react";
 import type { FunctionReturnType } from "convex/server";
 import { Ionicons } from "@expo/vector-icons";
+import ShareItemModal, { type ShareItem } from "@/components/feed/ShareItemModal";
 import Text from "@/components/ui/Text";
 import LogWorkoutModal from "@/components/workouts/LogWorkoutModal";
 import { formatLogDateHeading, groupLogsByDate } from "@/utils/calorieWeek";
@@ -15,6 +16,7 @@ type WorkoutLog = FunctionReturnType<
 type WorkoutLogListProps = {
   logs: WorkoutLog[];
   todayKey: string;
+  shareName?: string;
   showDateHeadings?: boolean;
   emptyText?: string;
 };
@@ -22,11 +24,13 @@ type WorkoutLogListProps = {
 export default function WorkoutLogList({
   logs,
   todayKey,
+  shareName = "You",
   showDateHeadings = true,
   emptyText = "No workouts yet",
 }: WorkoutLogListProps) {
   const [deletingId, setDeletingId] = useState<WorkoutLog["_id"] | null>(null);
   const [editingLog, setEditingLog] = useState<WorkoutLog | null>(null);
+  const [sharingLog, setSharingLog] = useState<WorkoutLog | null>(null);
   const deleteWorkoutLog = useMutation(
     api.workoutLogs.deleteWorkoutLog.deleteWorkoutLog,
   ).withOptimisticUpdate((localStore, args) => {
@@ -60,6 +64,15 @@ export default function WorkoutLogList({
   });
 
   const groups = groupLogsByDate(logs);
+  const shareItem: ShareItem | null = sharingLog
+    ? {
+        kind: "workout",
+        id: sharingLog._id,
+        name: shareName.trim() || "You",
+        dateKey: sharingLog.date,
+        description: sharingLog.description,
+      }
+    : null;
 
   const onDelete = (log: WorkoutLog) => {
     if (deletingId) return;
@@ -119,6 +132,16 @@ export default function WorkoutLogList({
                 </Text>
                 <Pressable
                   accessibilityRole="button"
+                  accessibilityLabel={`Share workout ${log.description}`}
+                  disabled={deletingId !== null}
+                  hitSlop={8}
+                  onPress={() => setSharingLog(log)}
+                  style={{ padding: 6 }}
+                >
+                  <Ionicons name="share-outline" size={18} color="#9CA3AF" />
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
                   accessibilityLabel={`Edit workout ${log.description}`}
                   disabled={deletingId !== null}
                   hitSlop={8}
@@ -147,6 +170,7 @@ export default function WorkoutLogList({
         log={editingLog ?? undefined}
         onClose={() => setEditingLog(null)}
       />
+      <ShareItemModal item={shareItem} onClose={() => setSharingLog(null)} />
     </View>
   );
 }

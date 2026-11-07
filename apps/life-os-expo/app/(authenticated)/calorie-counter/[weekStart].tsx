@@ -332,7 +332,11 @@ export default function CalorieWeekScreen() {
 
                 <View style={{ gap: 8 }}>
                   <Text type="text-semibold">Logs</Text>
-                  <CalorieLogList logs={logs} todayKey={todayKey} />
+                  <CalorieLogList
+                    logs={logs}
+                    todayKey={todayKey}
+                    shareName={weightData?.displayName ?? "You"}
+                  />
                 </View>
 
                 <View style={{ gap: 8 }}>
@@ -342,7 +346,11 @@ export default function CalorieWeekScreen() {
                       Loading...
                     </Text>
                   ) : (
-                    <WorkoutLogList logs={workouts} todayKey={todayKey} />
+                    <WorkoutLogList
+                      logs={workouts}
+                      todayKey={todayKey}
+                      shareName={weightData?.displayName ?? "You"}
+                    />
                   )}
                 </View>
 
