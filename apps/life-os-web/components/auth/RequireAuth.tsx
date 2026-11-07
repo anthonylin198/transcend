@@ -11,7 +11,8 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (status === "unauthenticated") {
-      router.replace("/sign-in");
+      const next = `${window.location.pathname}${window.location.search}`;
+      router.replace(`/sign-in?next=${encodeURIComponent(next)}`);
     }
   }, [router, status]);
 

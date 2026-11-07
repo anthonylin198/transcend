@@ -150,4 +150,12 @@ export default defineSchema({
     text: v.string(),
     isCompleted: v.boolean(),
   }),
+  // Resume builder documents. `content` is the editor's JSON text.
+  resumes: defineTable({
+    profileId: v.id("profiles"),
+    title: v.string(),
+    content: v.string(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_profile_id", ["profileId"]),
 });

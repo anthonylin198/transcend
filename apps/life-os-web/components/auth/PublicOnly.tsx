@@ -11,7 +11,7 @@ export function PublicOnly({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (status === "ready") {
-      router.replace("/home");
+      router.replace(safeInternalPath(window.location.search));
     }
   }, [router, status]);
 
@@ -24,4 +24,18 @@ export function PublicOnly({ children }: { children: React.ReactNode }) {
   }
 
   return <>{children}</>;
+}
+
+function safeInternalPath(search: string) {
+  const next = new URLSearchParams(search).get("next");
+  if (
+    !next ||
+    !next.startsWith("/") ||
+    next.startsWith("//") ||
+    next.startsWith("/sign-in") ||
+    next.includes("\\")
+  ) {
+    return "/home";
+  }
+  return next;
 }
