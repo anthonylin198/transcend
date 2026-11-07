@@ -1,6 +1,10 @@
 import { Circle, Svg, Text, View } from "@react-pdf/renderer";
 import type { ResumeTheme } from "../resumeTheme";
-import type { CertificationItem, ExperienceItem, ResumeSection } from "../types";
+import type {
+  CertificationItem,
+  ExperienceItem,
+  ResumeSection,
+} from "../types";
 import type { ResumeStyles } from "./styles";
 
 function BulletMark({
@@ -14,7 +18,12 @@ function BulletMark({
   return (
     <View style={styles.bulletGlyph}>
       <Svg width={size} height={size}>
-        <Circle cx={size / 2} cy={size / 2} r={size / 2} fill={theme.colors.text} />
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={size / 2}
+          fill={theme.colors.text}
+        />
       </Svg>
     </View>
   );
@@ -132,9 +141,14 @@ function ExperienceBlock({
           const position = role.position ?? "";
           if (!position && !role.date) return null;
           return (
-            <View key={`${position}-${role.date ?? ""}-${index}`} style={styles.roleRow}>
+            <View
+              key={`${position}-${role.date ?? ""}-${index}`}
+              style={styles.roleRow}
+            >
               <Text style={styles.entrySecondary}>{position || " "}</Text>
-              {role.date ? <Text style={styles.entryDate}>{role.date}</Text> : null}
+              {role.date ? (
+                <Text style={styles.entryDate}>{role.date}</Text>
+              ) : null}
             </View>
           );
         })}

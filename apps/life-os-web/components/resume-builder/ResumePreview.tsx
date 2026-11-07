@@ -85,7 +85,8 @@ export function ResumePreview({
       const outputScale = window.devicePixelRatio || 1;
       const pageCount = doc.numPages;
       const contentHeight =
-        pageCount * base.height * cssScale + PAGE_GAP * Math.max(pageCount - 1, 0);
+        pageCount * base.height * cssScale +
+        PAGE_GAP * Math.max(pageCount - 1, 0);
       const contentWidth = base.width * cssScale;
 
       const fragment = document.createDocumentFragment();
@@ -109,7 +110,9 @@ export function ResumePreview({
         } catch (error) {
           if (cancelled || my !== token || isCancelled(error)) return;
           setPreviewError(
-            error instanceof Error ? error.message : "Could not show the preview.",
+            error instanceof Error
+              ? error.message
+              : "Could not show the preview.",
           );
           return;
         }
@@ -138,7 +141,9 @@ export function ResumePreview({
       } catch (error) {
         if (cancelled || isCancelled(error)) return;
         setPreviewError(
-          error instanceof Error ? error.message : "Could not show the preview.",
+          error instanceof Error
+            ? error.message
+            : "Could not show the preview.",
         );
       }
     })();

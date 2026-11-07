@@ -125,7 +125,9 @@ export function ResumeHeader({
               style={[
                 styles.contactRow,
                 {
-                  marginTop: title ? theme.spacing.titleGap : theme.spacing.nameGap,
+                  marginTop: title
+                    ? theme.spacing.titleGap
+                    : theme.spacing.nameGap,
                 },
               ]}
             >

@@ -129,7 +129,10 @@ function validateItem(
         const roleLabel = `${label}.roles[${roleIndex}]`;
         if (!isRecord(role)) return `${roleLabel} must be an object.`;
         for (const field of ["position", "title", "role", "date"] as const) {
-          const error = optionalStringError(role[field], `${roleLabel}.${field}`);
+          const error = optionalStringError(
+            role[field],
+            `${roleLabel}.${field}`,
+          );
           if (error) return error;
         }
       }
