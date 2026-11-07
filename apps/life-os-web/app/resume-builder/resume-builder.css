@@ -1,0 +1,11 @@
+.resume-json-editor {
+  min-height: 0;
+}
+
+.resume-json-editor .cm-editor {
+  height: 100%;
+}
+
+.resume-json-editor .cm-scroller {
+  overflow: auto;
+}
