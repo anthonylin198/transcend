@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useAuthActions } from "@convex-dev/auth/react";
 import { api, useMutation, useQuery } from "@transcend/convex";
 import { sampleResumeJson } from "@/lib/resume/sampleResume";
 import { resumeTheme } from "@/lib/resume/resumeTheme";
@@ -15,6 +16,8 @@ const updatedFormat = new Intl.DateTimeFormat(undefined, {
 
 export function ResumeLibrary() {
   const router = useRouter();
+  const { signOut } = useAuthActions();
+  const [signingOut, setSigningOut] = useState(false);
   const resumes = useQuery(api.resumes.listResumes.listResumes, {});
   const createResume = useMutation(api.resumes.createResume.createResume);
   const renameResume = useMutation(api.resumes.renameResume.renameResume);
@@ -41,7 +44,7 @@ export function ResumeLibrary() {
         title: nextTitle,
         content: sampleResumeJson,
       });
-      router.push(`/resume-builder/${resumeId}`);
+      router.push(`/${resumeId}`);
     } catch (createError) {
       setError(messageFrom(createError, "Could not create resume"));
       setCreating(false);
@@ -102,12 +105,26 @@ export function ResumeLibrary() {
     <div className="flex min-h-0 flex-1 flex-col overflow-auto">
       <div className="mx-auto flex w-full max-w-lg flex-col gap-6 px-5 py-10">
         <header className="flex flex-col gap-1">
-          <div className="flex items-center gap-2">
-            <span
-              className="h-2.5 w-2.5 rounded-full"
-              style={{ backgroundColor: resumeTheme.colors.primary }}
-            />
-            <h1 className="text-lg font-semibold tracking-tight">Resumes</h1>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span
+                className="h-2.5 w-2.5 rounded-full"
+                style={{ backgroundColor: resumeTheme.colors.primary }}
+              />
+              <h1 className="text-lg font-semibold tracking-tight">Resumes</h1>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                if (signingOut) return;
+                setSigningOut(true);
+                void signOut().finally(() => setSigningOut(false));
+              }}
+              disabled={signingOut}
+              className="rounded-md border border-neutral-300 bg-white px-2.5 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-60"
+            >
+              {signingOut ? "Signing out…" : "Sign out"}
+            </button>
           </div>
           <p className="text-sm text-neutral-500">
             Create a new resume or open one you already saved.
@@ -205,7 +222,7 @@ export function ResumeLibrary() {
                       </div>
                       <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
                         <Link
-                          href={`/resume-builder/${resume._id}`}
+                          href={`/${resume._id}`}
                           className="rounded-md px-2.5 py-1.5 text-xs font-medium text-white hover:opacity-90"
                           style={{
                             backgroundColor: resumeTheme.colors.primary,

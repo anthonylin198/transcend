@@ -33,7 +33,7 @@ export function ResumeEditor({ resumeId }: { resumeId: string }) {
           It may have been deleted, or it belongs to another account.
         </p>
         <Link
-          href="/resume-builder"
+          href="/"
           className="text-sm font-medium text-neutral-800 underline"
         >
           Back to resumes

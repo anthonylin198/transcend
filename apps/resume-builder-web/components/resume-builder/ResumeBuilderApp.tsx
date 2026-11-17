@@ -130,7 +130,7 @@ export function ResumeBuilderApp({
             style={{ backgroundColor: resumeTheme.colors.primary }}
           />
           <Link
-            href="/resume-builder"
+            href="/"
             className="shrink-0 text-xs font-medium text-neutral-500 hover:text-neutral-800"
           >
             Resumes
