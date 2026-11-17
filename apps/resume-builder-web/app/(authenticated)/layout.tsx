@@ -1,14 +1,8 @@
-import type { Metadata } from "next";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { Providers } from "../providers";
 import "./resume-builder.css";
 
-export const metadata: Metadata = {
-  title: "Resume Builder",
-  description: "Edit resume JSON and preview a print-ready PDF.",
-};
-
-export default function ResumeBuilderLayout({
+export default function AuthenticatedLayout({
   children,
 }: {
   children: React.ReactNode;
