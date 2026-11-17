@@ -8,18 +8,24 @@ type BootStatus = "unauthenticated" | "loading" | "ready";
 export function useAuthBootstrap() {
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
   const ensureProfile = useMutation(api.profile.ensureProfile);
-  const [profileReady, setProfileReady] = useState(false);
+  const [boot, setBoot] = useState({
+    isAuthenticated: false,
+    profileReady: false,
+  });
+
+  if (boot.isAuthenticated !== isAuthenticated) {
+    setBoot({ isAuthenticated, profileReady: false });
+  }
 
   useEffect(() => {
-    if (authLoading || !isAuthenticated) {
-      setProfileReady(false);
-      return;
-    }
+    if (authLoading || !isAuthenticated) return;
 
     let cancelled = false;
     void ensureProfile({})
       .then(() => {
-        if (!cancelled) setProfileReady(true);
+        if (!cancelled) {
+          setBoot({ isAuthenticated: true, profileReady: true });
+        }
       })
       .catch((error) => {
         console.warn("Failed to ensure profile during auth bootstrap", error);
@@ -34,7 +40,7 @@ export function useAuthBootstrap() {
   if (!authLoading) {
     if (!isAuthenticated) {
       status = "unauthenticated";
-    } else if (profileReady) {
+    } else if (boot.profileReady) {
       status = "ready";
     }
   }
