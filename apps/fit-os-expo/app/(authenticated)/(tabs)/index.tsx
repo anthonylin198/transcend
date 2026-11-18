@@ -231,7 +231,7 @@ function FitnessDayPage({
             accessibilityHint="Opens this week's logs"
             onPress={() =>
               router.push({
-                pathname: "/(authenticated)/calorie-counter/[weekStart]",
+                pathname: "/(authenticated)/[weekStart]",
                 params: { weekStart: weekStartKey },
               })
             }
@@ -308,9 +308,7 @@ function FitnessDayPage({
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Previous weeks"
-          onPress={() =>
-            router.push("/(authenticated)/calorie-counter/previous-weeks")
-          }
+          onPress={() => router.push("/(authenticated)/previous-weeks")}
           style={({ pressed }) => ({
             marginTop: 28,
             minHeight: 52,

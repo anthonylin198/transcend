@@ -21,7 +21,7 @@ export type CalorieWidgetProps = {
 };
 
 export function calorieWidgetUrl() {
-  return Linking.createURL("calorie-counter");
+  return Linking.createURL("/");
 }
 
 function nextLocalMidnight(from: Date) {
@@ -80,6 +80,6 @@ export function signedOutCalorieWidgetProps(): CalorieWidgetProps {
     calories: "—",
     protein: "—",
     weekLabel: "",
-    weekAverage: "Open lifeOS",
+    weekAverage: "Sign in",
   };
 }

@@ -34,7 +34,7 @@ export default function SignUpScreen() {
     <AuthForm
       flow="signUp"
       title={"Build your\nsystem."}
-      subtitle="Track habits, priorities, and fitness in one place."
+      subtitle="Track habits and priorities in one place."
       submitLabel="Create account"
       passwordHint="8+ characters"
       getErrorMessage={getSignUpErrorMessage}

@@ -14,7 +14,6 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Text from "@/components/ui/Text";
 import { useAuthBootstrap } from "@/hooks/useAuthBootstrap";
 import { useConvexForegroundReconnect } from "@/hooks/useConvexForegroundReconnect";
-import { useCalorieWidgetSync } from "@/widgets/useCalorieWidgetSync";
 import { useTodayWidgetSync } from "@/widgets/useTodayWidgetSync";
 
 const convexUrl = process.env.EXPO_PUBLIC_CONVEX_URL;
@@ -39,7 +38,6 @@ void SplashScreen.preventAutoHideAsync().catch(() => {
 function AppRouter({ loadedFonts }: { loadedFonts: boolean }) {
   const { bootReady, isAuthenticated } = useAuthBootstrap();
   const widgetAuthState = bootReady || isAuthenticated ? isAuthenticated : null;
-  useCalorieWidgetSync(widgetAuthState);
   useTodayWidgetSync(widgetAuthState);
   const [hasShownApp, setHasShownApp] = useState(false);
 

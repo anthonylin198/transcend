@@ -28,7 +28,7 @@ export async function requestStepCountAccess() {
   });
   if (!accepted) {
     throw new Error(
-      "Apple Health did not grant access. Allow Steps for lifeOS in the Health app, then try again.",
+      "Apple Health did not grant access. Allow Steps for fitOS in the Health app, then try again.",
     );
   }
 }

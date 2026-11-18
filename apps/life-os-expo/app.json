@@ -41,14 +41,6 @@
         }
       ],
       [
-        "@kingstinct/react-native-healthkit",
-        {
-          "NSHealthShareUsageDescription": "Allow lifeOS to read your step count so your group week and an expanded day can show how much you've moved.",
-          "NSHealthUpdateUsageDescription": "lifeOS reads your step count and does not write health data.",
-          "background": false
-        }
-      ],
-      [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
@@ -66,14 +58,6 @@
           "bundleIdentifier": "com.anthonylin198.lifeosexpo.ExpoWidgetsTarget",
           "groupIdentifier": "group.com.anthonylin198.lifeosexpo",
           "widgets": [
-            {
-              "name": "CalorieWidget",
-              "displayName": "Calories",
-              "description": "Today's calories and protein",
-              "ios": {
-                "supportedFamilies": ["systemSmall", "systemMedium"]
-              }
-            },
             {
               "name": "TodayWidget",
               "displayName": "Today",

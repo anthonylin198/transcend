@@ -8,7 +8,7 @@ import {
   addDays,
   parseLocalDateKey,
   toLocalDateKey,
-} from "@/utils/calorieWeek";
+} from "@/utils/localDate";
 
 type ActiveDayFieldProps = {
   activeDateKey: string | null;

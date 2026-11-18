@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import type { ConvexReactClient } from "convex/react";
 import { AppState, type AppStateStatus } from "react-native";
-import { toLocalDateKey } from "@/utils/calorieWeek";
+import { toLocalDateKey } from "@/utils/localDate";
 
 type LiveSocket = {
   state?: string;

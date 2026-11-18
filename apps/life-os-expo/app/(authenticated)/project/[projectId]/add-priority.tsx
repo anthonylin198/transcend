@@ -19,7 +19,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ActiveDayField from "@/components/priorities/ActiveDayField";
 import Text from "@/components/ui/Text";
 import { appFonts } from "@/constants/fonts";
-import { toLocalDateKey } from "@/utils/calorieWeek";
+import { toLocalDateKey } from "@/utils/localDate";
 import { getHomeBootstrapRange } from "@/utils/homeBootstrapRange";
 
 const STATUS_OPTIONS = [

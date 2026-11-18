@@ -5,7 +5,7 @@ import { useQuery } from "convex/react";
 import { Modal, View } from "react-native";
 import SplashCover from "@/components/ui/SplashCover";
 import { useLocalToday } from "@/hooks/useLocalToday";
-import { toLocalDateKey } from "@/utils/calorieWeek";
+import { toLocalDateKey } from "@/utils/localDate";
 import { getHomeBootstrapRange } from "@/utils/homeBootstrapRange";
 
 // The new day's pager can paint blank for a moment after the query resolves.

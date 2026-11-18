@@ -109,7 +109,7 @@ function LogCaloriesForm({
     if (savingRef.current || pickingRef.current) return;
     pickingRef.current = true;
     router.push({
-      pathname: "/(authenticated)/calorie-counter/saved-meals",
+      pathname: "/(authenticated)/saved-meals",
       params: { pick: "1" },
     });
   };
