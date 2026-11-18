@@ -71,7 +71,27 @@
       "reactCompiler": true
     },
     "extra": {
-      "router": {}
+      "router": {},
+      "eas": {
+        "build": {
+          "experimental": {
+            "ios": {
+              "appExtensions": [
+                {
+                  "targetName": "ExpoWidgetsTarget",
+                  "bundleIdentifier": "com.anthonylin198.fitosexpo.ExpoWidgetsTarget",
+                  "entitlements": {
+                    "com.apple.security.application-groups": [
+                      "group.com.anthonylin198.fitosexpo"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "projectId": "c4202132-f21f-4dfc-9eb3-f5fbf18e4d52"
+      }
     }
   }
 }

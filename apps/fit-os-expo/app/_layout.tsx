@@ -7,7 +7,7 @@ import {
 } from "@expo-google-fonts/dm-sans";
 import * as SecureStore from "expo-secure-store";
 import { useFonts } from "expo-font";
-import { ConvexReactClient } from "convex/react";
+import { ConvexReactClient, useConvexAuth } from "convex/react";
 import { SplashScreen, Stack } from "expo-router";
 import { Platform, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -17,6 +17,7 @@ import { useConvexForegroundReconnect } from "@/hooks/useConvexForegroundReconne
 import { useCalorieWidgetSync } from "@/widgets/useCalorieWidgetSync";
 
 const convexUrl = process.env.EXPO_PUBLIC_CONVEX_URL;
+console.log(convexUrl);
 const convexClient = convexUrl
   ? new ConvexReactClient(convexUrl, {
       unsavedChangesWarning: false,
@@ -34,6 +35,19 @@ const secureStorage = {
 void SplashScreen.preventAutoHideAsync().catch(() => {
   // Ignore if splash is already controlled.
 });
+
+function LoggedOutConvexSocket() {
+  const { isLoading, isAuthenticated } = useConvexAuth();
+
+  useEffect(() => {
+    if (!convexClient || isLoading || isAuthenticated) return;
+    // expectAuth holds the socket closed until setAuth. Sign-in is an action
+    // on that socket, so a logged-out app still has to open it.
+    convexClient.setAuth(async () => null);
+  }, [isAuthenticated, isLoading]);
+
+  return null;
+}
 
 function AppRouter({ loadedFonts }: { loadedFonts: boolean }) {
   const { bootReady, isAuthenticated } = useAuthBootstrap();
@@ -96,8 +110,8 @@ export default function RootLayout() {
         }}
       >
         <Text color="#111827">
-          Missing EXPO_PUBLIC_CONVEX_URL. Add it to
-          apps/fit-os-expo/.env so the app can connect to Convex.
+          Missing EXPO_PUBLIC_CONVEX_URL. Add it to apps/fit-os-expo/.env so the
+          app can connect to Convex.
         </Text>
       </View>
     );
@@ -113,6 +127,7 @@ export default function RootLayout() {
             : undefined
         }
       >
+        <LoggedOutConvexSocket />
         <AppRouter loadedFonts={fontsLoaded} />
       </ConvexAuthProvider>
     </GestureHandlerRootView>
