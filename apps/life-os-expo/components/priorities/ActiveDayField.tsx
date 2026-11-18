@@ -4,11 +4,7 @@ import * as Haptics from "expo-haptics";
 import { Modal, Pressable, View } from "react-native";
 import Text from "@/components/ui/Text";
 import { appFonts } from "@/constants/fonts";
-import {
-  addDays,
-  parseLocalDateKey,
-  toLocalDateKey,
-} from "@/utils/localDate";
+import { addDays, parseLocalDateKey, toLocalDateKey } from "@/utils/localDate";
 
 type ActiveDayFieldProps = {
   activeDateKey: string | null;
