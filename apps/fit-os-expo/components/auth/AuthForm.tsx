@@ -139,7 +139,7 @@ export default function AuthForm({
             paddingHorizontal: 28,
           }}
         >
-          <Eyebrow color="#A3A3A3">LIFEOS</Eyebrow>
+          <Eyebrow color="#A3A3A3">FITOS</Eyebrow>
 
           <View style={{ flex: 1, minHeight: 64 }} />
 

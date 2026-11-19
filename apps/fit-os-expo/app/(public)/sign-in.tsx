@@ -26,8 +26,8 @@ export default function SignInScreen() {
   return (
     <AuthForm
       flow="signIn"
-      title={"Log the\nday."}
-      subtitle="Sign in with your existing account to see your meals, workouts, and friends."
+      title={"Fitness\ntracking."}
+      subtitle="Log calories and workouts with your friends."
       submitLabel="Sign in"
       getErrorMessage={getSignInErrorMessage}
       footerPrompt="New here?"
