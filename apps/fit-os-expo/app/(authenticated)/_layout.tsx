@@ -1,5 +1,5 @@
 import { Stack } from "expo-router";
 
-export default function CalorieCounterLayout() {
+export default function AuthenticatedLayout() {
   return <Stack screenOptions={{ headerShown: false, animation: "none" }} />;
 }

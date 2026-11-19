@@ -32,9 +32,7 @@ const CalorieWidget = (
   const protein = props.protein ?? "—";
   const dateLabel = props.dateLabel ?? "";
   const destination =
-    props.url != null && props.url !== ""
-      ? props.url
-      : "lifeosexpo://calorie-counter";
+    props.url != null && props.url !== "" ? props.url : "fitosexpo://";
   // SwiftUI's .infinity can't cross the JS bridge; any large value fills the container.
   const fillWidth = 10000;
   const rootModifiers = [

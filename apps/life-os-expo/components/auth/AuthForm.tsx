@@ -105,11 +105,13 @@ export default function AuthForm({
     setSubmitting(true);
     setError(null);
     try {
-      const formData = new FormData();
-      formData.append("email", email.trim());
-      formData.append("password", password);
-      formData.append("flow", flow);
-      await signIn("password", formData);
+      // React Native's FormData has no entries(), so Convex Auth never turns
+      // it into params and the auth action is never sent. Pass a plain object.
+      await signIn("password", {
+        email: email.trim(),
+        password,
+        flow,
+      });
     } catch (submitError) {
       setError(getErrorMessage(submitError));
     } finally {

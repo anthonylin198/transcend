@@ -477,9 +477,7 @@ export default function YouScreen() {
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Manage saved meals"
-              onPress={() =>
-                router.push("/(authenticated)/calorie-counter/saved-meals")
-              }
+              onPress={() => router.push("/(authenticated)/saved-meals")}
               style={({ pressed }) => ({
                 minHeight: 52,
                 borderRadius: 12,

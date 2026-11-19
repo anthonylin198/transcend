@@ -563,9 +563,7 @@ export default function FeedScreen() {
             {feed.friends.length === 0 ? (
               <Pressable
                 accessibilityRole="button"
-                onPress={() =>
-                  router.navigate("/(authenticated)/calorie-counter/you")
-                }
+                onPress={() => router.navigate("/(authenticated)/you")}
                 style={({ pressed }) => ({
                   marginTop: 28,
                   minHeight: 52,

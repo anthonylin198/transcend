@@ -16,14 +16,14 @@ export default function SavedMealsScreen() {
     <SavedMealsList
       picking={picking}
       onBack={() => router.back()}
-      onAdd={() => router.push("/(authenticated)/calorie-counter/saved-meal")}
+      onAdd={() => router.push("/(authenticated)/saved-meal")}
       onPick={(meal) => {
         stageSavedMeal(meal);
         router.back();
       }}
       onEdit={(meal) =>
         router.push({
-          pathname: "/(authenticated)/calorie-counter/saved-meal",
+          pathname: "/(authenticated)/saved-meal",
           params: {
             savedMealId: meal._id,
             initialCalories: String(meal.calories),

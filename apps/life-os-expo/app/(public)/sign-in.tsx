@@ -27,7 +27,7 @@ export default function SignInScreen() {
     <AuthForm
       flow="signIn"
       title={"Your life,\nin one place."}
-      subtitle="Habits, priorities, and fitness, all in one system."
+      subtitle="Habits, priorities, and the day, all in one system."
       submitLabel="Sign in"
       getErrorMessage={getSignInErrorMessage}
       footerPrompt="New here?"

@@ -20,8 +20,7 @@ export default function CalorieCounterTabLayout() {
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>
       <Tabs
-        // "none" lets back gestures leave the fitness tracker instead of
-        // hopping between its tabs.
+        // "none" keeps a back gesture from hopping between tabs.
         backBehavior="none"
         screenOptions={{
           tabBarActiveTintColor: "white",

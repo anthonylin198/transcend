@@ -107,8 +107,7 @@ export default function PreviousWeeksScreen() {
                     }
                     onPress={() =>
                       router.push({
-                        pathname:
-                          "/(authenticated)/calorie-counter/[weekStart]",
+                        pathname: "/(authenticated)/[weekStart]",
                         params: { weekStart: week.startKey },
                       })
                     }

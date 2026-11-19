@@ -1,0 +1,97 @@
+{
+  "expo": {
+    "name": "fitOS",
+    "slug": "fitOS",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "fitosexpo",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anthonylin198.fitosexpo",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#000000",
+        "foregroundImage": "./assets/images/icon.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anthonylin198.fitosexpo"
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/icon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "@kingstinct/react-native-healthkit",
+        {
+          "NSHealthShareUsageDescription": "Allow fitOS to read your step count so your group week and an expanded day can show how much you've moved.",
+          "NSHealthUpdateUsageDescription": "fitOS reads your step count and does not write health data.",
+          "background": false
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#000000",
+          "dark": {
+            "backgroundColor": "#000000"
+          }
+        }
+      ],
+      [
+        "expo-widgets",
+        {
+          "bundleIdentifier": "com.anthonylin198.fitosexpo.ExpoWidgetsTarget",
+          "groupIdentifier": "group.com.anthonylin198.fitosexpo",
+          "widgets": [
+            {
+              "name": "CalorieWidget",
+              "displayName": "Calories",
+              "description": "Today's calories and protein",
+              "ios": {
+                "supportedFamilies": ["systemSmall", "systemMedium"]
+              }
+            }
+          ]
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "build": {
+          "experimental": {
+            "ios": {
+              "appExtensions": [
+                {
+                  "targetName": "ExpoWidgetsTarget",
+                  "bundleIdentifier": "com.anthonylin198.fitosexpo.ExpoWidgetsTarget",
+                  "entitlements": {
+                    "com.apple.security.application-groups": [
+                      "group.com.anthonylin198.fitosexpo"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "projectId": "c4202132-f21f-4dfc-9eb3-f5fbf18e4d52"
+      }
+    }
+  }
+}

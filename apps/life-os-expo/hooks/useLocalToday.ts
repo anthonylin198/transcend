@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useFocusEffect } from "expo-router";
 import { AppState, type AppStateStatus } from "react-native";
-import { startOfLocalDay, toLocalDateKey } from "@/utils/calorieWeek";
+import { startOfLocalDay, toLocalDateKey } from "@/utils/localDate";
 
 // While the app is open, recheck well before a one-minute poll so midnight
 // rollover is not waiting on a timer that iOS suspended overnight.

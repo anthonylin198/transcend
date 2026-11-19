@@ -3,7 +3,7 @@ import {
   formatShortDate,
   startOfLocalDay,
   toLocalDateKey,
-} from "@/utils/calorieWeek";
+} from "@/utils/localDate";
 import { getHabitWeekdayName, toHabitDateKey } from "@/utils/habitDate";
 
 export type WidgetPriority = {
