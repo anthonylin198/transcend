@@ -223,7 +223,7 @@ export const wods: Wod[] = [
                 percentage: 80,
               },
             ],
-          }
+          },
         ],
       },
       {
@@ -452,7 +452,7 @@ export const wods: Wod[] = [
                 percentage: "67–72%",
               },
             ],
-          }
+          },
         ],
       },
       {
@@ -891,7 +891,7 @@ export const wods: Wod[] = [
           {
             type: "note",
             text: "Go straight into the back squats after the three front-squat sets.",
-          }
+          },
         ],
       },
       {
@@ -1597,7 +1597,7 @@ export const wods: Wod[] = [
                 percentage: 85,
               },
             ],
-          }
+          },
         ],
       },
       {
@@ -1846,7 +1846,7 @@ export const wods: Wod[] = [
           {
             type: "note",
             text: "Use about 70–75% of your clean and jerk, or a hard weight you can still control.",
-          }
+          },
         ],
       },
       {
@@ -2338,7 +2338,7 @@ export const wods: Wod[] = [
           {
             type: "note",
             text: "Score the total combined load the way your gym directs. Deadlift and bench alternate.",
-          }
+          },
         ],
       },
       {
@@ -2753,7 +2753,7 @@ export const wods: Wod[] = [
           {
             type: "note",
             text: "No seated box jumps. Percentages are based on the limiting lift.",
-          }
+          },
         ],
       },
       {
@@ -3004,7 +3004,7 @@ export const wods: Wod[] = [
           {
             type: "note",
             text: "Two power cleans each set.",
-          }
+          },
         ],
       },
       {
@@ -3254,7 +3254,7 @@ export const wods: Wod[] = [
           {
             type: "note",
             text: "The source is 6 reps at 72–77%. This table is a suggested build.",
-          }
+          },
         ],
       },
       {
@@ -3664,7 +3664,7 @@ export const wods: Wod[] = [
           {
             type: "note",
             text: "The source is 3-3-3-2-2-2 at 80–85%. This table is a suggested build.",
-          }
+          },
         ],
       },
       {
@@ -3700,28 +3700,28 @@ export const wods: Wod[] = [
                     prescription: "Replaces toes-to-bar",
                   },
                   {
-                    name: "Double-KB Front-Rack Walking Lunges",
-                    reps: 2,
+                    name: "Double-KB Front-Rack Reverse Lunges",
+                    reps: 16,
                     weight: {
                       male: 53,
                       female: 35,
                       unit: "lb",
                     },
-                    prescription: "25 ft, each dumbbell",
+                    prescription: "8 per leg, alternating, each kettlebell",
                   },
                   {
                     name: "Floor Leg Raises",
                     reps: 20,
                   },
                   {
-                    name: "Double-KB Front-Rack Walking Lunges",
-                    reps: 2,
+                    name: "Double-KB Front-Rack Reverse Lunges",
+                    reps: 16,
                     weight: {
                       male: 53,
                       female: 35,
                       unit: "lb",
                     },
-                    prescription: "25 ft, each dumbbell",
+                    prescription: "8 per leg, alternating, each kettlebell",
                   },
                   {
                     name: "Floor Leg Raises",
@@ -3743,28 +3743,28 @@ export const wods: Wod[] = [
                     reps: 24,
                   },
                   {
-                    name: "Double-KB Front-Rack Walking Lunges",
-                    reps: 2,
+                    name: "Double-KB Front-Rack Reverse Lunges",
+                    reps: 16,
                     weight: {
                       male: 35,
                       female: 26,
                       unit: "lb",
                     },
-                    prescription: "25 ft, each dumbbell",
+                    prescription: "8 per leg, alternating, each kettlebell",
                   },
                   {
                     name: "Floor Leg Raises",
                     reps: 16,
                   },
                   {
-                    name: "Double-KB Front-Rack Walking Lunges",
-                    reps: 2,
+                    name: "Double-KB Front-Rack Reverse Lunges",
+                    reps: 16,
                     weight: {
                       male: 35,
                       female: 26,
                       unit: "lb",
                     },
-                    prescription: "25 ft, each dumbbell",
+                    prescription: "8 per leg, alternating, each kettlebell",
                   },
                   {
                     name: "Floor Leg Raises",
@@ -3973,7 +3973,7 @@ export const wods: Wod[] = [
           {
             type: "note",
             text: "Build to heavy, not a max. The front squat is omitted. Percentages are based on the limiting lift.",
-          }
+          },
         ],
       },
       {
@@ -4414,7 +4414,7 @@ export const wods: Wod[] = [
           {
             type: "note",
             text: "The source is 4-3-2-2, each set at 80–85%.",
-          }
+          },
         ],
       },
       {
@@ -4655,7 +4655,7 @@ export const wods: Wod[] = [
           {
             type: "note",
             text: "Build from 60% to 75%+ of your push press.",
-          }
+          },
         ],
       },
       {
@@ -4901,7 +4901,7 @@ export const wods: Wod[] = [
           {
             type: "note",
             text: "On the last set, aim for 4–6 good reps and stop before your form breaks.",
-          }
+          },
         ],
       },
       {
@@ -5753,7 +5753,7 @@ export const wods: Wod[] = [
           {
             type: "note",
             text: "Odd minutes are bench press and even minutes are deadlift, 6 sets of each. Score the two loads added together.",
-          }
+          },
         ],
       },
       {
@@ -6187,7 +6187,7 @@ export const wods: Wod[] = [
                 percentage: 80,
               },
             ],
-          }
+          },
         ],
       },
       {
@@ -6424,7 +6424,7 @@ export const wods: Wod[] = [
                 percentage: 75,
               },
             ],
-          }
+          },
         ],
       },
       {
@@ -6717,9 +6717,9 @@ export const wods: Wod[] = [
                     prescription: "30 sec",
                   },
                   {
-                    name: "Alternating Walking Lunges",
-                    reps: 8,
-                    prescription: "25 ft",
+                    name: "Alternating Reverse Lunges",
+                    reps: 16,
+                    prescription: "8 per leg, alternating",
                   },
                   {
                     name: "Floor L-Sit or Tuck Hold",
@@ -6837,7 +6837,7 @@ export const wods: Wod[] = [
           {
             type: "note",
             text: "Build to the heaviest back squat you can do for 3 controlled reps. Record that set. No percentages were prescribed.",
-          }
+          },
         ],
       },
       {
@@ -7052,7 +7052,7 @@ export const wods: Wod[] = [
           {
             type: "note",
             text: "One power clean each set. Start at 65–70% and build toward a single if the bar stays fast. Sets 2–10 have no prescribed percentages.",
-          }
+          },
         ],
       },
       {
@@ -7270,7 +7270,7 @@ export const wods: Wod[] = [
           {
             type: "note",
             text: "Build to the heaviest bench press you can do for 3 controlled reps. Record that set. No percentages were prescribed.",
-          }
+          },
         ],
       },
       {
@@ -7676,7 +7676,7 @@ export const wods: Wod[] = [
           {
             type: "note",
             text: "Build to the heaviest deadlift you can do for 3 controlled reps. Record that set. No percentages were prescribed.",
-          }
+          },
         ],
       },
       {
@@ -8315,7 +8315,7 @@ export const wods: Wod[] = [
           {
             type: "note",
             text: "Tempo is 3 seconds down, a 1-second pause near the bottom, an explosive lift, and 1 second at the top. Stand on a 15-lb plate and stop the bar 2–3 inches above the ground.",
-          }
+          },
         ],
       },
       {
@@ -9171,7 +9171,7 @@ export const wods: Wod[] = [
           {
             type: "note",
             text: "Squat snatches if you can. Power snatches are allowed. Keep the positions controlled rather than forcing a heavy lift.",
-          }
+          },
         ],
       },
       {
@@ -9683,7 +9683,7 @@ export const wods: Wod[] = [
           {
             type: "note",
             text: "Each set is 9 push presses at 65% of your 1-rep max.",
-          }
+          },
         ],
       },
       {
@@ -10381,7 +10381,7 @@ export const wods: Wod[] = [
           {
             type: "note",
             text: "Start at 60% of your 1-rep max and build to heavy.",
-          }
+          },
         ],
       },
       {
@@ -10811,7 +10811,7 @@ export const wods: Wod[] = [
           {
             type: "note",
             text: "Push jerk or split jerk. Keep every rep between 60–75% of your clean and jerk 1-rep max.",
-          }
+          },
         ],
       },
       {
@@ -11318,7 +11318,7 @@ export const wods: Wod[] = [
           {
             type: "note",
             text: "All four sets are 7 front squats at 70% of your 1-rep max.",
-          }
+          },
         ],
       },
       {
@@ -11792,7 +11792,7 @@ export const wods: Wod[] = [
           {
             type: "note",
             text: "The gym does not prescribe the added weight. Each interval is 3 weighted strict pull-ups plus 5 strict pull-ups.",
-          }
+          },
         ],
       },
       {
@@ -12026,7 +12026,7 @@ export const wods: Wod[] = [
           {
             type: "note",
             text: "Each set is 7 push presses at 70% of your 1-rep max.",
-          }
+          },
         ],
       },
       {
@@ -12400,7 +12400,7 @@ export const wods: Wod[] = [
           {
             type: "note",
             text: "Percentages are of your deadlift 1-rep max.",
-          }
+          },
         ],
       },
       {
@@ -13254,7 +13254,7 @@ export const wods: Wod[] = [
           {
             type: "note",
             text: "Each set is 5 front squats at 75% of your 1-rep max.",
-          }
+          },
         ],
       },
       {
@@ -13757,7 +13757,7 @@ export const wods: Wod[] = [
           {
             type: "note",
             text: "Start near 65% of the limiting lift and build to heavy.",
-          }
+          },
         ],
       },
       {

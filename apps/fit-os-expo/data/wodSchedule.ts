@@ -80,7 +80,11 @@ export function cycleDays(anchor: Date = new Date()) {
   );
 
   return wodSchedule.map((id, offset) => ({
-    date: new Date(start.getFullYear(), start.getMonth(), start.getDate() + offset),
+    date: new Date(
+      start.getFullYear(),
+      start.getMonth(),
+      start.getDate() + offset,
+    ),
     wod: wodsById.get(id),
   }));
 }
