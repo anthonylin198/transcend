@@ -98,6 +98,24 @@ function replaceAt<T>(items: T[], index: number, next: T) {
   return items.map((item, itemIndex) => (itemIndex === index ? next : item));
 }
 
+export function replaceNote(
+  sections: WodSection[],
+  sectionIndex: number,
+  blockIndex: number,
+  text: string,
+): WodSection[] {
+  return sections.map((section, index) => {
+    if (index !== sectionIndex) return section;
+    return {
+      ...section,
+      blocks: section.blocks.map((block, blockAt) => {
+        if (blockAt !== blockIndex || block.type !== "note") return block;
+        return { ...block, text };
+      }),
+    };
+  });
+}
+
 export function replaceMovement(
   sections: WodSection[],
   path: MovementPath,

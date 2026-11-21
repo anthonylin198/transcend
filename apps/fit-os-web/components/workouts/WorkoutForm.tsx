@@ -6,6 +6,7 @@ import { api, useMutation } from "@transcend/convex";
 import {
   blockSummary,
   replaceMovement,
+  replaceNote,
   wodCategories,
   type MovementPath,
   type StoredWod,
@@ -295,7 +296,7 @@ export function WorkoutForm({ wod }: { wod: StoredWod }) {
         <div>
           <h1 className="text-xl font-semibold text-zinc-100">Edit workout</h1>
           <p className="mt-2 text-sm leading-6 text-zinc-400">
-            Title, category, and movements save to the backend. Headings, notes,
+            Title, category, movements, and notes save to the backend. Headings,
             intervals, and set tables stay as they are.
           </p>
         </div>
@@ -377,6 +378,33 @@ export function WorkoutForm({ wod }: { wod: StoredWod }) {
                     onChange={onMovement}
                   />
                 </div>
+              );
+            }
+            if (block.type === "note") {
+              return (
+                <label
+                  key={blockIndex}
+                  className="flex flex-col gap-1 text-xs text-zinc-500"
+                >
+                  Note
+                  <textarea
+                    value={block.text}
+                    rows={3}
+                    onChange={(event) => {
+                      setSections((current) =>
+                        replaceNote(
+                          current,
+                          sectionIndex,
+                          blockIndex,
+                          event.target.value,
+                        ),
+                      );
+                      setSaved(false);
+                      setError(null);
+                    }}
+                    className={fieldClass}
+                  />
+                </label>
               );
             }
             if (block.type === "variants") {
