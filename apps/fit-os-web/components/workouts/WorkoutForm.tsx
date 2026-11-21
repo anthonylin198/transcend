@@ -296,8 +296,8 @@ export function WorkoutForm({ wod }: { wod: StoredWod }) {
         <div>
           <h1 className="text-xl font-semibold text-zinc-100">Edit workout</h1>
           <p className="mt-2 text-sm leading-6 text-zinc-400">
-            Title, category, movements, and notes save to the backend.
-            Headings, intervals, and set tables stay as they are.
+            Title, category, movements, and notes save to the backend. Headings,
+            intervals, and set tables stay as they are.
           </p>
         </div>
         <p className="text-xs tracking-wide text-zinc-500">{wod.slug}</p>
