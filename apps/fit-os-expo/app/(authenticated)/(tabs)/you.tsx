@@ -628,6 +628,58 @@ export default function YouScreen() {
                 ))}
               </>
             ) : null}
+
+            <SectionTitle>WODs</SectionTitle>
+            <View style={{ gap: 10 }}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="View all workouts"
+                onPress={() => router.push("/(authenticated)/wods")}
+                style={({ pressed }) => ({
+                  minHeight: 52,
+                  borderRadius: 12,
+                  borderWidth: 1,
+                  borderColor: "#262626",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  paddingHorizontal: 14,
+                  opacity: pressed ? 0.7 : 1,
+                })}
+              >
+                <View style={{ flex: 1, paddingVertical: 12, gap: 2 }}>
+                  <Text type="text-semibold">View workouts</Text>
+                  <Text type="text-detail" color="#9CA3AF">
+                    Browse every workout
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="View workout calendar"
+                onPress={() => router.push("/(authenticated)/wod-calendar")}
+                style={({ pressed }) => ({
+                  minHeight: 52,
+                  borderRadius: 12,
+                  borderWidth: 1,
+                  borderColor: "#262626",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  paddingHorizontal: 14,
+                  opacity: pressed ? 0.7 : 1,
+                })}
+              >
+                <View style={{ flex: 1, paddingVertical: 12, gap: 2 }}>
+                  <Text type="text-semibold">View workout calendar</Text>
+                  <Text type="text-detail" color="#9CA3AF">
+                    See the workout for each day
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
+              </Pressable>
+            </View>
           </>
         )}
 
