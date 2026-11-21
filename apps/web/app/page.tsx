@@ -1,7 +1,8 @@
 import Link from "next/link";
+import type { JSX } from "react";
 import { Text } from "../ui/components/Text";
 
-export default function Home() {
+export default function Home(): JSX.Element {
   return (
     <main className="min-h-svh flex justify-center px-4 py-12 sm:px-6">
       <article className="w-full max-w-[760px]">

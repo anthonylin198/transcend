@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type JSX } from "react";
 import { cn } from "../lib/cn";
 
 type MenuKey = "articles" | "apps";
@@ -81,7 +81,7 @@ function Dropdown({
   );
 }
 
-export function SiteHeader() {
+export function SiteHeader(): JSX.Element {
   const rootRef = useRef<HTMLElement | null>(null);
   const [open, setOpen] = useState<MenuKey | null>(null);
 
