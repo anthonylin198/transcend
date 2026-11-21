@@ -112,9 +112,7 @@ function MovementFields({
           Unit
           <input
             value={movement.unit ?? ""}
-            onChange={(event) =>
-              set({ unit: event.target.value || undefined })
-            }
+            onChange={(event) => set({ unit: event.target.value || undefined })}
             placeholder="m, cal, mile"
             className={fieldClass}
           />
@@ -265,7 +263,9 @@ export function WorkoutForm({ wod }: { wod: StoredWod }) {
       setSaved(true);
     } catch (saveError) {
       setError(
-        saveError instanceof Error ? saveError.message : "Could not save workout",
+        saveError instanceof Error
+          ? saveError.message
+          : "Could not save workout",
       );
     } finally {
       setSaving(false);
@@ -275,7 +275,10 @@ export function WorkoutForm({ wod }: { wod: StoredWod }) {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Link href="/workouts" className="text-sm text-zinc-400 hover:text-zinc-200">
+        <Link
+          href="/workouts"
+          className="text-sm text-zinc-400 hover:text-zinc-200"
+        >
           All workouts
         </Link>
         <button

@@ -1,7 +1,12 @@
 import { mutation } from "../_generated/server";
 import { v } from "convex/values";
 import { getCurrentProfileOrThrow } from "../lib/currentProfile";
-import { assertTitle, cleanSections, wodCategory, wodSection } from "../lib/wod";
+import {
+  assertTitle,
+  cleanSections,
+  wodCategory,
+  wodSection,
+} from "../lib/wod";
 
 export const updateWod = mutation({
   args: {

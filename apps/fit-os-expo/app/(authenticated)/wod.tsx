@@ -44,10 +44,7 @@ export default function WodScreen() {
           schedule.cycleStart,
         )
       : undefined;
-  const wodDoc = useQuery(
-    api.wods.getWod.getWod,
-    slug ? { slug } : "skip",
-  );
+  const wodDoc = useQuery(api.wods.getWod.getWod, slug ? { slug } : "skip");
   const wod = wodDoc ? toWod(wodDoc) : undefined;
   const loading = id
     ? wodDoc === undefined

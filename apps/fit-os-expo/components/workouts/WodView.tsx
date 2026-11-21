@@ -141,11 +141,7 @@ function DetailLine({
   );
 }
 
-function MovementRows({
-  movements,
-}: {
-  movements: readonly WodMovement[];
-}) {
+function MovementRows({ movements }: { movements: readonly WodMovement[] }) {
   return (
     <View>
       {movements.map((movement, index) => {
@@ -212,9 +208,7 @@ function VariantPicker({
   );
 }
 
-function protocolPills(
-  block: Extract<WodBlock, { type: "protocol" }>,
-) {
+function protocolPills(block: Extract<WodBlock, { type: "protocol" }>) {
   const pills: string[] = [];
   if (block.intervalSeconds != null) {
     pills.push(`Every ${minuteLabel(block.intervalSeconds)}`);
@@ -266,10 +260,7 @@ function WodBlockView({
       const pills = protocolPills(block);
       return (
         <View style={{ gap: 12 }}>
-          <Text
-            type="text-semibold"
-            style={{ fontSize: 20, lineHeight: 26 }}
-          >
+          <Text type="text-semibold" style={{ fontSize: 20, lineHeight: 26 }}>
             {block.label}
           </Text>
           {pills.length > 0 ? (
@@ -297,7 +288,9 @@ function WodBlockView({
               <DetailLine
                 key={index}
                 quantity={
-                  setColumn ? formatCell(setColumn.key, row[setColumn.key]) : null
+                  setColumn
+                    ? formatCell(setColumn.key, row[setColumn.key])
+                    : null
                 }
                 title={
                   titleColumn
@@ -367,7 +360,9 @@ function WodBlockView({
             ? `Complete within the ${block.timeCapSeconds / 60}-minute cap`
             : `Complete within ${formatClock(block.timeCapSeconds)}`;
       return (
-        <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 10 }}>
+        <View
+          style={{ flexDirection: "row", alignItems: "flex-start", gap: 10 }}
+        >
           <Ionicons
             name={block.metric === "time" ? "time-outline" : "repeat-outline"}
             size={16}
@@ -451,8 +446,7 @@ function WodSectionView({
             const variantKey = `${section.id}:${blockIndex}`;
             const selectedVariantId =
               block.type === "variants"
-                ? (selectedByKey[variantKey] ??
-                  defaultVariantId(block.options))
+                ? (selectedByKey[variantKey] ?? defaultVariantId(block.options))
                 : undefined;
             return (
               <WodBlockView

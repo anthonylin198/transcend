@@ -27,8 +27,7 @@ export default function SchedulePage() {
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
-  const cycleStart =
-    draft?.cycleStart ?? schedule?.cycleStart ?? "2026-11-16";
+  const cycleStart = draft?.cycleStart ?? schedule?.cycleStart ?? "2026-11-16";
   const wodSlugs = draft?.wodSlugs ?? schedule?.wodSlugs ?? [];
   const unchanged =
     schedule != null &&
