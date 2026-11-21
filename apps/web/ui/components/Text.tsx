@@ -1,4 +1,4 @@
-import type { ElementType, ReactNode } from "react";
+import type { ElementType, JSX, ReactNode } from "react";
 import { cn } from "../lib/cn";
 
 type TextType =
@@ -43,7 +43,7 @@ export function Text<T extends ElementType = ElementType>({
   as,
   className,
   children,
-}: TextProps<T>) {
+}: TextProps<T>): JSX.Element {
   const Component = (as ?? DEFAULT_ELEMENT[type]) as ElementType;
   return (
     <Component className={cn(TYPE_STYLES[type], className)}>

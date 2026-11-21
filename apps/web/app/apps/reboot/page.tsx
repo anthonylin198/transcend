@@ -1,7 +1,8 @@
 import Link from "next/link";
+import type { JSX } from "react";
 import { Text } from "../../../ui/components/Text";
 
-export default function RebootPage() {
+export default function RebootPage(): JSX.Element {
   return (
     <main className="min-h-svh flex justify-center px-4 py-16 sm:px-6 sm:py-24">
       <article className="w-full max-w-[760px]">

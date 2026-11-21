@@ -204,26 +204,50 @@ function FitnessDayPage({
           </Text>
         </Pressable>
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`Log workout for ${title}`}
-          onPress={() => setWorkoutOpen(true)}
-          style={({ pressed }) => ({
-            marginTop: 10,
-            minHeight: 52,
-            borderRadius: 10,
-            borderWidth: 1,
-            borderColor: "#374151",
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 6,
-            opacity: pressed ? 0.72 : 1,
-          })}
-        >
-          <Ionicons name="barbell-outline" size={20} color="#FFFFFF" />
-          <Text type="text-semibold">Log workout</Text>
-        </Pressable>
+        <View style={{ flexDirection: "row", gap: 10, marginTop: 10 }}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Log workout for ${title}`}
+            onPress={() => setWorkoutOpen(true)}
+            style={({ pressed }) => ({
+              flex: 1,
+              minHeight: 52,
+              borderRadius: 10,
+              borderWidth: 1,
+              borderColor: "#374151",
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 6,
+              opacity: pressed ? 0.72 : 1,
+            })}
+          >
+            <Ionicons name="barbell-outline" size={20} color="#FFFFFF" />
+            <Text type="text-semibold">Log workout</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="View workout of the day"
+            onPress={() =>
+              router.push({
+                pathname: "/(authenticated)/wod",
+                params: { date: dayKey },
+              })
+            }
+            style={({ pressed }) => ({
+              minHeight: 52,
+              paddingHorizontal: 14,
+              borderRadius: 10,
+              borderWidth: 1,
+              borderColor: "#374151",
+              alignItems: "center",
+              justifyContent: "center",
+              opacity: pressed ? 0.72 : 1,
+            })}
+          >
+            <Text type="text-semibold">View WOD</Text>
+          </Pressable>
+        </View>
 
         {weekAverage ? (
           <Pressable

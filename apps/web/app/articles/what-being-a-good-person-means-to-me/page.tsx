@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import type { JSX } from "react";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
@@ -8,7 +9,7 @@ export const metadata: Metadata = {
     "A personal note on what I mean by living with integrity, alignment, and care.",
 };
 
-export default function WhatBeingAGoodPersonMeansToMePage() {
+export default function WhatBeingAGoodPersonMeansToMePage(): JSX.Element {
   return (
     <div className={styles.page}>
       <main className={styles.main}>
