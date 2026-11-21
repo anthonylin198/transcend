@@ -1,11 +1,11 @@
-import { wods, type Wod } from "@/data/wods";
-
 /**
  * Six weeks, Monday through Sunday, then it repeats.
  * Monday is upper, Tuesday is lower, Wednesday is olympic.
  * Thursday through Sunday walk down the endurance list.
  * The cycle starts Monday, November 16, 2026.
  */
+export const WOD_CYCLE_START = "2026-11-16";
+
 export const wodSchedule = [
   "missing-monocle",
   "looney-toons",
@@ -56,35 +56,47 @@ export const wodSchedule = [
   "chad-1000x",
 ] as const;
 
-const CYCLE_START_UTC = Date.UTC(2026, 10, 16);
 const DAY_MS = 86_400_000;
 
-const wodsById = new Map(wods.map((wod) => [wod.id, wod]));
+function cycleStartUtc(cycleStart: string) {
+  const [year, month, day] = cycleStart.split("-").map(Number);
+  return Date.UTC(year, (month ?? 1) - 1, day ?? 1);
+}
 
-export function scheduleIndex(date: Date) {
+export function scheduleIndex(date: Date, length: number, cycleStart: string) {
+  if (length <= 0) return 0;
   const day = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
-  const offset = Math.floor((day - CYCLE_START_UTC) / DAY_MS);
-  const length = wodSchedule.length;
+  const offset = Math.floor((day - cycleStartUtc(cycleStart)) / DAY_MS);
   return ((offset % length) + length) % length;
 }
 
-export function scheduledWod(date: Date = new Date()): Wod | undefined {
-  return wodsById.get(wodSchedule[scheduleIndex(date)]);
+export function scheduledSlug(
+  wodSlugs: readonly string[],
+  date: Date,
+  cycleStart: string,
+) {
+  if (wodSlugs.length === 0) return undefined;
+  return wodSlugs[scheduleIndex(date, wodSlugs.length, cycleStart)];
 }
 
-export function cycleDays(anchor: Date = new Date()) {
+export function cycleDays(
+  wodSlugs: readonly string[],
+  cycleStart: string,
+  anchor: Date = new Date(),
+) {
+  if (wodSlugs.length === 0) return [];
   const start = new Date(
     anchor.getFullYear(),
     anchor.getMonth(),
-    anchor.getDate() - scheduleIndex(anchor),
+    anchor.getDate() - scheduleIndex(anchor, wodSlugs.length, cycleStart),
   );
 
-  return wodSchedule.map((id, offset) => ({
+  return wodSlugs.map((slug, offset) => ({
     date: new Date(
       start.getFullYear(),
       start.getMonth(),
       start.getDate() + offset,
     ),
-    wod: wodsById.get(id),
+    slug,
   }));
 }

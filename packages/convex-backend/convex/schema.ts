@@ -1,6 +1,7 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 import { authTables } from "@convex-dev/auth/server";
+import { wodCategory, wodSection } from "./lib/wod";
 
 export default defineSchema({
   ...authTables,
@@ -121,6 +122,27 @@ export default defineSchema({
     description: v.string(),
     createdAt: v.number(),
   }).index("by_profile_id_date", ["profileId", "date"]),
+  // Shared programmed workouts. The FitOS app and FitOS web both read these.
+  wods: defineTable({
+    slug: v.string(),
+    schemaVersion: v.number(),
+    title: v.string(),
+    category: wodCategory,
+    date: v.optional(v.string()),
+    sections: v.array(wodSection),
+    orderIndex: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_order", ["orderIndex"]),
+  // One repeating cycle. wodSlugs[0] is the workout on cycleStart.
+  wodSchedules: defineTable({
+    key: v.string(),
+    cycleStart: v.string(),
+    wodSlugs: v.array(v.string()),
+    updatedAt: v.number(),
+  }).index("by_key", ["key"]),
   // Daily step count written by the member's own device.
   dailyActivity: defineTable({
     profileId: v.id("profiles"),

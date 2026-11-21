@@ -10,7 +10,7 @@ import {
   type WodMovement,
   type WodSection,
   type WodVariant,
-} from "@/data/wods";
+} from "@/data/wod";
 
 const DEFAULT_VARIANT_ID = "standard";
 const lineColor = "#3A3A3C";

@@ -1,12 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
+import { api } from "@transcend/convex";
+import { useQuery } from "convex/react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Text from "@/components/ui/Text";
 import WodView from "@/components/workouts/WodView";
-import { wods } from "@/data/wods";
-import { scheduledWod } from "@/data/wodSchedule";
+import { toWod } from "@/data/wod";
+import { scheduledSlug } from "@/data/wodSchedule";
 import {
   addDays,
   parseLocalDateKey,
@@ -29,9 +31,27 @@ export default function WodScreen() {
     : dateKey
       ? parseLocalDateKey(dateKey)
       : new Date();
-  const wod = id
-    ? wods.find((entry) => entry.id === id)
-    : scheduledWod(selectedDate ?? new Date());
+  const schedule = useQuery(
+    api.wods.getWodSchedule.getWodSchedule,
+    id ? "skip" : {},
+  );
+  const slug = id
+    ? id
+    : schedule
+      ? scheduledSlug(
+          schedule.wodSlugs,
+          selectedDate ?? new Date(),
+          schedule.cycleStart,
+        )
+      : undefined;
+  const wodDoc = useQuery(
+    api.wods.getWod.getWod,
+    slug ? { slug } : "skip",
+  );
+  const wod = wodDoc ? toWod(wodDoc) : undefined;
+  const loading = id
+    ? wodDoc === undefined
+    : schedule === undefined || (slug != null && wodDoc === undefined);
 
   const dayKey = selectedDate ? toLocalDateKey(selectedDate) : null;
 
@@ -121,7 +141,7 @@ export default function WodScreen() {
             </View>
           ) : (
             <Text type="text-detail" color="#9CA3AF" style={{ marginTop: 8 }}>
-              No workout yet
+              {loading ? "Loading" : "No workout yet"}
             </Text>
           )}
         </View>

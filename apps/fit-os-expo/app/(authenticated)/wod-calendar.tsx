@@ -1,9 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
+import { api } from "@transcend/convex";
+import { useQuery } from "convex/react";
 import { useRouter } from "expo-router";
+import { useMemo } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Text from "@/components/ui/Text";
-import { wodCategoryLabels } from "@/data/wods";
+import { wodCategoryLabels } from "@/data/wod";
 import { cycleDays } from "@/data/wodSchedule";
 import { toLocalDateKey } from "@/utils/calorieWeek";
 
@@ -31,7 +34,18 @@ export default function WodCalendarScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const todayKey = toLocalDateKey(new Date());
-  const days = cycleDays(new Date());
+  const workouts = useQuery(api.wods.listWods.listWods);
+  const schedule = useQuery(api.wods.getWodSchedule.getWodSchedule);
+  const bySlug = useMemo(() => {
+    return new Map((workouts ?? []).map((wod) => [wod.slug, wod]));
+  }, [workouts]);
+  const days = schedule
+    ? cycleDays(schedule.wodSlugs, schedule.cycleStart).map((day) => ({
+        ...day,
+        wod: bySlug.get(day.slug),
+      }))
+    : [];
+  const loading = workouts === undefined || schedule === undefined;
   const weeks = Array.from({ length: days.length / 7 }, (_, index) =>
     days.slice(index * 7, index * 7 + 7),
   );
@@ -70,7 +84,11 @@ export default function WodCalendarScreen() {
             </Text>
           </View>
           <Text type="text-detail" color="#9CA3AF" style={{ marginTop: 8 }}>
-            This 6-week schedule repeats.
+            {loading
+              ? "Loading"
+              : days.length === 0
+                ? "No schedule yet"
+                : "This schedule repeats."}
           </Text>
 
           {weeks.map((week) => {

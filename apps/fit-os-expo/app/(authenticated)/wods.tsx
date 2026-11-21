@@ -1,13 +1,16 @@
 import { Ionicons } from "@expo/vector-icons";
+import { api } from "@transcend/convex";
+import { useQuery } from "convex/react";
 import { useRouter } from "expo-router";
 import { Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Text from "@/components/ui/Text";
-import { formatWodDate, wodCategoryLabels, wods } from "@/data/wods";
+import { formatWodDate, wodCategoryLabels } from "@/data/wod";
 
 export default function WodsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const wods = useQuery(api.wods.listWods.listWods);
 
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>
@@ -43,21 +46,21 @@ export default function WodsScreen() {
             </Text>
           </View>
 
-          {wods.length === 0 ? (
+          {wods === undefined || wods.length === 0 ? (
             <Text type="text-detail" color="#9CA3AF" style={{ marginTop: 8 }}>
-              No workouts yet
+              {wods === undefined ? "Loading" : "No workouts yet"}
             </Text>
           ) : (
             <View style={{ marginTop: 8 }}>
               {wods.map((wod) => (
                 <Pressable
-                  key={wod.id}
+                  key={wod.slug}
                   accessibilityRole="button"
                   accessibilityLabel={`${wod.title}, ${wodCategoryLabels[wod.category]}`}
                   onPress={() =>
                     router.push({
                       pathname: "/(authenticated)/wod",
-                      params: { id: wod.id },
+                      params: { id: wod.slug },
                     })
                   }
                   style={({ pressed }) => ({
