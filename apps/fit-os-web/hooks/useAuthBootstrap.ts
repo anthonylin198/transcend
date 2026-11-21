@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { api, useConvexAuth, useMutation } from "@transcend/convex";
 
 type BootStatus = "unauthenticated" | "loading" | "ready";
@@ -8,29 +8,32 @@ type BootStatus = "unauthenticated" | "loading" | "ready";
 export function useAuthBootstrap() {
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
   const ensureProfile = useMutation(api.profile.ensureProfile);
-  const ensured = useRef(false);
-  const [profileReady, setProfileReady] = useState(false);
+  const signedIn = !authLoading && isAuthenticated;
+  const [session, setSession] = useState({ signedIn, ready: false });
+
+  if (session.signedIn !== signedIn) {
+    setSession({ signedIn, ready: false });
+  }
 
   useEffect(() => {
-    if (!isAuthenticated || authLoading) {
-      ensured.current = false;
-      setProfileReady(false);
-      return;
-    }
-    if (ensured.current) return;
-    ensured.current = true;
+    if (!signedIn) return;
+    let cancelled = false;
     void ensureProfile({})
-      .then(() => setProfileReady(true))
+      .then(() => {
+        if (!cancelled) setSession({ signedIn: true, ready: true });
+      })
       .catch((error) => {
-        ensured.current = false;
         console.warn("Failed to ensure profile during auth bootstrap", error);
       });
-  }, [authLoading, ensureProfile, isAuthenticated]);
+    return () => {
+      cancelled = true;
+    };
+  }, [ensureProfile, signedIn]);
 
   let status: BootStatus = "loading";
-  if (!authLoading && !isAuthenticated) {
+  if (!signedIn && !authLoading) {
     status = "unauthenticated";
-  } else if (!authLoading && isAuthenticated && profileReady) {
+  } else if (signedIn && session.ready) {
     status = "ready";
   }
 

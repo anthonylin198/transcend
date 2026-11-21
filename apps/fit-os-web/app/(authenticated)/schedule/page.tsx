@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { api, useMutation, useQuery } from "@transcend/convex";
 import { wodCategoryLabels } from "@/lib/wod";
 
@@ -33,13 +33,10 @@ export default function SchedulePage() {
     schedule != null &&
     cycleStart === schedule.cycleStart &&
     wodSlugs.join("\n") === schedule.wodSlugs.join("\n");
-  const weeks = useMemo(() => {
-    const groups: string[][] = [];
-    for (let index = 0; index < wodSlugs.length; index += 7) {
-      groups.push(wodSlugs.slice(index, index + 7));
-    }
-    return groups;
-  }, [wodSlugs]);
+  const weeks: string[][] = [];
+  for (let index = 0; index < wodSlugs.length; index += 7) {
+    weeks.push(wodSlugs.slice(index, index + 7));
+  }
 
   const setSlug = (index: number, slug: string) => {
     const next = [...wodSlugs];
